@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bundle exec rails server -b 0.0.0.0 -p 3000
+    volumes:
+      - .:/app
+      - bundle_cache:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:postgres@db:5432/raincoat_dev
+      # Optional: force binding for web console in dev
+      WEB_CONSOLE_WHITELISTED_IPS: 0.0.0.0/0
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: raincoat_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  bundle_cache:
+  pg_data:
