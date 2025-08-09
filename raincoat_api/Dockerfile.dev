@@ -1,13 +1,17 @@
-# Dockerfile
+# Dockerfile.dev
 FROM ruby:3.4.5-slim
 
 # Install system dependencies
 RUN apt-get update -qq && apt-get install -y \
+    build-essential \
     postgresql-client \
+    libpq-dev \
     imagemagick \
     libvips42 \
     nodejs \
     yarn \
+    git \
+    vim \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -16,17 +20,15 @@ WORKDIR /app
 # Install bundler
 RUN gem install bundler:2.4.10
 
-ENV RAILS_ENV=development 
+ENV RAILS_ENV=development \
+    BUNDLE_PATH=/gems
 
-# Copy Gemfile and install gems
+# Copy Gemfile and Gemfile.lock first to cache bundle install
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
-# Copy application code
-COPY . .
-
-# Expose port
+# Expose Rails port
 EXPOSE 3000
 
-# Default command
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "3000"]
+# By default, just run bash — docker-compose will override this in dev
+CMD ["bash"]
