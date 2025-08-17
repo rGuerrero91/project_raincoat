@@ -4,6 +4,7 @@ FROM ruby:3.4.5-slim
 # Install system dependencies
 RUN apt-get update -qq && apt-get install -y \
     build-essential \
+    libyaml-dev \
     postgresql-client \
     libpq-dev \
     imagemagick \
@@ -27,8 +28,10 @@ ENV RAILS_ENV=development \
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
+COPY . .
 # Expose Rails port
 EXPOSE 3000
 
 # By default, just run bash — docker-compose will override this in dev
-CMD ["bash"]
+# CMD ["bash"]
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "3000"]
