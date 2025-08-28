@@ -1,5 +1,29 @@
 services:
-  web:
+  db:
+    image: pgvector/pgvector:pg15
+    environment:
+      POSTGRES_DB: raincoat_development
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  rails:
     build:
       context: ./raincoat_api
       dockerfile: Dockerfile.dev
@@ -10,24 +34,18 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/raincoat_development
+      REDIS_URL: redis://redis:6379/0
       RAILS_ENV: development
-      DATABASE_URL: postgres://postgres:postgres@db:5432/raincoat_dev
-      # Optional: force binding for web console in dev
-      WEB_CONSOLE_WHITELISTED_IPS: 0.0.0.0/0
-
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: raincoat_dev
-    ports:
-      - "5432:5432"
-    volumes:
-      - pg_data:/var/lib/postgresql/data
+    stdin_open: true
+    tty: true
 
 volumes:
+  postgres_data:
+  redis_data:
   bundle_cache:
-  pg_data:
