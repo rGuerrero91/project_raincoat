@@ -1,0 +1,2 @@
+class ClothingEmbedding < ApplicationRecord
+end
