@@ -3,7 +3,7 @@ services:
   db:
     image: pgvector/pgvector:pg15
     environment:
-      POSTGRES_DB: raincoat_development
+      POSTGRES_DB: raincoat_api_development
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
@@ -23,7 +23,8 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-
+      
+  # Rails docker environment omitted to simplify development. May reinstate once team starts to scale. 
   # rails:
   #   build:
   #     context: ./raincoat_api
@@ -40,7 +41,7 @@ services:
   #     redis:
   #       condition: service_started
   #   environment:
-  #     DATABASE_URL: postgresql://postgres:password@db:5432/raincoat_development
+  #     DATABASE_URL: postgresql://postgres:password@db:5432/raincoat_api_development
   #     REDIS_URL: redis://redis:6379/0
   #     RAILS_ENV: development
   #   stdin_open: true

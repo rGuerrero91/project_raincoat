@@ -25,10 +25,24 @@ A modern, AI-powered weather-based outfit recommendation app. Upload your wardro
 ## Quick Start
 
 ### Prerequisites
+- Ruby 3.4.5 (use rbenv, rvm, or asdf)
 - Docker Desktop
 - Git
 
-### Development Setup
+### Ruby Installation
+Using rbenv:
+```bash
+rbenv install 3.4.5
+rbenv local 3.4.5
+```
+
+Using rvm:
+```bash
+rvm install 3.4.5
+rvm use 3.4.5
+```
+
+### Development Setup (Hybrid Approach)
 
 1. **Clone the repository**
    ```bash
@@ -36,22 +50,45 @@ A modern, AI-powered weather-based outfit recommendation app. Upload your wardro
    cd project_raincoat
    ```
 
-2. **Start the development environment**
+2. **Start services (PostgreSQL + Redis)**
+   ```bash
+   docker compose -f docker-compose.services.yaml up -d
+   ```
+
+3. **Setup Rails API**
+   ```bash
+   cd raincoat_api
+   bundle install
+   bundle exec rails db:create
+   bundle exec rails db:migrate
+   bundle exec rails db:seed
+   ```
+
+4. **Start Rails server**
+   ```bash
+   bundle exec rails server
+   ```
+
+5. **Access the application**
+   - Rails API: http://localhost:3000
+   - PostgreSQL: localhost:5432
+   - Redis: localhost:6379
+
+### Full Docker Setup (Alternative)
+
+For consistent environments across machines or when you prefer full containerization:
+
+1. **Start the full development environment**
    ```bash
    docker compose -f docker-compose.dev.yaml up
    ```
 
-3. **Set up the database** (first time only)
+2. **Set up the database** (first time only)
    ```bash
    docker compose -f docker-compose.dev.yaml exec rails bundle exec rails db:create
    docker compose -f docker-compose.dev.yaml exec rails db:migrate
    docker compose -f docker-compose.dev.yaml exec rails db:seed
    ```
-
-4. **Access the application**
-   - Rails API: http://localhost:3000
-   - PostgreSQL: localhost:5432
-   - Redis: localhost:6379
 
 ### Environment Reset
 If you encounter issues or need a fresh start:
@@ -77,13 +114,16 @@ project_raincoat/
 │   │   └── services/       # Business logic
 │   ├── config/             # Rails configuration
 │   ├── db/                 # Database migrations & seeds
+│   ├── Gemfile            # Ruby dependencies
 │   └── Dockerfile.dev      # Development Docker image
 ├── raincoat_frontend/      # Next.js frontend (planned)
 ├── scripts/                # Utility scripts
 │   ├── reset_docker.ps1    # Windows Docker reset
 │   └── reset_docker.sh     # Unix Docker reset
 ├── init.sql               # PostgreSQL initialization
-├── docker-compose.dev.yaml # Development environment
+├── .ruby-version          # Ruby version specification
+├── docker-compose.dev.yaml      # Full Docker development
+├── docker-compose.services.yaml # Services-only Docker
 └── README.md              # This file
 ```
 
@@ -99,7 +139,28 @@ project_raincoat/
 
 ## Development Commands
 
-### Rails Commands
+### Rails Commands (Hybrid Approach)
+```bash
+# Navigate to Rails directory
+cd raincoat_api
+
+# Generate models, controllers, etc.
+bundle exec rails generate model User
+
+# Run migrations
+bundle exec rails db:migrate
+
+# Rails console
+bundle exec rails console
+
+# Run tests
+bundle exec rspec
+
+# Start server
+bundle exec rails server
+```
+
+### Rails Commands (Full Docker)
 ```bash
 # Generate models, controllers, etc.
 docker compose -f docker-compose.dev.yaml exec rails bundle exec rails generate model User
@@ -116,41 +177,54 @@ docker compose -f docker-compose.dev.yaml exec rails bundle exec rspec
 
 ### Docker Commands
 ```bash
-# Start services
+# Start services only (hybrid approach)
+docker compose -f docker-compose.services.yaml up -d
+
+# Start full environment
 docker compose -f docker-compose.dev.yaml up
 
-# Start in background
-docker compose -f docker-compose.dev.yaml up -d
-
 # Stop services
+docker compose -f docker-compose.services.yaml down
 docker compose -f docker-compose.dev.yaml down
 
 # View logs
 docker compose -f docker-compose.dev.yaml logs rails
 
-# Rebuild after Gemfile changes
+# Rebuild after Dockerfile changes
 docker compose -f docker-compose.dev.yaml up --build
 ```
 
 ## Testing
 
+### Hybrid Approach
+```bash
+cd raincoat_api
+
+# Run full test suite
+bundle exec rspec
+
+# Run specific test file
+bundle exec rspec spec/models/user_spec.rb
+
+# Run with coverage
+bundle exec rspec --format documentation
+```
+
+### Full Docker
 ```bash
 # Run full test suite
 docker compose -f docker-compose.dev.yaml exec rails bundle exec rspec
 
 # Run specific test file
 docker compose -f docker-compose.dev.yaml exec rails bundle exec rspec spec/models/user_spec.rb
-
-# Run with coverage
-docker compose -f docker-compose.dev.yaml exec rails bundle exec rspec --format documentation
 ```
 
 ## Environment Variables
 
 ### Required for Development
 ```env
-DATABASE_URL=postgresql://postgres:password@db:5432/raincoat_development
-REDIS_URL=redis://redis:6379/0
+DATABASE_URL=postgresql://postgres:password@localhost:5432/raincoat_development
+REDIS_URL=redis://localhost:6379/0
 RAILS_ENV=development
 ```
 
@@ -194,7 +268,7 @@ REDIS_URL=<production-redis-url>
 ## Development Roadmap
 
 ### Phase 1: Foundation
-- Project setup and Docker environment
+- Project setup and development environment
 - Rails API scaffolding and database setup
 - Authentication system implementation
 - Core data models and migrations
@@ -239,38 +313,44 @@ This project is private and proprietary.
 
 ### Common Issues
 
+**Ruby version mismatch:**
+```bash
+# Check current Ruby version
+ruby --version
+
+# Install correct version with rbenv
+rbenv install 3.4.5
+rbenv local 3.4.5
+
+# Or with rvm
+rvm install 3.4.5
+rvm use 3.4.5
+```
+
 **Database connection errors:**
 ```bash
-# Check if database is running
-docker compose -f docker-compose.dev.yaml ps
+# Check if services are running
+docker compose -f docker-compose.services.yaml ps
 
-# Reset database
-./scripts/reset_docker.sh  # or .ps1 for Windows
+# Restart services
+docker compose -f docker-compose.services.yaml restart
 ```
 
 **Gem installation issues:**
 ```bash
-# Clear bundle cache and rebuild
-docker compose -f docker-compose.dev.yaml down
-docker volume rm project_raincoat_bundle_cache
-docker compose -f docker-compose.dev.yaml up --build
+cd raincoat_api
+bundle install
 ```
 
 **Port conflicts:**
-Edit `docker-compose.dev.yaml` to change port mappings if 3000, 5432, or 6379 are in use.
+Edit `docker-compose.services.yaml` to change port mappings if 5432 or 6379 are in use.
 
 ### Getting Help
 
-- Check the Docker logs: `docker compose -f docker-compose.dev.yaml logs [service-name]`
-- Verify all containers are healthy: `docker compose -f docker-compose.dev.yaml ps`
+- Check service logs: `docker compose -f docker-compose.services.yaml logs db`
+- Verify containers are healthy: `docker compose -f docker-compose.services.yaml ps`
 - Use the reset scripts for a fresh start
 
 ---
 
 Built for weather-conscious fashion lovers
-Docker Commands for a fresh Container:
-# When you need a completely fresh environment:
-./scripts/reset_docker.sh  # or .\scripts\reset_docker.ps1
-# Regular development restart:
-docker compose -f docker-compose.dev.yaml down
-docker compose -f docker-compose.dev.yaml up
