@@ -32,7 +32,7 @@ A modern, AI-powered weather-based outfit recommendation app. Upload your wardro
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone github.com/rGuerrero91/project_raincoat
    cd project_raincoat
    ```
 
@@ -66,7 +66,7 @@ If you encounter issues or need a fresh start:
 ./scripts/reset_docker.sh
 ```
 
-## Project Structure
+## Structure
 
 ```
 project_raincoat/
