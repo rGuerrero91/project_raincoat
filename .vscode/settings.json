@@ -1,0 +1,5 @@
+{
+    "ruby.rubocop.configFilePath": "",
+    "ruby.rubocop.executePath": "\"ruby.rubocop.executePath\": \"\"",
+     "ruby.rubocop.onSave": true
+}

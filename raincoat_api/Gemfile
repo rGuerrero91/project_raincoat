@@ -51,6 +51,9 @@ gem 'devise-jwt'
 
 gem 'redis', '~> 4.0' # for caching
 
+gem 'rubocop' # rails code formatting
+
+
 gem 'httparty' # for API calls
 
 gem 'neighbor' # for pgvector
