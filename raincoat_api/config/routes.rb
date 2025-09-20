@@ -8,13 +8,12 @@ Rails.application.routes.draw do
   post '/signup', to: 'users#create'
   get '/login', to: 'sessions#new'
   post '/login', to: 'sessions#create'
-  delete '/logout', to: 'sessions#destroy'
+  get '/logout', to: 'sessions#destroy'  # Changed to GET
   
   # Main wardrobe interface (this creates clothing_pieces_path)
   resources :clothing_pieces, path: 'wardrobe' do
     member do
       post 'upload_embedding'  # For POC: manual embedding upload
-      get 'similar'           # Show similar items
     end
   end
   
