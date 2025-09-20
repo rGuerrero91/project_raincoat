@@ -2,7 +2,7 @@
 class ClothingPiece < ApplicationRecord
   belongs_to :user
   has_one :clothing_embedding, dependent: :destroy
-  has_many_attached :images
+  has_many_attached :images 
   
   validates :name, presence: true
   validates :category, presence: true, inclusion: { 
@@ -14,33 +14,19 @@ class ClothingPiece < ApplicationRecord
   def similar_pieces(limit: 10)
     return [] unless clothing_embedding&.vector_data
     
-    # Find similar items using pgvector cosine similarity
-    embedding_vector = clothing_embedding.vector_data
+    similar_embeddings = clothing_embedding.similar_embeddings(limit: limit)
     
-    similar_embeddings = ClothingEmbedding
-      .joins(:clothing_piece)
-      .where.not(clothing_piece_id: id)
-      .where(clothing_pieces: { user_id: user_id })
-      .order(Arel.sql("vector_data <=> '#{embedding_vector}'"))
-      .limit(limit)
-      .includes(:clothing_piece)
-    
-    # Return array of [clothing_piece, similarity_score] pairs
     similar_embeddings.map do |embedding|
-      similarity = calculate_similarity(embedding_vector, embedding.vector_data)
-      [embedding.clothing_piece, similarity]
+      similarity_score = clothing_embedding.similarity_to(embedding)
+      [embedding.clothing_piece, similarity_score]
     end
   end
   
-  private
+  def has_embedding?
+    clothing_embedding.present?
+  end
   
-  def calculate_similarity(vector1, vector2)
-    # Cosine similarity calculation (pgvector <=> returns distance, so convert to similarity)
-    distance = ActiveRecord::Base.connection.execute(
-      "SELECT '#{vector1}' <=> '#{vector2}' as distance"
-    ).first['distance'].to_f
-    
-    # Convert distance to similarity (1 - distance for cosine)
-    [1 - distance, 0].max
+  def embedding_confidence
+    clothing_embedding&.confidence_score
   end
 end

@@ -27,7 +27,7 @@ class ClothingEmbedding < ApplicationRecord
     
     # Calculate cosine similarity (1 - cosine distance)
     distance = ActiveRecord::Base.connection.execute(
-      "SELECT '#{vector_data}' <=> '#{other_embedding.vector_data}' as distance"
+      "SELECT '#{vector_data}'::vector <=> '#{other_embedding.vector_data}'::vector as distance"
     ).first['distance'].to_f
     
     # Convert distance to similarity percentage
@@ -57,7 +57,7 @@ class ClothingEmbedding < ApplicationRecord
     ClothingEmbedding
       .joins(:clothing_piece)
       .where(clothing_pieces: { user_id: user_id })
-      .order(Arel.sql("vector_data <=> '#{vector_string}'"))
+      .order(Arel.sql("vector_data <=> '#{vector_string}'::vector"))
       .limit(limit)
       .includes(:clothing_piece)
   end
