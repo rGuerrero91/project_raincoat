@@ -46,8 +46,8 @@ class ClothingPiecesController < ApplicationController
   end
   
   def similar
+    @embedding = @clothing_piece.clothing_embedding
     @similar_pieces = @clothing_piece.similar_pieces(limit: 10)
-    render :show
   end
   
   private
