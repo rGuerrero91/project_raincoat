@@ -34,7 +34,7 @@
     <h1>Raincoat POC - My Wardrobe</h1>
     <div>
       Welcome, <%= current_user.name %>! 
-      <%= link_to "Logout", logout_path, method: :get, style: "margin-left: 10px;" %>
+      <%= link_to "Logout", logout_path, method: :delete, style: "margin-left: 10px;" %>
     </div>
   </div>
   
@@ -127,11 +127,6 @@
             
             <div class="actions">
               <%= link_to "View", piece %>
-              <% unless piece.clothing_embedding %>
-                <%= link_to "Add Embedding", piece, style: "background: #28a745;" %>
-              <% else %>
-                <%= link_to "Find Similar", similar_clothing_piece_path(piece), style: "background: #17a2b8;" %>
-              <% end %>
             </div>
           </div>
         </div>
