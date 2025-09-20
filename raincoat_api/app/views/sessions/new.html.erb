@@ -1,0 +1,48 @@
+<!-- app/views/sessions/new.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Raincoat POC - Log In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input[type="email"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #005a87; }
+    .error { color: red; font-size: 14px; }
+    .notice { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+    .alert { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+    .auth-links { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h1>Raincoat POC - Log In</h1>
+  
+  <% if notice %>
+    <div class="notice"><%= notice %></div>
+  <% end %>
+  
+  <% if alert %>
+    <div class="alert"><%= alert %></div>
+  <% end %>
+  
+  <%= form_with url: login_path, local: true do |f| %>
+    <div class="form-group">
+      <%= label_tag :email %>
+      <%= email_field_tag :email, params[:email], required: true, placeholder: "Enter your email address" %>
+    </div>
+    
+    <%= submit_tag "Log In", class: "button" %>
+  <% end %>
+  
+  <div class="auth-links">
+    <p><a href="<%= signup_path %>">Don't have an account? Sign up</a></p>
+  </div>
+  
+  <div style="margin-top: 30px; padding: 15px; background: #e7f3ff; border-radius: 4px;">
+    <strong>POC Note:</strong> This is a simplified login - just enter any email address that you used when signing up. No password required for this proof of concept.
+  </div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!-- app/views/users/new.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Raincoat POC - Sign Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input[type="text"], input[type="email"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #005a87; }
+    .error { color: red; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Raincoat POC - Create Account</h1>
+  
+  <%= form_with model: @user, url: signup_path, local: true do |f| %>
+    <% if @user.errors.any? %>
+      <div class="error">
+        <ul>
+          <% @user.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <div class="form-group">
+      <%= f.label :name %>
+      <%= f.text_field :name, required: true %>
+    </div>
+    
+    <div class="form-group">
+      <%= f.label :email %>
+      <%= f.email_field :email, required: true %>
+    </div>
+    
+    <%= f.submit "Create Account", class: "button" %>
+  <% end %>
+  
+  <p><a href="<%= login_path %>">Already have an account? Log in</a></p>
+</body>
+</html>

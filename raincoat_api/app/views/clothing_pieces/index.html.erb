@@ -1,0 +1,144 @@
+<!-- app/views/clothing_pieces/index.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Raincoat POC - My Wardrobe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .upload-form { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input, select, textarea { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    input[type="text"], input[type="file"], select, textarea { width: 100%; }
+    button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #005a87; }
+    .pieces-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .piece-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: white; }
+    .piece-image { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; }
+    .piece-info h3 { margin: 0 0 10px 0; }
+    .piece-meta { font-size: 14px; color: #666; margin: 5px 0; }
+    .embedding-status { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .has-embedding { background: #d4edda; color: #155724; }
+    .no-embedding { background: #f8d7da; color: #721c24; }
+    .actions { margin-top: 10px; }
+    .actions a { display: inline-block; padding: 5px 10px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-right: 5px; font-size: 12px; }
+    .actions a:hover { background: #5a6268; }
+    .notice { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+    .alert { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Raincoat POC - My Wardrobe</h1>
+    <div>
+      Welcome, <%= current_user.name %>! 
+      <%= link_to "Logout", logout_path, method: :get, style: "margin-left: 10px;" %>
+    </div>
+  </div>
+  
+  <% if notice %>
+    <div class="notice"><%= notice %></div>
+  <% end %>
+  
+  <% if alert %>
+    <div class="alert"><%= alert %></div>
+  <% end %>
+  
+  <!-- Upload Form -->
+  <div class="upload-form">
+    <h2>Upload New Clothing Item</h2>
+    <%= form_with model: @clothing_piece, local: true, multipart: true do |f| %>
+      <% if @clothing_piece.errors.any? %>
+        <div class="alert">
+          <ul>
+            <% @clothing_piece.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      
+      <div class="form-group">
+        <%= f.label :name %>
+        <%= f.text_field :name, placeholder: "e.g., Blue Cotton T-Shirt", required: true %>
+      </div>
+      
+      <div class="form-group">
+        <%= f.label :category %>
+        <%= f.select :category, 
+            options_for_select([
+              ['Tops', 'tops'],
+              ['Bottoms', 'bottoms'], 
+              ['Outerwear', 'outerwear'],
+              ['Shoes', 'shoes'],
+              ['Accessories', 'accessories']
+            ], @clothing_piece.category), 
+            { prompt: 'Select Category' }, 
+            { required: true } %>
+      </div>
+      
+      <div class="form-group">
+        <%= f.label :description %>
+        <%= f.text_area :description, rows: 3, placeholder: "Describe the item..." %>
+      </div>
+      
+      <div class="form-group">
+        <%= f.label :brand %>
+        <%= f.text_field :brand, placeholder: "e.g., Nike, H&M, etc." %>
+      </div>
+      
+      <div class="form-group">
+        <%= f.label :images, "Upload Images" %>
+        <%= f.file_field :images, multiple: true, accept: "image/*" %>
+      </div>
+      
+      <%= f.submit "Upload Item", class: "button" %>
+    <% end %>
+  </div>
+  
+  <!-- Items Grid -->
+  <h2>My Items (<%= @clothing_pieces.count %>)</h2>
+  
+  <% if @clothing_pieces.any? %>
+    <div class="pieces-grid">
+      <% @clothing_pieces.each do |piece| %>
+        <div class="piece-card">
+          <% if piece.images.attached? %>
+            <%= image_tag piece.images.first, class: "piece-image", alt: piece.name %>
+          <% else %>
+            <div class="piece-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;">
+              No Image
+            </div>
+          <% end %>
+          
+          <div class="piece-info">
+            <h3><%= piece.name %></h3>
+            <div class="piece-meta">Category: <%= piece.category&.humanize %></div>
+            <div class="piece-meta">Brand: <%= piece.brand || 'Not specified' %></div>
+            <div class="piece-meta">
+              <% if piece.clothing_embedding %>
+                <span class="embedding-status has-embedding">Has Embedding</span>
+              <% else %>
+                <span class="embedding-status no-embedding">No Embedding</span>
+              <% end %>
+            </div>
+            
+            <div class="actions">
+              <%= link_to "View", piece %>
+              <% unless piece.clothing_embedding %>
+                <%= link_to "Add Embedding", piece, style: "background: #28a745;" %>
+              <% else %>
+                <%= link_to "Find Similar", similar_clothing_piece_path(piece), style: "background: #17a2b8;" %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p>No clothing items yet. Upload your first item above!</p>
+  <% end %>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!-- app/views/clothing_pieces/show.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Raincoat POC - <%= @clothing_piece.name %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .back-link { margin-bottom: 20px; }
+    .back-link a { color: #007cba; text-decoration: none; }
+    .piece-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+    .piece-image { width: 100%; max-width: 400px; border-radius: 8px; }
+    .piece-info h1 { margin: 0 0 20px 0; }
+    .meta-item { margin: 10px 0; }
+    .meta-label { font-weight: bold; color: #666; }
+    .embedding-form { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #005a87; }
+    .embedding-status { padding: 10px; border-radius: 4px; margin: 10px 0; }
+    .has-embedding { background: #d4edda; color: #155724; }
+    .no-embedding { background: #f8d7da; color: #721c24; }
+    .similar-items { margin-top: 30px; }
+    .similar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .similar-item { border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; }
+    .similar-image { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 8px; }
+    .similarity-score { font-size: 12px; color: #666; font-weight: bold; }
+    .notice { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+    .alert { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="back-link">
+    <a href="<%= clothing_pieces_path %>">&larr; Back to Wardrobe</a>
+  </div>
+  
+  <% if notice %>
+    <div class="notice"><%= notice %></div>
+  <% end %>
+  
+  <% if alert %>
+    <div class="alert"><%= alert %></div>
+  <% end %>
+  
+  <div class="piece-detail">
+    <div>
+      <% if @clothing_piece.images.attached? %>
+        <%= image_tag @clothing_piece.images.first, class: "piece-image", alt: @clothing_piece.name %>
+      <% else %>
+        <div class="piece-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; height: 300px;">
+          No Image
+        </div>
+      <% end %>
+    </div>
+    
+    <div class="piece-info">
+      <h1><%= @clothing_piece.name %></h1>
+      
+      <div class="meta-item">
+        <span class="meta-label">Category:</span> <%= @clothing_piece.category&.humanize %>
+      </div>
+      
+      <div class="meta-item">
+        <span class="meta-label">Brand:</span> <%= @clothing_piece.brand || 'Not specified' %>
+      </div>
+      
+      <% if @clothing_piece.description.present? %>
+        <div class="meta-item">
+          <span class="meta-label">Description:</span> <%= @clothing_piece.description %>
+        </div>
+      <% end %>
+      
+      <div class="meta-item">
+        <span class="meta-label">Uploaded:</span> <%= @clothing_piece.created_at.strftime("%B %d, %Y") %>
+      </div>
+      
+      <!-- Embedding Status -->
+      <% if @embedding %>
+        <div class="embedding-status has-embedding">
+          <strong>Embedding Available</strong><br>
+          Model: <%= @embedding.model_version %><br>
+          <% if @embedding.confidence_score %>
+            Confidence: <%= (@embedding.confidence_score * 100).round(1) %>%<br>
+          <% end %>
+          Generated: <%= @embedding.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+        </div>
+      <% else %>
+        <div class="embedding-status no-embedding">
+          <strong>No Embedding Available</strong><br>
+          Upload an embedding vector to enable similarity search.
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <!-- Embedding Upload Form (for POC testing) -->
+  <% unless @embedding %>
+    <div class="embedding-form">
+      <h3>Upload Embedding (POC Testing)</h3>
+      <p>For testing: paste a comma-separated list of 512 floating point numbers representing the TinyCLIP embedding.</p>
+      
+      <%= form_with url: upload_embedding_clothing_piece_path(@clothing_piece), method: :post, local: true do |f| %>
+        <div class="form-group">
+          <%= label_tag :vector_data, "Embedding Vector (512 values)" %>
+          <%= text_area_tag :vector_data, "", rows: 4, placeholder: "0.123, -0.456, 0.789, ... (512 comma-separated values)" %>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :model_version, "Model Version" %>
+          <%= text_field_tag :model_version, "tinyclip-1.0" %>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :confidence_score, "Confidence Score (0-1)" %>
+          <%= number_field_tag :confidence_score, "0.85", step: 0.01, min: 0, max: 1 %>
+        </div>
+        
+        <%= submit_tag "Upload Embedding", class: "button" %>
+      <% end %>
+      
+      <p><small><strong>Sample vector for testing:</strong><br>
+      <%= Array.new(512) { rand(-1.0..1.0).round(3) }.join(', ')[0..100] %>...</small></p>
+    </div>
+  <% end %>
+  
+  <!-- Similar Items -->
+  <% if @embedding && @similar_pieces&.any? %>
+    <div class="similar-items">
+      <h3>Similar Items</h3>
+      <div class="similar-grid">
+        <% @similar_pieces.each do |similar_piece, similarity| %>
+          <div class="similar-item">
+            <% if similar_piece.images.attached? %>
+              <%= image_tag similar_piece.images.first, class: "similar-image", alt: similar_piece.name %>
+            <% else %>
+              <div class="similar-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;">
+                No Image
+              </div>
+            <% end %>
+            <div><strong><%= similar_piece.name %></strong></div>
+            <div class="similarity-score"><%= (similarity * 100).round(1) %>% similar</div>
+            <div><%= link_to "View", similar_piece, style: "font-size: 12px;" %></div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</body>
+</html>
