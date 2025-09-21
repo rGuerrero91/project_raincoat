@@ -394,4 +394,4 @@ puts "Email: test@example.com (#{test_user.clothing_pieces.count} items)"
 puts "Email: demo@example.com (#{demo_user.clothing_pieces.count} items)"
 puts "Email: rudy@email.com (#{rudy_user.clothing_pieces.count} items)"
 
-puts "\nSeed data complete! 🎉"
+puts "\nSeed data complete! "

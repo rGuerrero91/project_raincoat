@@ -156,7 +156,7 @@
         const loadTime = Math.round(performance.now() - modelLoadStart);
         
         // Update UI
-        document.getElementById('modelStatus').innerHTML = '✅ CLIP vision model loaded successfully';
+        document.getElementById('modelStatus').innerHTML = ' CLIP vision model loaded successfully';
         document.getElementById('modelStatus').className = 'status success';
         document.getElementById('loadTime').textContent = loadTime;
         document.getElementById('modelSize').textContent = '~90'; // CLIP model size
@@ -167,7 +167,7 @@
         
       } catch (error) {
         console.error('Failed to load model:', error);
-        document.getElementById('modelStatus').innerHTML = '❌ Failed to load model: ' + error.message;
+        document.getElementById('modelStatus').innerHTML = ' Failed to load model: ' + error.message;
         document.getElementById('modelStatus').className = 'status error';
       }
     }
@@ -388,14 +388,14 @@
         });
         
         if (response.ok) {
-          resultDiv.innerHTML = '<div class="status success">✅ Real embedding saved successfully!</div>';
+          resultDiv.innerHTML = '<div class="status success"> Real embedding saved successfully!</div>';
         } else {
           throw new Error('Failed to save embedding');
         }
         
       } catch (error) {
         console.error('Failed to send to Rails:', error);
-        resultDiv.innerHTML = '<div class="status error">❌ Failed to save embedding</div>';
+        resultDiv.innerHTML = '<div class="status error"> Failed to save embedding</div>';
       }
     }
     
