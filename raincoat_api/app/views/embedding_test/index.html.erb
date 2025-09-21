@@ -32,7 +32,7 @@
 </head>
 <body>
   <div class="back-link">
-    <a href="<%= clothing_pieces_path %>">&larr; Back to Wardrobe</a>
+    <a href="<%= clothing_pieces_path %>">&larr; Back to Closet</a>
   </div>
   
   <h1>TinyCLIP Embedding Test</h1>
@@ -379,7 +379,7 @@
         formData.append('model_version', 'clip-vit-base-patch32');
         formData.append('confidence_score', '0.90');
         
-        const response = await fetch(`/wardrobe/${pieceId}/upload_embedding`, {
+        const response = await fetch(`/closet/${pieceId}/upload_embedding`, {
           method: 'POST',
           body: formData,
           headers: {
