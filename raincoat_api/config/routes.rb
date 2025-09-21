@@ -8,16 +8,17 @@ Rails.application.routes.draw do
   post '/signup', to: 'users#create'
   get '/login', to: 'sessions#new'
   post '/login', to: 'sessions#create'
-  get '/logout', to: 'sessions#destroy'  # Changed to GET
+  get '/logout', to: 'sessions#destroy'
   
   # Main closet interface
   resources :clothing_pieces, path: 'closet' do
     member do
       post 'upload_embedding'  # For POC: manual embedding upload
+      get 'similar'           # Show similar items
     end
   end
   
-  # API routes for embedding functionality
+  # API endpoints
   namespace :api do
     namespace :v1 do
       resources :clothing_pieces, only: [:show, :create, :index] do
