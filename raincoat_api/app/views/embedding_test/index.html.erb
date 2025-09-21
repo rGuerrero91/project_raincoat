@@ -1,0 +1,406 @@
+<!-- app/views/embedding_test/index.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TinyCLIP Embedding Test - Raincoat POC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .test-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .upload-area { border: 2px dashed #ddd; padding: 40px; text-align: center; border-radius: 8px; margin: 20px 0; cursor: pointer; }
+    .upload-area:hover { border-color: #007cba; background: #f0f8ff; }
+    .upload-area.dragover { border-color: #007cba; background: #e6f3ff; }
+    .preview-image { max-width: 300px; max-height: 300px; border-radius: 8px; margin: 10px; border: 1px solid #ddd; }
+    .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+    .result-section { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
+    .embedding-output { background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; word-break: break-all; }
+    .status { padding: 10px; border-radius: 4px; margin: 10px 0; }
+    .status.loading { background: #fff3cd; color: #856404; }
+    .status.success { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+    button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+    button:hover { background: #005a87; }
+    button:disabled { background: #6c757d; cursor: not-allowed; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 10px 0; }
+    .metric { background: white; padding: 10px; border-radius: 4px; text-align: center; border: 1px solid #ddd; }
+    .metric-value { font-size: 24px; font-weight: bold; color: #007cba; }
+    .metric-label { font-size: 12px; color: #666; }
+    .back-link { margin-bottom: 20px; }
+    .back-link a { color: #007cba; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="back-link">
+    <a href="<%= clothing_pieces_path %>">&larr; Back to Wardrobe</a>
+  </div>
+  
+  <h1>TinyCLIP Embedding Test</h1>
+  <p>Test client-side image embedding generation using TinyCLIP model via ONNX.js</p>
+  
+  <!-- Model Loading Section -->
+  <div class="test-section">
+    <h2>Model Status</h2>
+    <div id="modelStatus" class="status loading">Loading TinyCLIP model...</div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-value" id="modelSize">-</div>
+        <div class="metric-label">Model Size (MB)</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="loadTime">-</div>
+        <div class="metric-label">Load Time (ms)</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="inferenceTime">-</div>
+        <div class="metric-label">Last Inference (ms)</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Image Upload Section -->
+  <div class="test-section">
+    <h2>Image Upload & Processing</h2>
+    
+    <div class="upload-area" id="uploadArea">
+      <p><strong>Drop an image here or click to select</strong></p>
+      <p>Supported: JPG, PNG, WebP</p>
+      <input type="file" id="imageInput" accept="image/*" style="display: none;">
+    </div>
+    
+    <div id="imagePreview" style="display: none;">
+      <h3>Selected Image:</h3>
+      <img id="previewImg" class="preview-image" alt="Preview">
+      <div>
+        <button id="processBtn" onclick="processImage()">Generate Embedding</button>
+        <button onclick="clearImage()">Clear</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Results Section -->
+  <div class="test-section" id="resultsSection" style="display: none;">
+    <h2>Embedding Results</h2>
+    
+    <div class="results-grid">
+      <div class="result-section">
+        <h3>Embedding Vector (512 dimensions)</h3>
+        <div id="embeddingVector" class="embedding-output">
+          Processing...
+        </div>
+        <button onclick="copyEmbedding()" id="copyBtn" style="margin-top: 10px;">Copy to Clipboard</button>
+      </div>
+      
+      <div class="result-section">
+        <h3>Analysis</h3>
+        <div id="embeddingAnalysis">
+          <div class="metric">
+            <div class="metric-value" id="vectorMagnitude">-</div>
+            <div class="metric-label">Vector Magnitude</div>
+          </div>
+          <div style="margin-top: 15px;">
+            <strong>Top Dimensions:</strong>
+            <div id="topDimensions" style="font-family: monospace; font-size: 12px; margin-top: 5px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Integration Test -->
+    <div style="margin-top: 20px; padding: 15px; background: #e6f3ff; border-radius: 4px;">
+      <h4>Test Integration with Rails Backend</h4>
+      <p>Select a clothing piece to update with this embedding:</p>
+      <select id="clothingPieceSelect">
+        <option value="">Select a clothing piece...</option>
+        <% current_user.clothing_pieces.each do |piece| %>
+          <option value="<%= piece.id %>"><%= piece.name %> (<%= piece.category %>)</option>
+        <% end %>
+      </select>
+      <button onclick="sendToRails()" id="sendBtn" disabled>Send Embedding to Rails</button>
+      <div id="railsResult" style="margin-top: 10px;"></div>
+    </div>
+  </div>
+
+  <!-- ONNX.js and TinyCLIP Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/ort.min.js"></script>
+  
+  <script>
+    let session = null;
+    let currentEmbedding = null;
+    let modelLoadStart = null;
+    
+    // TinyCLIP model configuration
+    const MODEL_CONFIG = {
+      // For testing, we'll use a public CLIP model
+      // Replace with actual TinyCLIP model URL when available
+      modelUrl: 'https://huggingface.co/Xenova/clip-vit-base-patch32/resolve/main/onnx/vision_model_quantized.onnx',
+      imageSize: 224, // Standard CLIP input size
+      mean: [0.48145466, 0.4578275, 0.40821073],
+      std: [0.26862954, 0.26130258, 0.27577711]
+    };
+    
+    // Initialize ONNX Runtime and load CLIP model
+    async function initializeModel() {
+      try {
+        modelLoadStart = performance.now();
+        document.getElementById('modelStatus').innerHTML = 'Loading CLIP model...';
+        
+        console.log('Initializing ONNX Runtime...');
+        
+        // Configure ONNX Runtime for web
+        ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/';
+        
+        // Load the vision model
+        session = await ort.InferenceSession.create(MODEL_CONFIG.modelUrl);
+        
+        const loadTime = Math.round(performance.now() - modelLoadStart);
+        
+        // Update UI
+        document.getElementById('modelStatus').innerHTML = '✅ CLIP vision model loaded successfully';
+        document.getElementById('modelStatus').className = 'status success';
+        document.getElementById('loadTime').textContent = loadTime;
+        document.getElementById('modelSize').textContent = '~90'; // CLIP model size
+        
+        console.log('Model loaded successfully');
+        console.log('Input names:', session.inputNames);
+        console.log('Output names:', session.outputNames);
+        
+      } catch (error) {
+        console.error('Failed to load model:', error);
+        document.getElementById('modelStatus').innerHTML = '❌ Failed to load model: ' + error.message;
+        document.getElementById('modelStatus').className = 'status error';
+      }
+    }
+    
+    // Preprocess image for CLIP model
+    function preprocessImage(imageElement) {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Resize to model input size
+        canvas.width = MODEL_CONFIG.imageSize;
+        canvas.height = MODEL_CONFIG.imageSize;
+        
+        // Draw and resize image
+        ctx.drawImage(imageElement, 0, 0, MODEL_CONFIG.imageSize, MODEL_CONFIG.imageSize);
+        
+        // Get image data
+        const imageData = ctx.getImageData(0, 0, MODEL_CONFIG.imageSize, MODEL_CONFIG.imageSize);
+        const data = imageData.data;
+        
+        // Convert to tensor format [1, 3, 224, 224] - CHW format
+        const tensorData = new Float32Array(1 * 3 * MODEL_CONFIG.imageSize * MODEL_CONFIG.imageSize);
+        
+        for (let i = 0; i < MODEL_CONFIG.imageSize * MODEL_CONFIG.imageSize; i++) {
+          const pixelIndex = i * 4;
+          
+          // Normalize RGB values [0-255] to [0-1] then apply CLIP normalization
+          const r = (data[pixelIndex] / 255.0 - MODEL_CONFIG.mean[0]) / MODEL_CONFIG.std[0];
+          const g = (data[pixelIndex + 1] / 255.0 - MODEL_CONFIG.mean[1]) / MODEL_CONFIG.std[1];
+          const b = (data[pixelIndex + 2] / 255.0 - MODEL_CONFIG.mean[2]) / MODEL_CONFIG.std[2];
+          
+          // CHW format: [C, H, W]
+          tensorData[i] = r;                                                    // Red channel
+          tensorData[MODEL_CONFIG.imageSize * MODEL_CONFIG.imageSize + i] = g; // Green channel
+          tensorData[2 * MODEL_CONFIG.imageSize * MODEL_CONFIG.imageSize + i] = b; // Blue channel
+        }
+        
+        resolve(tensorData);
+      });
+    }
+    
+    // Process image and generate embedding
+    async function processImage() {
+      if (!session) {
+        alert('Model not loaded yet. Please wait...');
+        return;
+      }
+      
+      const processBtn = document.getElementById('processBtn');
+      processBtn.disabled = true;
+      processBtn.textContent = 'Processing...';
+      
+      try {
+        const inferenceStart = performance.now();
+        
+        // Preprocess the image
+        const imageElement = document.getElementById('previewImg');
+        const tensorData = await preprocessImage(imageElement);
+        
+        // Create tensor
+        const tensor = new ort.Tensor('float32', tensorData, [1, 3, MODEL_CONFIG.imageSize, MODEL_CONFIG.imageSize]);
+        
+        // Run inference
+        const feeds = {};
+        feeds[session.inputNames[0]] = tensor;
+        const results = await session.run(feeds);
+        
+        // Get the embedding from the output
+        const outputTensor = results[session.outputNames[0]];
+        const embedding = Array.from(outputTensor.data);
+        
+        const inferenceTime = Math.round(performance.now() - inferenceStart);
+        document.getElementById('inferenceTime').textContent = inferenceTime;
+        
+        // If embedding is not 512 dimensions, we may need to process it
+        console.log('Raw embedding dimensions:', embedding.length);
+        
+        let finalEmbedding;
+        if (embedding.length === 512) {
+          finalEmbedding = embedding;
+        } else {
+          // If the model outputs different dimensions, we might need to pad or truncate
+          console.log('Adjusting embedding to 512 dimensions...');
+          finalEmbedding = adjustEmbeddingDimensions(embedding);
+        }
+        
+        currentEmbedding = finalEmbedding;
+        displayResults(finalEmbedding);
+        
+      } catch (error) {
+        console.error('Processing failed:', error);
+        alert('Failed to process image: ' + error.message);
+      } finally {
+        processBtn.disabled = false;
+        processBtn.textContent = 'Generate Embedding';
+      }
+    }
+    
+    // Adjust embedding dimensions if needed
+    function adjustEmbeddingDimensions(embedding) {
+      if (embedding.length === 512) {
+        return embedding;
+      } else if (embedding.length > 512) {
+        // Truncate to 512
+        return embedding.slice(0, 512);
+      } else {
+        // Pad with zeros to reach 512
+        const padded = new Array(512).fill(0);
+        for (let i = 0; i < embedding.length; i++) {
+          padded[i] = embedding[i];
+        }
+        return padded;
+      }
+    }
+    
+    // Image upload handling
+    const uploadArea = document.getElementById('uploadArea');
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    uploadArea.addEventListener('click', () => imageInput.click());
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) handleImageUpload(files[0]);
+    });
+    
+    imageInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleImageUpload(e.target.files[0]);
+    });
+    
+    function handleImageUpload(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        previewImg.onload = () => {
+          imagePreview.style.display = 'block';
+          document.getElementById('resultsSection').style.display = 'none';
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    function displayResults(embedding) {
+      // Show embedding vector
+      document.getElementById('embeddingVector').textContent = embedding.map(v => v.toFixed(6)).join(', ');
+      
+      // Calculate vector magnitude
+      const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+      document.getElementById('vectorMagnitude').textContent = magnitude.toFixed(4);
+      
+      // Show top dimensions
+      const indexed = embedding.map((val, idx) => ({ value: val, index: idx }));
+      indexed.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+      const topDims = indexed.slice(0, 5).map(item => 
+        `[${item.index}]: ${item.value.toFixed(4)}`
+      ).join('\\n');
+      document.getElementById('topDimensions').textContent = topDims;
+      
+      // Enable integration controls
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('resultsSection').style.display = 'block';
+    }
+    
+    function copyEmbedding() {
+      if (!currentEmbedding) return;
+      
+      navigator.clipboard.writeText(currentEmbedding.map(v => v.toFixed(6)).join(', ')).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = originalText, 2000);
+      });
+    }
+    
+    function clearImage() {
+      imagePreview.style.display = 'none';
+      document.getElementById('resultsSection').style.display = 'none';
+      imageInput.value = '';
+      currentEmbedding = null;
+    }
+    
+    // Send embedding to Rails backend
+    async function sendToRails() {
+      const pieceId = document.getElementById('clothingPieceSelect').value;
+      if (!pieceId || !currentEmbedding) return;
+      
+      const resultDiv = document.getElementById('railsResult');
+      resultDiv.innerHTML = '<div class="status loading">Sending to Rails...</div>';
+      
+      try {
+        const formData = new FormData();
+        formData.append('vector_data', currentEmbedding.map(v => v.toFixed(6)).join(','));
+        formData.append('model_version', 'clip-vit-base-patch32');
+        formData.append('confidence_score', '0.90');
+        
+        const response = await fetch(`/wardrobe/${pieceId}/upload_embedding`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+          }
+        });
+        
+        if (response.ok) {
+          resultDiv.innerHTML = '<div class="status success">✅ Real embedding saved successfully!</div>';
+        } else {
+          throw new Error('Failed to save embedding');
+        }
+        
+      } catch (error) {
+        console.error('Failed to send to Rails:', error);
+        resultDiv.innerHTML = '<div class="status error">❌ Failed to save embedding</div>';
+      }
+    }
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', initializeModel);
+  </script>
+</body>
+</html>
