@@ -18,6 +18,8 @@ Rails.application.routes.draw do
     end
   end
   
+  get '/test_embedding', to: 'embedding_test#index'
+  
   # API endpoints
   namespace :api do
     namespace :v1 do
