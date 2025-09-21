@@ -109,33 +109,15 @@
     <!-- Integration Test -->
     <div style="margin-top: 20px; padding: 15px; background: #e6f3ff; border-radius: 4px;">
       <h4>Test Integration with Rails Backend</h4>
-      
-      <!-- Web Interface Test -->
-      <div style="margin-bottom: 20px; padding: 10px; background: white; border-radius: 4px;">
-        <h5>Web Interface (Form Upload)</h5>
-        <p>Select a clothing piece to update with this embedding:</p>
-        <select id="clothingPieceSelect">
-          <option value="">Select a clothing piece...</option>
-          <% current_user.clothing_pieces.each do |piece| %>
-            <option value="<%= piece.id %>"><%= piece.name %> (<%= piece.category %>)</option>
-          <% end %>
-        </select>
-        <button onclick="sendToRails()" id="sendBtn" disabled>Send via Web Form</button>
-        <div id="railsResult" style="margin-top: 10px;"></div>
-      </div>
-      
-      <!-- API Test -->
-      <div style="padding: 10px; background: white; border-radius: 4px;">
-        <h5>API Endpoint Testing</h5>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0;">
-          <button onclick="testApiList()" id="apiListBtn">GET /clothing_pieces</button>
-          <button onclick="testApiStats()" id="apiStatsBtn">GET /embeddings/stats</button>
-          <button onclick="testApiEmbedding()" id="apiEmbeddingBtn" disabled>POST /pieces/:id/embedding</button>
-          <button onclick="testApiSimilar()" id="apiSimilarBtn" disabled>GET /pieces/:id/similar</button>
-          <button onclick="testApiSearch()" id="apiSearchBtn" disabled>POST /embeddings/search</button>
-        </div>
-        <div id="apiResults" style="background: #f8f9fa; padding: 10px; border-radius: 4px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px;"></div>
-      </div>
+      <p>Select a clothing piece to update with this embedding:</p>
+      <select id="clothingPieceSelect">
+        <option value="">Select a clothing piece...</option>
+        <% current_user.clothing_pieces.each do |piece| %>
+          <option value="<%= piece.id %>"><%= piece.name %> (<%= piece.category %>)</option>
+        <% end %>
+      </select>
+      <button onclick="sendToRails()" id="sendBtn" disabled>Send Embedding to Rails</button>
+      <div id="railsResult" style="margin-top: 10px;"></div>
     </div>
   </div>
 
@@ -146,7 +128,6 @@
     let session = null;
     let currentEmbedding = null;
     let modelLoadStart = null;
-    let selectedPieceId = null;
     
     // TinyCLIP model configuration
     const MODEL_CONFIG = {
@@ -328,11 +309,6 @@
       if (e.target.files.length > 0) handleImageUpload(e.target.files[0]);
     });
     
-    // Track selected piece for API testing
-    document.getElementById('clothingPieceSelect').addEventListener('change', (e) => {
-      selectedPieceId = e.target.value;
-    });
-    
     function handleImageUpload(file) {
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
@@ -368,9 +344,6 @@
       
       // Enable integration controls
       document.getElementById('sendBtn').disabled = false;
-      document.getElementById('apiEmbeddingBtn').disabled = false;
-      document.getElementById('apiSimilarBtn').disabled = false;
-      document.getElementById('apiSearchBtn').disabled = false;
       document.getElementById('resultsSection').style.display = 'block';
     }
     
@@ -390,10 +363,9 @@
       document.getElementById('resultsSection').style.display = 'none';
       imageInput.value = '';
       currentEmbedding = null;
-      selectedPieceId = null;
     }
     
-    // Web form submission (original method)
+    // Send embedding to Rails backend
     async function sendToRails() {
       const pieceId = document.getElementById('clothingPieceSelect').value;
       if (!pieceId || !currentEmbedding) return;
@@ -416,7 +388,7 @@
         });
         
         if (response.ok) {
-          resultDiv.innerHTML = '<div class="status success">✅ Web form upload successful!</div>';
+          resultDiv.innerHTML = '<div class="status success">✅ Real embedding saved successfully!</div>';
         } else {
           throw new Error('Failed to save embedding');
         }
@@ -425,402 +397,6 @@
         console.error('Failed to send to Rails:', error);
         resultDiv.innerHTML = '<div class="status error">❌ Failed to save embedding</div>';
       }
-    }
-    
-    // API Testing Functions
-    async function testApiList() {
-      const btn = document.getElementById('apiListBtn');
-      btn.disabled = true;
-      btn.textContent = 'Loading...';
-      
-      try {
-        const response = await fetch('/api/v1/clothing_pieces', {
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const data = await response.json();
-        displayApiResult('GET /clothing_pieces', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('GET /clothing_pieces', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'GET /clothing_pieces';
-      }
-    }
-    
-    async function testApiStats() {
-      const btn = document.getElementById('apiStatsBtn');
-      btn.disabled = true;
-      btn.textContent = 'Loading...';
-      
-      try {
-        const response = await fetch('/api/v1/embeddings/stats', {
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const data = await response.json();
-        displayApiResult('GET /embeddings/stats', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('GET /embeddings/stats', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'GET /embeddings/stats';
-      }
-    }
-    
-    async function testApiEmbedding() {
-      const pieceId = selectedPieceId || document.getElementById('clothingPieceSelect').value;
-      if (!pieceId || !currentEmbedding) {
-        alert('Please select a clothing piece and generate an embedding first');
-        return;
-      }
-      
-      const btn = document.getElementById('apiEmbeddingBtn');
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
-      
-      try {
-        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/embedding`, {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            vector_data: currentEmbedding,
-            model_version: 'clip-vit-base-patch32-test',
-            confidence_score: 0.92
-          })
-        });
-        
-        const data = await response.json();
-        displayApiResult('POST /pieces/:id/embedding', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('POST /pieces/:id/embedding', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'POST /pieces/:id/embedding';
-      }
-    }
-    
-    async function testApiSimilar() {
-      const pieceId = selectedPieceId || document.getElementById('clothingPieceSelect').value;
-      if (!pieceId) {
-        alert('Please select a clothing piece first');
-        return;
-      }
-      
-      const btn = document.getElementById('apiSimilarBtn');
-      btn.disabled = true;
-      btn.textContent = 'Searching...';
-      
-      try {
-        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/similar?limit=5`, {
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const data = await response.json();
-        displayApiResult('GET /pieces/:id/similar', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('GET /pieces/:id/similar', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'GET /pieces/:id/similar';
-      }
-    }
-    
-    async function testApiSearch() {
-      if (!currentEmbedding) {
-        alert('Please generate an embedding first');
-        return;
-      }
-      
-      const btn = document.getElementById('apiSearchBtn');
-      btn.disabled = true;
-      btn.textContent = 'Searching...';
-      
-      try {
-        const response = await fetch('/api/v1/embeddings/search', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            vector_data: currentEmbedding,
-            limit: 5,
-            category: 'tops' // Optional filter
-          })
-        });
-        
-        const data = await response.json();
-        displayApiResult('POST /embeddings/search', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('POST /embeddings/search', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'POST /embeddings/search';
-      }
-    }
-    
-    function displayApiResult(endpoint, status, data) {
-      const resultsDiv = document.getElementById('apiResults');
-      const timestamp = new Date().toLocaleTimeString();
-      const statusColor = status.toString().startsWith('2') ? '#28a745' : '#dc3545';
-      
-      const result = `
-<div style="border-bottom: 1px solid #ddd; padding: 10px 0; margin: 5px 0;">
-  <div style="color: ${statusColor}; font-weight: bold;">
-    [${timestamp}] ${endpoint} - Status: ${status}
-  </div>
-  <pre style="margin: 5px 0; white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(data, null, 2)}</pre>
-</div>`;
-      
-      resultsDiv.innerHTML = result + resultsDiv.innerHTML;
-    }
-    
-    // Initialize when page loads
-    document.addEventListener('DOMContentLoaded', initializeModel);      document.getElementById('topDimensions').textContent = topDims;
-      
-      // Enable integration controls
-      document.getElementById('sendBtn').disabled = false;
-      document.getElementById('apiEmbeddingBtn').disabled = false;
-      document.getElementById('apiSimilarBtn').disabled = false;
-      document.getElementById('apiSearchBtn').disabled = false;
-      document.getElementById('resultsSection').style.display = 'block';
-    }
-    
-    function copyEmbedding() {
-      if (!currentEmbedding) return;
-      
-      navigator.clipboard.writeText(currentEmbedding.map(v => v.toFixed(6)).join(', ')).then(() => {
-        const btn = document.getElementById('copyBtn');
-        const originalText = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = originalText, 2000);
-      });
-    }
-    
-    function clearImage() {
-      imagePreview.style.display = 'none';
-      document.getElementById('resultsSection').style.display = 'none';
-      imageInput.value = '';
-      currentEmbedding = null;
-      selectedPieceId = null;
-    }
-    
-    // Web form submission (original method)
-    async function sendToRails() {
-      const pieceId = document.getElementById('clothingPieceSelect').value;
-      if (!pieceId || !currentEmbedding) return;
-      
-      const resultDiv = document.getElementById('railsResult');
-      resultDiv.innerHTML = '<div class="status loading">Sending to Rails...</div>';
-      
-      try {
-        const formData = new FormData();
-        formData.append('vector_data', currentEmbedding.map(v => v.toFixed(6)).join(','));
-        formData.append('model_version', 'clip-vit-base-patch32');
-        formData.append('confidence_score', '0.90');
-        
-        const response = await fetch(`/closet/${pieceId}/upload_embedding`, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-          }
-        });
-        
-        if (response.ok) {
-          resultDiv.innerHTML = '<div class="status success">✅ Web form upload successful!</div>';
-        } else {
-          throw new Error('Failed to save embedding');
-        }
-        
-      } catch (error) {
-        console.error('Failed to send to Rails:', error);
-        resultDiv.innerHTML = '<div class="status error">❌ Failed to save embedding</div>';
-      }
-    }
-    
-    // API Testing Functions
-    async function testApiList() {
-      const btn = document.getElementById('apiListBtn');
-      btn.disabled = true;
-      btn.textContent = 'Loading...';
-      
-      try {
-        const response = await fetch('/api/v1/clothing_pieces', {
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const data = await response.json();
-        displayApiResult('GET /clothing_pieces', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('GET /clothing_pieces', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'GET /clothing_pieces';
-      }
-    }
-    
-    async function testApiStats() {
-      const btn = document.getElementById('apiStatsBtn');
-      btn.disabled = true;
-      btn.textContent = 'Loading...';
-      
-      try {
-        const response = await fetch('/api/v1/embeddings/stats', {
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const data = await response.json();
-        displayApiResult('GET /embeddings/stats', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('GET /embeddings/stats', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'GET /embeddings/stats';
-      }
-    }
-    
-    async function testApiEmbedding() {
-      const pieceId = selectedPieceId || document.getElementById('clothingPieceSelect').value;
-      if (!pieceId || !currentEmbedding) {
-        alert('Please select a clothing piece and generate an embedding first');
-        return;
-      }
-      
-      const btn = document.getElementById('apiEmbeddingBtn');
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
-      
-      try {
-        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/embedding`, {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            vector_data: currentEmbedding,
-            model_version: 'clip-vit-base-patch32-test',
-            confidence_score: 0.92
-          })
-        });
-        
-        const data = await response.json();
-        displayApiResult('POST /pieces/:id/embedding', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('POST /pieces/:id/embedding', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'POST /pieces/:id/embedding';
-      }
-    }
-    
-    async function testApiSimilar() {
-      const pieceId = selectedPieceId || document.getElementById('clothingPieceSelect').value;
-      if (!pieceId) {
-        alert('Please select a clothing piece first');
-        return;
-      }
-      
-      const btn = document.getElementById('apiSimilarBtn');
-      btn.disabled = true;
-      btn.textContent = 'Searching...';
-      
-      try {
-        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/similar?limit=5`, {
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const data = await response.json();
-        displayApiResult('GET /pieces/:id/similar', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('GET /pieces/:id/similar', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'GET /pieces/:id/similar';
-      }
-    }
-    
-    async function testApiSearch() {
-      if (!currentEmbedding) {
-        alert('Please generate an embedding first');
-        return;
-      }
-      
-      const btn = document.getElementById('apiSearchBtn');
-      btn.disabled = true;
-      btn.textContent = 'Searching...';
-      
-      try {
-        const response = await fetch('/api/v1/embeddings/search', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer <%= current_user.email %>',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            vector_data: currentEmbedding,
-            limit: 5,
-            category: 'tops' // Optional filter
-          })
-        });
-        
-        const data = await response.json();
-        displayApiResult('POST /embeddings/search', response.status, data);
-        
-      } catch (error) {
-        displayApiResult('POST /embeddings/search', 'ERROR', { error: error.message });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'POST /embeddings/search';
-      }
-    }
-    
-    function displayApiResult(endpoint, status, data) {
-      const resultsDiv = document.getElementById('apiResults');
-      const timestamp = new Date().toLocaleTimeString();
-      const statusColor = status.toString().startsWith('2') ? '#28a745' : '#dc3545';
-      
-      const result = `
-<div style="border-bottom: 1px solid #ddd; padding: 10px 0; margin: 5px 0;">
-  <div style="color: ${statusColor}; font-weight: bold;">
-    [${timestamp}] ${endpoint} - Status: ${status}
-  </div>
-  <pre style="margin: 5px 0; white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(data, null, 2)}</pre>
-</div>`;
-      
-      resultsDiv.innerHTML = result + resultsDiv.innerHTML;
     }
     
     // Initialize when page loads
