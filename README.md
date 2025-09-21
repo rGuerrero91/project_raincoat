@@ -1,14 +1,14 @@
 # Raincoat
 
-A modern, AI-powered weather-based outfit recommendation app. Upload your wardrobe, get smart outfit suggestions based on weather conditions, and organize your clothing with intelligent collections.
+A modern, AI-powered weather-based outfit recommendation app. Upload your closet, get smart outfit suggestions based on weather conditions, and organize your clothing with intelligent collections.
 
 ## Features
 
-- **Smart Wardrobe Management**: Upload and organize clothing pieces with AI-powered automatic tagging
+- **Smart Closet Management**: Upload and organize clothing pieces with AI-powered automatic tagging
 - **Weather-Based Recommendations**: Get outfit suggestions tailored to current weather conditions
-- **Closet Collections**: Create custom collections to organize your wardrobe (Work, Casual, Travel, etc.)
+- **Closet Collections**: Create custom collections to organize your closet (Work, Casual, Travel, etc.)
 - **Outfit Creation**: Build and save favorite outfits with intelligent category constraints
-- **Multi-Location Support**: Manage wardrobes for different locations (Home, Office, Travel)
+- **Multi-Location Support**: Manage closets for different locations (Home, Office, Travel)
 - **AI Image Processing**: Automatic clothing categorization, color detection, and tagging
 
 ## Architecture
@@ -132,7 +132,7 @@ project_raincoat/
 - **Users**: Authentication and profile management
 - **Locations**: Multiple location support for weather
 - **Closets**: Custom collections of clothing pieces
-- **ClothingPieces**: Individual wardrobe items with AI tagging
+- **ClothingPieces**: Individual closet items with AI tagging
 - **Outfits**: Saved outfit combinations
 - **WeatherSnapshots**: Cached weather data
 - **ClothingEmbeddings**: AI vector representations for recommendations
@@ -244,7 +244,7 @@ REDIS_URL=<production-redis-url>
 - `POST /auth/login` - User login
 - `DELETE /auth/logout` - User logout
 
-### Wardrobe Management
+### Closet Management
 - `GET /api/clothing_pieces` - List user's clothing
 - `POST /api/clothing_pieces` - Add new clothing item
 - `PUT /api/clothing_pieces/:id` - Update clothing item
@@ -275,7 +275,7 @@ REDIS_URL=<production-redis-url>
 
 ### Phase 2: Core Features
 - User management and profile system
-- Wardrobe CRUD operations and image handling
+- Closet CRUD operations and image handling
 - Basic weather integration and location management
 - Clothing categorization and tagging
 
