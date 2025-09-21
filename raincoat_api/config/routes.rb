@@ -10,15 +10,15 @@ Rails.application.routes.draw do
   post '/login', to: 'sessions#create'
   get '/logout', to: 'sessions#destroy'
   
-  # Main wardrobe interface (this creates clothing_pieces_path)
-  resources :clothing_pieces, path: 'wardrobe' do
+  # Main closet interface
+  resources :clothing_pieces, path: 'closet' do
     member do
       post 'upload_embedding'  # For POC: manual embedding upload
       get 'similar'           # Show similar items
     end
   end
   
-  # API routes for embedding functionality
+  # API endpoints
   namespace :api do
     namespace :v1 do
       resources :clothing_pieces, only: [:show, :create, :index] do
@@ -27,9 +27,11 @@ Rails.application.routes.draw do
           get 'similar'         # GET /api/v1/clothing_pieces/:id/similar
         end
       end
-      
-      # General embedding search
-      post 'embeddings/search', to: 'embeddings#search'
+
+      namespace :embeddings do
+        post :search          # POST /api/v1/embeddings/search
+        get :stats           # GET /api/v1/embeddings/stats
+      end
     end
   end
   
