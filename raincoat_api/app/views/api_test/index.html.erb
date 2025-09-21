@@ -565,14 +565,14 @@
         });
         
         if (response.ok) {
-          resultDiv.innerHTML = '<div class="status success">✅ Web form upload successful!</div>';
+          resultDiv.innerHTML = '<div class="status success"> Web form upload successful!</div>';
         } else {
           throw new Error('Failed to save embedding');
         }
         
       } catch (error) {
         console.error('Failed to send to Rails:', error);
-        resultDiv.innerHTML = '<div class="status error">❌ Failed to save embedding</div>';
+        resultDiv.innerHTML = '<div class="status error"> Failed to save embedding</div>';
       }
     }
     
@@ -749,7 +749,7 @@
       // Check if ONNX Runtime loaded
       if (typeof ort === 'undefined') {
         console.error('ONNX Runtime not loaded');
-        document.getElementById('modelStatus').innerHTML = '❌ ONNX Runtime failed to load';
+        document.getElementById('modelStatus').innerHTML = ' ONNX Runtime failed to load';
         document.getElementById('modelStatus').className = 'status error';
         return;
       }
@@ -808,14 +808,14 @@
         });
         
         if (response.ok) {
-          resultDiv.innerHTML = '<div class="status success">✅ Web form upload successful!</div>';
+          resultDiv.innerHTML = '<div class="status success"> Web form upload successful!</div>';
         } else {
           throw new Error('Failed to save embedding');
         }
         
       } catch (error) {
         console.error('Failed to send to Rails:', error);
-        resultDiv.innerHTML = '<div class="status error">❌ Failed to save embedding</div>';
+        resultDiv.innerHTML = '<div class="status error"> Failed to save embedding</div>';
       }
     }
     
