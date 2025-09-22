@@ -19,6 +19,9 @@ Rails.application.routes.draw do
   end
   
   get '/test_embedding', to: 'embedding_test#index'
+
+  # *path takes any public directory where the model is being hosted.
+  get '/models/*path', to: 'models#show' 
   
   # API endpoints
   namespace :api do
