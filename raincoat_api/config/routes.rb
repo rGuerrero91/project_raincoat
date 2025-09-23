@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   get '/test_api', to: 'api_test#index'
 
   get '/ai_models/vanilla_clip', to: 'ai_models#vanilla_clip'
+  get '/ai_models/fashion_clip', to: 'ai_models#fashion_clip'
   
   # API endpoints
   namespace :api do
