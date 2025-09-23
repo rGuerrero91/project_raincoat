@@ -1,0 +1,992 @@
+<!-- app/views/embedding_test/index.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>API Embedding Test - Raincoat POC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .test-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input, select, textarea { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; }
+    button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+    button:hover { background: #005a87; }
+    button:disabled { background: #6c757d; cursor: not-allowed; }
+    .results { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-top: 15px; }
+    .api-response { background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; word-break: break-all; white-space: pre-wrap; }
+    .status { padding: 10px; border-radius: 4px; margin: 10px 0; }
+    .status.loading { background: #fff3cd; color: #856404; }
+    .status.success { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+    .back-link { margin-bottom: 20px; }
+    .back-link a { color: #007cba; text-decoration: none; }
+    .api-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  </style>
+</head>
+<body>
+  <div class="back-link">
+    <a href="<%= clothing_pieces_path %>">&larr; Back to Closet</a>
+  </div>
+  
+  <h1>API Embedding Test</h1>
+  <p>Test the embedding API endpoints with mock data and real clothing pieces.</p>
+  
+  <!-- API Statistics -->
+  <div class="test-section">
+    <h2>API Status & Statistics</h2>
+    <button onclick="testApiStats()">GET /api/v1/embeddings/stats</button>
+    <button onclick="testApiList()">GET /api/v1/clothing_pieces</button>
+    <div id="statsResults" class="results" style="display: none;">
+      <div id="statsResponse" class="api-response"></div>
+    </div>
+  </div>
+  
+  <!-- Mock Embedding Upload -->
+  <div class="test-section">
+    <h2>Upload Mock Embedding</h2>
+    <p>Test embedding storage with generated mock vectors</p>
+    
+    <div class="form-group">
+      <label for="mockPieceSelect">Select Clothing Piece:</label>
+      <select id="mockPieceSelect">
+        <option value="">Choose a clothing piece...</option>
+        <% current_user.clothing_pieces.each do |piece| %>
+          <option value="<%= piece.id %>"><%= piece.name %> (<%= piece.category %>)</option>
+        <% end %>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="mockModelVersion">Model Version:</label>
+      <input type="text" id="mockModelVersion" value="mock-test-1.0" placeholder="e.g., clip-vit-base-patch32">
+    </div>
+    
+    <div class="form-group">
+      <label for="mockConfidence">Confidence Score (0-1):</label>
+      <input type="number" id="mockConfidence" value="0.85" step="0.01" min="0" max="1">
+    </div>
+    
+    <button onclick="generateAndUploadMockEmbedding()">Generate & Upload Mock Embedding</button>
+    
+    <div id="mockResults" class="results" style="display: none;">
+      <h4>Mock Embedding Response:</h4>
+      <div id="mockResponse" class="api-response"></div>
+    </div>
+  </div>
+  
+  <!-- Manual Embedding Upload -->
+  <div class="test-section">
+    <h2>Upload Custom Embedding</h2>
+    <p>Test with your own 512-dimensional vector</p>
+    
+    <div class="form-group">
+      <label for="customPieceSelect">Select Clothing Piece:</label>
+      <select id="customPieceSelect">
+        <option value="">Choose a clothing piece...</option>
+        <% current_user.clothing_pieces.each do |piece| %>
+          <option value="<%= piece.id %>"><%= piece.name %> (<%= piece.category %>)</option>
+        <% end %>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="customVector">Embedding Vector (512 comma-separated numbers):</label>
+      <textarea id="customVector" rows="4" placeholder="0.123, -0.456, 0.789, ... (512 values)"></textarea>
+      <small>
+        <a href="javascript:void(0)" onclick="fillSampleVector()">Click here to fill with sample vector</a>
+      </small>
+    </div>
+    
+    <div class="form-group">
+      <label for="customModelVersion">Model Version:</label>
+      <input type="text" id="customModelVersion" value="custom-test-1.0">
+    </div>
+    
+    <button onclick="uploadCustomEmbedding()">Upload Custom Embedding</button>
+    
+    <div id="customResults" class="results" style="display: none;">
+      <h4>Custom Embedding Response:</h4>
+      <div id="customResponse" class="api-response"></div>
+    </div>
+  </div>
+  
+  <!-- Similarity Search Tests -->
+  <div class="test-section">
+    <h2>Similarity Search</h2>
+    <div class="api-grid">
+      <div>
+        <h4>Search by Piece</h4>
+        <div class="form-group">
+          <label for="similarPieceSelect">Select Piece with Embedding:</label>
+          <select id="similarPieceSelect">
+            <option value="">Choose a piece...</option>
+            <% current_user.clothing_pieces.joins(:clothing_embedding).each do |piece| %>
+              <option value="<%= piece.id %>"><%= piece.name %> (has embedding)</option>
+            <% end %>
+          </select>
+        </div>
+        <button onclick="testSimilarByPiece()">Find Similar Items</button>
+        <div id="similarResults" class="results" style="display: none;">
+          <div id="similarResponse" class="api-response"></div>
+        </div>
+      </div>
+      
+      <div>
+        <h4>Search by Vector</h4>
+        <div class="form-group">
+          <label for="searchVector">Search Vector:</label>
+          <textarea id="searchVector" rows="3" placeholder="Paste 512-dimensional vector..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="categoryFilter">Category Filter (optional):</label>
+          <select id="categoryFilter">
+            <option value="">All categories</option>
+            <option value="tops">Tops</option>
+            <option value="bottoms">Bottoms</option>
+            <option value="outerwear">Outerwear</option>
+            <option value="shoes">Shoes</option>
+            <option value="accessories">Accessories</option>
+          </select>
+        </div>
+        <button onclick="testSearchByVector()">Search by Vector</button>
+        <div id="vectorSearchResults" class="results" style="display: none;">
+          <div id="vectorSearchResponse" class="api-response"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const USER_EMAIL = '<%= j(current_user.email) %>';
+    
+    // Test API Statistics
+    async function testApiStats() {
+      try {
+        const response = await fetch('/api/v1/embeddings/stats', {
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        document.getElementById('statsResults').style.display = 'block';
+        document.getElementById('statsResponse').textContent = JSON.stringify(data, null, 2);
+        
+      } catch (error) {
+        document.getElementById('statsResults').style.display = 'block';
+        document.getElementById('statsResponse').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Test API Clothing Pieces List
+    async function testApiList() {
+      try {
+        const response = await fetch('/api/v1/clothing_pieces', {
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        document.getElementById('statsResults').style.display = 'block';
+        document.getElementById('statsResponse').textContent = JSON.stringify(data, null, 2);
+        
+      } catch (error) {
+        document.getElementById('statsResults').style.display = 'block';
+        document.getElementById('statsResponse').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Generate mock embedding vector
+    function generateMockVector() {
+      const vector = [];
+      for (let i = 0; i < 512; i++) {
+        vector.push((Math.random() - 0.5) * 2);
+      }
+      return vector;
+    }
+    
+    // Generate and upload mock embedding
+    async function generateAndUploadMockEmbedding() {
+      const pieceId = document.getElementById('mockPieceSelect').value;
+      if (!pieceId) {
+        alert('Please select a clothing piece first');
+        return;
+      }
+      
+      const mockVector = generateMockVector();
+      const modelVersion = document.getElementById('mockModelVersion').value;
+      const confidence = parseFloat(document.getElementById('mockConfidence').value);
+      
+      try {
+        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/embedding`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            vector_data: mockVector,
+            model_version: modelVersion,
+            confidence_score: confidence
+          })
+        });
+        
+        const data = await response.json();
+        document.getElementById('mockResults').style.display = 'block';
+        document.getElementById('mockResponse').textContent = JSON.stringify(data, null, 2);
+        
+        // Update similarity search dropdowns
+        location.reload(); // Simple way to refresh the "has embedding" dropdown
+        
+      } catch (error) {
+        document.getElementById('mockResults').style.display = 'block';
+        document.getElementById('mockResponse').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Fill sample vector
+    function fillSampleVector() {
+      const sampleVector = generateMockVector().map(v => v.toFixed(6)).join(', ');
+      document.getElementById('customVector').value = sampleVector;
+    }
+    
+    // Upload custom embedding
+    async function uploadCustomEmbedding() {
+      const pieceId = document.getElementById('customPieceSelect').value;
+      const vectorText = document.getElementById('customVector').value.trim();
+      const modelVersion = document.getElementById('customModelVersion').value;
+      
+      if (!pieceId) {
+        alert('Please select a clothing piece first');
+        return;
+      }
+      
+      if (!vectorText) {
+        alert('Please provide a vector');
+        return;
+      }
+      
+      // Parse vector
+      const vector = vectorText.split(',').map(v => parseFloat(v.trim()));
+      if (vector.length !== 512) {
+        alert(`Vector must have 512 dimensions, got ${vector.length}`);
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/embedding`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            vector_data: vector,
+            model_version: modelVersion,
+            confidence_score: 0.95
+          })
+        });
+        
+        const data = await response.json();
+        document.getElementById('customResults').style.display = 'block';
+        document.getElementById('customResponse').textContent = JSON.stringify(data, null, 2);
+        
+      } catch (error) {
+        document.getElementById('customResults').style.display = 'block';
+        document.getElementById('customResponse').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Test similarity by piece
+    async function testSimilarByPiece() {
+      const pieceId = document.getElementById('similarPieceSelect').value;
+      if (!pieceId) {
+        alert('Please select a piece with an embedding');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/similar?limit=5`, {
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        document.getElementById('similarResults').style.display = 'block';
+        document.getElementById('similarResponse').textContent = JSON.stringify(data, null, 2);
+        
+      } catch (error) {
+        document.getElementById('similarResults').style.display = 'block';
+        document.getElementById('similarResponse').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Test search by vector
+    async function testSearchByVector() {
+      const vectorText = document.getElementById('searchVector').value.trim();
+      const category = document.getElementById('categoryFilter').value;
+      
+      if (!vectorText) {
+        alert('Please provide a search vector');
+        return;
+      }
+      
+      const vector = vectorText.split(',').map(v => parseFloat(v.trim()));
+      if (vector.length !== 512) {
+        alert(`Vector must have 512 dimensions, got ${vector.length}`);
+        return;
+      }
+      
+      const payload = {
+        vector_data: vector,
+        limit: 5
+      };
+      
+      if (category) {
+        payload.category = category;
+      }
+      
+      try {
+        const response = await fetch('/api/v1/embeddings/search', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        document.getElementById('vectorSearchResults').style.display = 'block';
+        document.getElementById('vectorSearchResponse').textContent = JSON.stringify(data, null, 2);
+        
+      } catch (error) {
+        document.getElementById('vectorSearchResults').style.display = 'block';
+        document.getElementById('vectorSearchResponse').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+  <!-- Add ONNX.js model testing section -->
+  <div class="test-section">
+    <h2>ONNX.js Model Testing</h2>
+    <p>Test loading CLIP model for real embedding generation</p>
+    
+    <div class="form-group">
+      <label for="modelSelect">Select Model Source:</label>
+      <select id="modelSelect">
+        <option value="huggingface">Hugging Face (known CORS issue)</option>
+        <option value="jsdelivr">JSDelivr CDN</option>
+        <option value="unpkg">UNPKG CDN</option>
+        <option value="alternative">HF ONNX Community</option>
+        <option value="mock">Mock Model (for testing)</option>
+      </select>
+    </div>
+    
+    <button onclick="loadOnnxModel()">Load ONNX Model</button>
+    <button onclick="testCors()">Test CORS Access</button>
+    
+    <div id="modelResults" class="results" style="display: none;">
+      <h4>Model Loading Results:</h4>
+      <div id="modelResponse" class="api-response"></div>
+    </div>
+    
+    <!-- Image upload for real processing -->
+    <div id="realProcessingSection" style="display: none; margin-top: 20px; padding: 15px; border: 2px dashed #ddd; border-radius: 8px;">
+      <h4>Real Image Processing</h4>
+      <input type="file" id="imageInput" accept="image/*">
+      <button onclick="processImageWithModel()" id="processImageBtn" disabled>Process Image</button>
+      <div id="imageProcessResults" style="margin-top: 10px;"></div>
+    </div>
+  </div>
+  </script>
+</body>
+</html> we may need to process it
+        console.log('Raw embedding dimensions:', embedding.length);
+        
+        let finalEmbedding;
+        if (embedding.length === 512) {
+          finalEmbedding = embedding;
+        } else {
+          // If the model outputs different dimensions, we might need to pad or truncate
+          console.log('Adjusting embedding to 512 dimensions...');
+          finalEmbedding = adjustEmbeddingDimensions(embedding);
+        }
+        
+        currentEmbedding = finalEmbedding;
+        displayResults(finalEmbedding);
+        
+      } catch (error) {
+        console.error('Processing failed:', error);
+        alert('Failed to process image: ' + error.message);
+      } finally {
+        processBtn.disabled = false;
+        processBtn.textContent = 'Generate Embedding';
+      }
+    }
+    
+    // Adjust embedding dimensions if needed
+    function adjustEmbeddingDimensions(embedding) {
+      if (embedding.length === 512) {
+        return embedding;
+      } else if (embedding.length > 512) {
+        // Truncate to 512
+        return embedding.slice(0, 512);
+      } else {
+        // Pad with zeros to reach 512
+        const padded = new Array(512).fill(0);
+        for (let i = 0; i < embedding.length; i++) {
+          padded[i] = embedding[i];
+        }
+        return padded;
+      }
+    }
+    
+    // Image upload handling
+    const uploadArea = document.getElementById('uploadArea');
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    uploadArea.addEventListener('click', () => imageInput.click());
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) handleImageUpload(files[0]);
+    });
+    
+    imageInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleImageUpload(e.target.files[0]);
+    });
+    
+    // Track selected piece for API testing
+    const selectElement = document.getElementById('clothingPieceSelect');
+    if (selectElement) {
+      selectElement.addEventListener('change', (e) => {
+        selectedPieceId = e.target.value;
+        console.log('Selected piece ID:', selectedPieceId);
+      });
+    }
+    
+    function handleImageUpload(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        previewImg.onload = () => {
+          imagePreview.style.display = 'block';
+          document.getElementById('resultsSection').style.display = 'none';
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    function displayResults(embedding) {
+      // Show embedding vector
+      document.getElementById('embeddingVector').textContent = embedding.map(v => v.toFixed(6)).join(', ');
+      
+      // Calculate vector magnitude
+      const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+      document.getElementById('vectorMagnitude').textContent = magnitude.toFixed(4);
+      
+      // Show top dimensions
+      const indexed = embedding.map((val, idx) => ({ value: val, index: idx }));
+      indexed.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+      const topDims = indexed.slice(0, 5).map(item => 
+        `[${item.index}]: ${item.value.toFixed(4)}`
+      ).join('\\n');
+      document.getElementById('topDimensions').textContent = topDims;
+      
+      // Enable integration controls
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('apiEmbeddingBtn').disabled = false;
+      document.getElementById('apiSimilarBtn').disabled = false;
+      document.getElementById('apiSearchBtn').disabled = false;
+      document.getElementById('resultsSection').style.display = 'block';
+    }
+    
+    function copyEmbedding() {
+      if (!currentEmbedding) return;
+      
+      navigator.clipboard.writeText(currentEmbedding.map(v => v.toFixed(6)).join(', ')).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = originalText, 2000);
+      });
+    }
+    
+    function clearImage() {
+      imagePreview.style.display = 'none';
+      document.getElementById('resultsSection').style.display = 'none';
+      imageInput.value = '';
+      currentEmbedding = null;
+      selectedPieceId = null;
+    }
+    
+    // Web form submission (original method)
+    async function sendToRails() {
+      const pieceId = document.getElementById('clothingPieceSelect').value;
+      if (!pieceId || !currentEmbedding) return;
+      
+      const resultDiv = document.getElementById('railsResult');
+      resultDiv.innerHTML = '<div class="status loading">Sending to Rails...</div>';
+      
+      try {
+        const formData = new FormData();
+        formData.append('vector_data', currentEmbedding.map(v => v.toFixed(6)).join(','));
+        formData.append('model_version', 'clip-vit-base-patch32');
+        formData.append('confidence_score', '0.90');
+        
+        const response = await fetch(`/closet/${pieceId}/upload_embedding`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+          }
+        });
+        
+        if (response.ok) {
+          resultDiv.innerHTML = '<div class="status success"> Web form upload successful!</div>';
+        } else {
+          throw new Error('Failed to save embedding');
+        }
+        
+      } catch (error) {
+        console.error('Failed to send to Rails:', error);
+        resultDiv.innerHTML = '<div class="status error"> Failed to save embedding</div>';
+      }
+    }
+    
+    // API Testing Functions
+    async function testApiList() {
+      const btn = document.getElementById('apiListBtn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      
+      try {
+        const response = await fetch('/api/v1/clothing_pieces', {
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        displayApiResult('GET /clothing_pieces', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('GET /clothing_pieces', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'GET /clothing_pieces';
+      }
+    }
+    
+    async function testApiStats() {
+      const btn = document.getElementById('apiStatsBtn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      
+      try {
+        const response = await fetch('/api/v1/embeddings/stats', {
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        displayApiResult('GET /embeddings/stats', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('GET /embeddings/stats', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'GET /embeddings/stats';
+      }
+    }
+    
+    async function testApiEmbedding() {
+      const pieceId = selectedPieceId || document.getElementById('clothingPieceSelect').value;
+      if (!pieceId || !currentEmbedding) {
+        alert('Please select a clothing piece and generate an embedding first');
+        return;
+      }
+      
+      const btn = document.getElementById('apiEmbeddingBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      
+      try {
+        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/embedding`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            vector_data: currentEmbedding,
+            model_version: 'clip-vit-base-patch32-test',
+            confidence_score: 0.92
+          })
+        });
+        
+        const data = await response.json();
+        displayApiResult('POST /pieces/:id/embedding', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('POST /pieces/:id/embedding', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'POST /pieces/:id/embedding';
+      }
+    }
+    
+    async function testApiSimilar() {
+      const pieceId = selectedPieceId || document.getElementById('clothingPieceSelect').value;
+      if (!pieceId) {
+        alert('Please select a clothing piece first');
+        return;
+      }
+      
+      const btn = document.getElementById('apiSimilarBtn');
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+      
+      try {
+        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/similar?limit=5`, {
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        displayApiResult('GET /pieces/:id/similar', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('GET /pieces/:id/similar', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'GET /pieces/:id/similar';
+      }
+    }
+    
+    async function testApiSearch() {
+      if (!currentEmbedding) {
+        alert('Please generate an embedding first');
+        return;
+      }
+      
+      const btn = document.getElementById('apiSearchBtn');
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+      
+      try {
+        const response = await fetch('/api/v1/embeddings/search', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + USER_EMAIL,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            vector_data: currentEmbedding,
+            limit: 5,
+            category: 'tops' // Optional filter
+          })
+        });
+        
+        const data = await response.json();
+        displayApiResult('POST /embeddings/search', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('POST /embeddings/search', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'POST /embeddings/search';
+      }
+    }
+    
+    function displayApiResult(endpoint, status, data) {
+      const resultsDiv = document.getElementById('apiResults');
+      const timestamp = new Date().toLocaleTimeString();
+      const statusColor = status.toString().startsWith('2') ? '#28a745' : '#dc3545';
+      
+      const result = `
+<div style="border-bottom: 1px solid #ddd; padding: 10px 0; margin: 5px 0;">
+  <div style="color: ${statusColor}; font-weight: bold;">
+    [${timestamp}] ${endpoint} - Status: ${status}
+  </div>
+  <pre style="margin: 5px 0; white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(data, null, 2)}</pre>
+</div>`;
+      
+      resultsDiv.innerHTML = result + resultsDiv.innerHTML;
+    }
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM loaded, starting model initialization...');
+      
+      // Check if ONNX Runtime loaded
+      if (typeof ort === 'undefined') {
+        console.error('ONNX Runtime not loaded');
+        document.getElementById('modelStatus').innerHTML = ' ONNX Runtime failed to load';
+        document.getElementById('modelStatus').className = 'status error';
+        return;
+      }
+      
+      console.log('ONNX Runtime available:', ort.version);
+      initializeModel();
+    });      document.getElementById('topDimensions').textContent = topDims;
+      
+      // Enable integration controls
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('apiEmbeddingBtn').disabled = false;
+      document.getElementById('apiSimilarBtn').disabled = false;
+      document.getElementById('apiSearchBtn').disabled = false;
+      document.getElementById('resultsSection').style.display = 'block';
+    }
+    
+    function copyEmbedding() {
+      if (!currentEmbedding) return;
+      
+      navigator.clipboard.writeText(currentEmbedding.map(v => v.toFixed(6)).join(', ')).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = originalText, 2000);
+      });
+    }
+    
+    function clearImage() {
+      imagePreview.style.display = 'none';
+      document.getElementById('resultsSection').style.display = 'none';
+      imageInput.value = '';
+      currentEmbedding = null;
+      selectedPieceId = null;
+    }
+    
+    // Web form submission (original method)
+    async function sendToRails() {
+      const pieceId = document.getElementById('clothingPieceSelect').value;
+      if (!pieceId || !currentEmbedding) return;
+      
+      const resultDiv = document.getElementById('railsResult');
+      resultDiv.innerHTML = '<div class="status loading">Sending to Rails...</div>';
+      
+      try {
+        const formData = new FormData();
+        formData.append('vector_data', currentEmbedding.map(v => v.toFixed(6)).join(','));
+        formData.append('model_version', 'clip-vit-base-patch32');
+        formData.append('confidence_score', '0.90');
+        
+        const response = await fetch(`/closet/${pieceId}/upload_embedding`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+          }
+        });
+        
+        if (response.ok) {
+          resultDiv.innerHTML = '<div class="status success"> Web form upload successful!</div>';
+        } else {
+          throw new Error('Failed to save embedding');
+        }
+        
+      } catch (error) {
+        console.error('Failed to send to Rails:', error);
+        resultDiv.innerHTML = '<div class="status error"> Failed to save embedding</div>';
+      }
+    }
+    
+    // API Testing Functions
+    async function testApiList() {
+      const btn = document.getElementById('apiListBtn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      
+      try {
+        const response = await fetch('/api/v1/clothing_pieces', {
+          headers: {
+            'Authorization': 'Bearer <%= current_user.email %>',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        displayApiResult('GET /clothing_pieces', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('GET /clothing_pieces', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'GET /clothing_pieces';
+      }
+    }
+    
+    async function testApiStats() {
+      const btn = document.getElementById('apiStatsBtn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      
+      try {
+        const response = await fetch('/api/v1/embeddings/stats', {
+          headers: {
+            'Authorization': 'Bearer <%= current_user.email %>',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        displayApiResult('GET /embeddings/stats', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('GET /embeddings/stats', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'GET /embeddings/stats';
+      }
+    }
+    
+    async function testApiEmbedding() {
+      const pieceId = selectedPieceId || document.getElementById('clothingPieceSelect').value;
+      if (!pieceId || !currentEmbedding) {
+        alert('Please select a clothing piece and generate an embedding first');
+        return;
+      }
+      
+      const btn = document.getElementById('apiEmbeddingBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      
+      try {
+        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/embedding`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer <%= current_user.email %>',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            vector_data: currentEmbedding,
+            model_version: 'clip-vit-base-patch32-test',
+            confidence_score: 0.92
+          })
+        });
+        
+        const data = await response.json();
+        displayApiResult('POST /pieces/:id/embedding', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('POST /pieces/:id/embedding', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'POST /pieces/:id/embedding';
+      }
+    }
+    
+    async function testApiSimilar() {
+      const pieceId = selectedPieceId || document.getElementById('clothingPieceSelect').value;
+      if (!pieceId) {
+        alert('Please select a clothing piece first');
+        return;
+      }
+      
+      const btn = document.getElementById('apiSimilarBtn');
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+      
+      try {
+        const response = await fetch(`/api/v1/clothing_pieces/${pieceId}/similar?limit=5`, {
+          headers: {
+            'Authorization': 'Bearer <%= current_user.email %>',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        displayApiResult('GET /pieces/:id/similar', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('GET /pieces/:id/similar', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'GET /pieces/:id/similar';
+      }
+    }
+    
+    async function testApiSearch() {
+      if (!currentEmbedding) {
+        alert('Please generate an embedding first');
+        return;
+      }
+      
+      const btn = document.getElementById('apiSearchBtn');
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+      
+      try {
+        const response = await fetch('/api/v1/embeddings/search', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer <%= current_user.email %>',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            vector_data: currentEmbedding,
+            limit: 5,
+            category: 'tops' // Optional filter
+          })
+        });
+        
+        const data = await response.json();
+        displayApiResult('POST /embeddings/search', response.status, data);
+        
+      } catch (error) {
+        displayApiResult('POST /embeddings/search', 'ERROR', { error: error.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'POST /embeddings/search';
+      }
+    }
+    
+    function displayApiResult(endpoint, status, data) {
+      const resultsDiv = document.getElementById('apiResults');
+      const timestamp = new Date().toLocaleTimeString();
+      const statusColor = status.toString().startsWith('2') ? '#28a745' : '#dc3545';
+      
+      const result = `
+<div style="border-bottom: 1px solid #ddd; padding: 10px 0; margin: 5px 0;">
+  <div style="color: ${statusColor}; font-weight: bold;">
+    [${timestamp}] ${endpoint} - Status: ${status}
+  </div>
+  <pre style="margin: 5px 0; white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(data, null, 2)}</pre>
+</div>`;
+      
+      resultsDiv.innerHTML = result + resultsDiv.innerHTML;
+    }
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', initializeModel);
+  </script>
+</body>
+</html>
