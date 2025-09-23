@@ -18,8 +18,7 @@ Rails.application.routes.draw do
     end
   end
   
-  get '/test_embedding', to: 'embedding_test#index'
-  get '/test_api', to: 'api_test#index'
+  # get '/closet/search', to: 'clothing_pieces#search', as: 'search_clothing_pieces'
 
   get '/ai_models/vanilla_clip', to: 'ai_models#vanilla_clip'
   get '/ai_models/fashion_clip', to: 'ai_models#fashion_clip'
