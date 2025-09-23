@@ -6,4 +6,9 @@ class AiModelsController < ApplicationController
     
   end
 
+  def fashion_clip
+    # render file: Rails.root.join('public', 'models', 'clip-vit-base-patch32\fashionclip_vision.onnx')
+  
+  end
+
 end
