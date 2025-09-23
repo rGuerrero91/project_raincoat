@@ -17,11 +17,13 @@ Rails.application.routes.draw do
       get 'similar'           # Show similar items
     end
   end
-  
+
   # get '/closet/search', to: 'clothing_pieces#search', as: 'search_clothing_pieces'
 
   get '/ai_models/vanilla_clip', to: 'ai_models#vanilla_clip'
   get '/ai_models/fashion_clip', to: 'ai_models#fashion_clip'
+
+  get '/ai_models/similarity_comparison', to: 'ai_models#similarity_comparison'
   
   # API endpoints
   namespace :api do

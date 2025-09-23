@@ -1,0 +1,357 @@
+<!-- app/views/similarity_comparison/index.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Model Similarity Comparison</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .upload-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+    .upload-item { border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; position: relative; }
+    .upload-item:hover { border-color: #007cba; background: #f9f9f9; }
+    .upload-item.has-image { border-color: #28a745; border-style: solid; }
+    .upload-item img { max-width: 100%; max-height: 150px; border-radius: 4px; margin-bottom: 10px; }
+    .comparison-results { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+    .model-results { background: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+    .model-results h3 { margin: 0 0 15px 0; text-align: center; }
+    .model-results.vanilla { border-left: 4px solid #dc3545; }
+    .model-results.fashion { border-left: 4px solid #28a745; }
+    .similarity-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #eee; }
+    .similarity-item:last-child { border-bottom: none; }
+    .similarity-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; }
+    .similarity-score { font-weight: bold; color: #007cba; min-width: 60px; }
+    .status { padding: 10px; border-radius: 4px; margin: 10px 0; text-align: center; }
+    .loading { background: #fff3cd; color: #856404; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .back-link { margin-bottom: 20px; }
+    .back-link a { color: #007cba; text-decoration: none; }
+    .instructions { background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .remove-btn { position: absolute; top: 5px; right: 5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="back-link">
+    <a href="<%= clothing_pieces_path %>">&larr; Back to Closet</a>
+  </div>
+  
+  <h1>Model Similarity Comparison</h1>
+  
+  <div class="instructions">
+    <strong>Instructions:</strong> Upload 3-5 clothing images, then click "Compare Models" to see how vanilla CLIP vs FashionCLIP rank similarity between your images. This helps determine which model better understands fashion similarity.
+  </div>
+  
+  <!-- Image Upload Section -->
+  <div class="section">
+    <h2>Upload Test Images</h2>
+    <div class="upload-grid" id="uploadGrid">
+      <div class="upload-item" onclick="addImage(this)">
+        <p>+ Add Image 1</p>
+        <input type="file" accept="image/*" style="display: none;">
+      </div>
+      <div class="upload-item" onclick="addImage(this)">
+        <p>+ Add Image 2</p>
+        <input type="file" accept="image/*" style="display: none;">
+      </div>
+      <div class="upload-item" onclick="addImage(this)">
+        <p>+ Add Image 3</p>
+        <input type="file" accept="image/*" style="display: none;">
+      </div>
+      <div class="upload-item" onclick="addImage(this)">
+        <p>+ Add Image 4</p>
+        <input type="file" accept="image/*" style="display: none;">
+      </div>
+      <div class="upload-item" onclick="addImage(this)">
+        <p>+ Add Image 5</p>
+        <input type="file" accept="image/*" style="display: none;">
+      </div>
+    </div>
+    
+    <button onclick="compareModels()" id="compareBtn" disabled>Compare Models</button>
+    <button onclick="clearAll()">Clear All</button>
+    
+    <div id="status" class="status" style="display: none;"></div>
+  </div>
+  
+  <!-- Results Section -->
+  <div class="section" id="resultsSection" style="display: none;">
+    <h2>Similarity Comparison Results</h2>
+    <p>For each image, see how the other images rank by similarity according to each model:</p>
+    
+    <div class="comparison-results">
+      <div class="model-results vanilla">
+        <h3>Vanilla CLIP Results</h3>
+        <div id="vanillaResults"></div>
+      </div>
+      
+      <div class="model-results fashion">
+        <h3>FashionCLIP Results</h3>
+        <div id="fashionResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/ort.min.js"></script>
+  
+  <script>
+    let vanillaSession = null;
+    let fashionSession = null;
+    let uploadedImages = [];
+    
+    const VANILLA_MODEL_URL = window.location.origin + '/models/clip-vit-base-patch32/vision_model_quantized.onnx';
+    const FASHION_MODEL_URL = window.location.origin + '/models/fashionclip/fashionclip_vision.onnx';
+    
+    // Load models on page load
+    window.addEventListener('load', async () => {
+      showStatus('Loading AI models...', 'loading');
+      
+      try {
+        ort.env.wasm.wasmPaths = '/js/onnx/';
+        
+        // Load both models
+        const [vanilla, fashion] = await Promise.all([
+          ort.InferenceSession.create(VANILLA_MODEL_URL),
+          ort.InferenceSession.create(FASHION_MODEL_URL)
+        ]);
+        
+        vanillaSession = vanilla;
+        fashionSession = fashion;
+        
+        showStatus('Both models loaded successfully', 'success');
+      } catch (error) {
+        showStatus('Failed to load models: ' + error.message, 'error');
+      }
+    });
+    
+    function addImage(uploadItem) {
+      const input = uploadItem.querySelector('input');
+      input.click();
+      
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            // Add image to the upload item
+            uploadItem.innerHTML = `
+              <img src="${e.target.result}" alt="Upload ${uploadedImages.length + 1}">
+              <button class="remove-btn" onclick="removeImage(this)">&times;</button>
+            `;
+            uploadItem.classList.add('has-image');
+            
+            // Store image data
+            uploadedImages.push({
+              element: uploadItem,
+              dataUrl: e.target.result,
+              file: file
+            });
+            
+            updateCompareButton();
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+    }
+    
+    function removeImage(btn) {
+      const uploadItem = btn.parentElement;
+      const index = uploadedImages.findIndex(img => img.element === uploadItem);
+      
+      if (index > -1) {
+        uploadedImages.splice(index, 1);
+        uploadItem.innerHTML = `<p>+ Add Image ${Array.from(uploadItem.parentElement.children).indexOf(uploadItem) + 1}</p><input type="file" accept="image/*" style="display: none;">`;
+        uploadItem.classList.remove('has-image');
+        uploadItem.onclick = () => addImage(uploadItem);
+        updateCompareButton();
+      }
+    }
+    
+    function updateCompareButton() {
+      document.getElementById('compareBtn').disabled = uploadedImages.length < 2;
+    }
+    
+    function clearAll() {
+      uploadedImages = [];
+      document.querySelectorAll('.upload-item').forEach((item, index) => {
+        item.innerHTML = `<p>+ Add Image ${index + 1}</p><input type="file" accept="image/*" style="display: none;">`;
+        item.classList.remove('has-image');
+        item.onclick = () => addImage(item);
+      });
+      document.getElementById('resultsSection').style.display = 'none';
+      updateCompareButton();
+    }
+    
+    async function compareModels() {
+      if (!vanillaSession || !fashionSession) {
+        alert('Models not loaded yet');
+        return;
+      }
+      
+      if (uploadedImages.length < 2) {
+        alert('Please upload at least 2 images');
+        return;
+      }
+      
+      showStatus('Processing images with both models...', 'loading');
+      
+      try {
+        // Generate embeddings for all images with both models
+        const vanillaEmbeddings = [];
+        const fashionEmbeddings = [];
+        
+        for (const img of uploadedImages) {
+          const [vanillaEmb, fashionEmb] = await Promise.all([
+            generateEmbedding(img.dataUrl, vanillaSession, true),
+            generateEmbedding(img.dataUrl, fashionSession, false)
+          ]);
+          
+          vanillaEmbeddings.push(vanillaEmb);
+          fashionEmbeddings.push(fashionEmb);
+        }
+        
+        // Calculate similarities and display results
+        displayComparisonResults(vanillaEmbeddings, fashionEmbeddings);
+        
+        showStatus('Comparison complete', 'success');
+        document.getElementById('resultsSection').style.display = 'block';
+        
+      } catch (error) {
+        showStatus('Comparison failed: ' + error.message, 'error');
+      }
+    }
+    
+    async function generateEmbedding(dataUrl, session, isVanilla) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = async () => {
+          try {
+            // Preprocess image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 224;
+            canvas.height = 224;
+            ctx.drawImage(img, 0, 0, 224, 224);
+            
+            const imageData = ctx.getImageData(0, 0, 224, 224);
+            const tensorData = new Float32Array(3 * 224 * 224);
+            
+            // Simple normalization
+            for (let i = 0; i < 224 * 224; i++) {
+              const pixelIndex = i * 4;
+              tensorData[i] = (imageData.data[pixelIndex] / 255.0 - 0.5) * 2; // R
+              tensorData[224 * 224 + i] = (imageData.data[pixelIndex + 1] / 255.0 - 0.5) * 2; // G
+              tensorData[2 * 224 * 224 + i] = (imageData.data[pixelIndex + 2] / 255.0 - 0.5) * 2; // B
+            }
+            
+            const tensor = new ort.Tensor('float32', tensorData, [1, 3, 224, 224]);
+            
+            // Run inference
+            const feeds = {};
+            feeds[session.inputNames[0]] = tensor;
+            const outputs = await session.run(feeds);
+            
+            let embedding = Array.from(outputs[session.outputNames[0]].data);
+            
+            // Handle different output formats
+            if (isVanilla && embedding.length > 512) {
+              embedding = embedding.slice(0, 512);
+            } else if (!isVanilla && embedding.length !== 512) {
+              if (embedding.length > 512) {
+                embedding = embedding.slice(0, 512);
+              } else {
+                embedding = [...embedding, ...new Array(512 - embedding.length).fill(0)];
+              }
+            }
+            
+            // Normalize embedding
+            const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+            embedding = embedding.map(val => val / magnitude);
+            
+            resolve(embedding);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        img.src = dataUrl;
+      });
+    }
+    
+    function cosineSimilarity(vec1, vec2) {
+      const dotProduct = vec1.reduce((sum, val, i) => sum + val * vec2[i], 0);
+      return (dotProduct * 100).toFixed(1); // Convert to percentage
+    }
+    
+    function displayComparisonResults(vanillaEmbeddings, fashionEmbeddings) {
+      const vanillaDiv = document.getElementById('vanillaResults');
+      const fashionDiv = document.getElementById('fashionResults');
+      
+      vanillaDiv.innerHTML = '';
+      fashionDiv.innerHTML = '';
+      
+      // For each image, show how others rank by similarity
+      uploadedImages.forEach((queryImg, queryIndex) => {
+        // Calculate similarities to all other images
+        const vanillaSimilarities = [];
+        const fashionSimilarities = [];
+        
+        uploadedImages.forEach((targetImg, targetIndex) => {
+          if (queryIndex !== targetIndex) {
+            const vanillaSim = cosineSimilarity(vanillaEmbeddings[queryIndex], vanillaEmbeddings[targetIndex]);
+            const fashionSim = cosineSimilarity(fashionEmbeddings[queryIndex], fashionEmbeddings[targetIndex]);
+            
+            vanillaSimilarities.push({ index: targetIndex, similarity: vanillaSim, img: targetImg });
+            fashionSimilarities.push({ index: targetIndex, similarity: fashionSim, img: targetImg });
+          }
+        });
+        
+        // Sort by similarity (highest first)
+        vanillaSimilarities.sort((a, b) => b.similarity - a.similarity);
+        fashionSimilarities.sort((a, b) => b.similarity - a.similarity);
+        
+        // Add query image header
+        vanillaDiv.innerHTML += `<h4>Query Image ${queryIndex + 1}:</h4>`;
+        fashionDiv.innerHTML += `<h4>Query Image ${queryIndex + 1}:</h4>`;
+        
+        // Display results
+        vanillaSimilarities.forEach(result => {
+          vanillaDiv.innerHTML += `
+            <div class="similarity-item">
+              <img src="${result.img.dataUrl}" alt="Similar">
+              <span>Image ${result.index + 1}</span>
+              <span class="similarity-score">${result.similarity}%</span>
+            </div>
+          `;
+        });
+        
+        fashionSimilarities.forEach(result => {
+          fashionDiv.innerHTML += `
+            <div class="similarity-item">
+              <img src="${result.img.dataUrl}" alt="Similar">
+              <span>Image ${result.index + 1}</span>
+              <span class="similarity-score">${result.similarity}%</span>
+            </div>
+          `;
+        });
+        
+        if (queryIndex < uploadedImages.length - 1) {
+          vanillaDiv.innerHTML += '<hr style="margin: 20px 0;">';
+          fashionDiv.innerHTML += '<hr style="margin: 20px 0;">';
+        }
+      });
+    }
+    
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = 'status ' + type;
+      status.style.display = 'block';
+    }
+    
+    console.log('Similarity comparison tool loaded');
+  </script>
+</body>
+</html>
