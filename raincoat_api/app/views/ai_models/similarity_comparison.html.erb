@@ -73,6 +73,7 @@
     
     <button onclick="compareModels()" id="compareBtn" disabled>Compare Models</button>
     <button onclick="clearAll()">Clear All</button>
+    <button onclick="clearModelCache()" style="background: #6c757d;">Clear Model Cache</button>
     
     <div id="status" class="status" style="display: none;"></div>
   </div>
@@ -95,7 +96,7 @@
     </div>
   </div>
 
-  <script src="/js/onnx/ort.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/ort.min.js"></script>
   
   <script>
     let vanillaSession = null;
@@ -103,19 +104,19 @@
     let uploadedImages = [];
     
     const VANILLA_MODEL_URL = window.location.origin + '/models/clip-vit-base-patch32/vision_model_quantized.onnx';
-    const FASHION_MODEL_URL = window.location.origin + '/models/clip-vit-base-patch32/fashionclip_vision.onnx';
+    const FASHION_MODEL_URL = window.location.origin + '/models/fashionclip/fashionclip_vision.onnx';
     
-    // Load models on page load
+    // Load models on page load with caching
     window.addEventListener('load', async () => {
       showStatus('Loading AI models...', 'loading');
       
       try {
         ort.env.wasm.wasmPaths = '/js/onnx/';
         
-        // Load both models
+        // Load both models with caching
         const [vanilla, fashion] = await Promise.all([
-          ort.InferenceSession.create(VANILLA_MODEL_URL),
-          ort.InferenceSession.create(FASHION_MODEL_URL)
+          loadModelWithCache(VANILLA_MODEL_URL, 'vanilla-clip-model'),
+          loadModelWithCache(FASHION_MODEL_URL, 'fashion-clip-model')
         ]);
         
         vanillaSession = vanilla;
@@ -126,6 +127,50 @@
         showStatus('Failed to load models: ' + error.message, 'error');
       }
     });
+    
+    // Cache-aware model loading
+    async function loadModelWithCache(modelUrl, cacheKey) {
+      try {
+        // Check if we have a cached version
+        const cache = await caches.open('onnx-models');
+        const cachedResponse = await cache.match(cacheKey);
+        
+        if (cachedResponse) {
+          console.log(`Loading ${cacheKey} from cache`);
+          const modelBuffer = await cachedResponse.arrayBuffer();
+          return await ort.InferenceSession.create(modelBuffer);
+        } else {
+          console.log(`Loading ${cacheKey} from network and caching`);
+          // Load from network
+          const response = await fetch(modelUrl);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch model: ${response.statusText}`);
+          }
+          
+          // Cache the response
+          await cache.put(cacheKey, response.clone());
+          
+          // Create session from the response
+          const modelBuffer = await response.arrayBuffer();
+          return await ort.InferenceSession.create(modelBuffer);
+        }
+      } catch (error) {
+        console.error(`Error loading model ${cacheKey}:`, error);
+        throw error;
+      }
+    }
+    
+    // Function to clear model cache (useful for development)
+    async function clearModelCache() {
+      try {
+        await caches.delete('onnx-models');
+        console.log('Model cache cleared');
+        showStatus('Model cache cleared - reload to download fresh models', 'success');
+      } catch (error) {
+        console.error('Error clearing cache:', error);
+        showStatus('Failed to clear cache', 'error');
+      }
+    }
     
     function addImage(uploadItem) {
       const input = uploadItem.querySelector('input');
@@ -313,10 +358,9 @@
         fashionSimilarities.sort((a, b) => b.similarity - a.similarity);
         
         // Add query image header
-        vanillaDiv.innerHTML += `<h4>Query Image </h4> <img src="${queryImg.dataUrl}" alt="similar" style="height:75px; width:75px;"> <hr style="margin: 5px 0; opacity:0.5;">`;
-        fashionDiv.innerHTML += `<h4>Query Image </h4> <img src="${queryImg.dataUrl}" alt="similar" style="height:75px; width:75px;"> <hr style="margin: 5px 0; opacity:0.5;">`;
-        // console.log(queryImg);
-
+        vanillaDiv.innerHTML += `<h4>Query Image ${queryIndex + 1}:</h4>`;
+        fashionDiv.innerHTML += `<h4>Query Image ${queryIndex + 1}:</h4>`;
+        
         // Display results
         vanillaSimilarities.forEach(result => {
           vanillaDiv.innerHTML += `
