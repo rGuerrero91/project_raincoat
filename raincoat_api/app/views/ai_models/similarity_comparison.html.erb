@@ -96,16 +96,16 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/ort.min.js"></script>
-  
+  <script src="/js/onnx/ort.min.js"></script>
+
   <script>
     let vanillaSession = null;
     let fashionSession = null;
     let uploadedImages = [];
     
     const VANILLA_MODEL_URL = window.location.origin + '/models/clip-vit-base-patch32/vision_model_quantized.onnx';
-    const FASHION_MODEL_URL = window.location.origin + '/models/fashionclip/fashionclip_vision.onnx';
-    
+    const FASHION_MODEL_URL = window.location.origin + '/models/clip-vit-base-patch32/fashionclip_vision.onnx';
+
     // Load models on page load with caching
     window.addEventListener('load', async () => {
       showStatus('Loading AI models...', 'loading');
@@ -357,10 +357,10 @@
         vanillaSimilarities.sort((a, b) => b.similarity - a.similarity);
         fashionSimilarities.sort((a, b) => b.similarity - a.similarity);
         
-        // Add query image header
-        vanillaDiv.innerHTML += `<h4>Query Image ${queryIndex + 1}:</h4>`;
-        fashionDiv.innerHTML += `<h4>Query Image ${queryIndex + 1}:</h4>`;
-        
+        vanillaDiv.innerHTML += `<h4>Query Image </h4> <img src="${queryImg.dataUrl}" alt="similar" style="height:75px; width:75px;"> <hr style="margin: 5px 0; opacity:0.5;">`;
+        fashionDiv.innerHTML += `<h4>Query Image </h4> <img src="${queryImg.dataUrl}" alt="similar" style="height:75px; width:75px;"> <hr style="margin: 5px 0; opacity:0.5;">`;
+        // console.log(queryImg);
+
         // Display results
         vanillaSimilarities.forEach(result => {
           vanillaDiv.innerHTML += `
