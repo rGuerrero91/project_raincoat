@@ -10,7 +10,15 @@ class ClothingPiece < ApplicationRecord
     message: "must be one of: tops, bottoms, outerwear, shoes, accessories"
   }
   
-  # Method to find similar pieces using embeddings
+  enum :processing_status, [
+    :pending,
+    :processing,
+    :segmented,
+    :embedding_generated,
+    :embedding_failed,
+    :failed
+  ]
+  
   def similar_pieces(limit: 10)
     return [] unless clothing_embedding&.vector_data
     
