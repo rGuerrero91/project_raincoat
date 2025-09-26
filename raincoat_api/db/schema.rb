@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_20_025752) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_25_113850) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -69,6 +69,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_20_025752) do
     t.string "brand"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "processing_status", default: 0
+    t.json "processing_metadata"
+    t.index ["processing_status"], name: "index_clothing_pieces_on_processing_status"
     t.index ["user_id"], name: "index_clothing_pieces_on_user_id"
   end
 
