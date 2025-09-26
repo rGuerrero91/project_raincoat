@@ -1,4 +1,3 @@
-# db/migrate/[timestamp]_create_clothing_embeddings.rb
 class CreateClothingEmbeddings < ActiveRecord::Migration[7.0]
   def up
     # Enable pgvector extension if not already enabled

@@ -1,4 +1,3 @@
-# app/controllers/api/v1/embeddings_controller.rb
 class Api::V1::EmbeddingsController < Api::V1::BaseController
   
   # POST /api/v1/embeddings/search
@@ -12,10 +11,9 @@ class Api::V1::EmbeddingsController < Api::V1::BaseController
     limit = [params[:limit]&.to_i || 10, 50].min # Max 50 results
     category_filter = params[:category]
     
-    # Search for similar embeddings
     similar_embeddings = ClothingEmbedding.search_similar(vector_data, current_user.id, limit: limit * 2)
     
-    # Filter by category if specified
+    # Filter by category
     if category_filter.present?
       similar_embeddings = similar_embeddings.select do |embedding|
         embedding.clothing_piece.category == category_filter
@@ -91,7 +89,7 @@ class Api::V1::EmbeddingsController < Api::V1::BaseController
   def calculate_similarity_score(vector1, vector2)
     return 0.0 unless vector1.length == vector2.length
     
-    # Simple cosine similarity calculation
+    # cosine similarity calculation, do not ask me how it works right now, Claude gave me this one.
     dot_product = vector1.zip(vector2).map { |a, b| a * b }.sum
     magnitude1 = Math.sqrt(vector1.map { |v| v * v }.sum)
     magnitude2 = Math.sqrt(vector2.map { |v| v * v }.sum)

@@ -1,4 +1,3 @@
-# app/controllers/sessions_controller.rb
 class SessionsController < ApplicationController
   def new
     redirect_to clothing_pieces_path if current_user

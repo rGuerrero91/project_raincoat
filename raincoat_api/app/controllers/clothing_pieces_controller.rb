@@ -1,4 +1,3 @@
-# app/controllers/clothing_pieces_controller.rb
 class ClothingPiecesController < ApplicationController
   before_action :require_login
   before_action :set_clothing_piece, only: [:show, :upload_embedding, :similar]

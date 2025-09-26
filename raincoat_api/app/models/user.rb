@@ -1,4 +1,3 @@
-# app/models/user.rb
 class User < ApplicationRecord
   has_many :clothing_pieces, dependent: :destroy
   

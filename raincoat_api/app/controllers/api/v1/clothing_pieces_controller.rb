@@ -1,8 +1,6 @@
-# app/controllers/api/v1/clothing_pieces_controller.rb
 class Api::V1::ClothingPiecesController < Api::V1::BaseController
   before_action :set_clothing_piece, only: [:show, :embedding, :similar]
   
-  # GET /api/v1/clothing_pieces
   def index
     pieces = current_user.clothing_pieces.includes(:clothing_embedding)
     
@@ -16,7 +14,6 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
     }
   end
   
-  # GET /api/v1/clothing_pieces/:id
   def show
     render json: {
       success: true,
@@ -24,7 +21,6 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
     }
   end
   
-  # POST /api/v1/clothing_pieces
   def create
     piece = current_user.clothing_pieces.build(clothing_piece_params)
     
@@ -134,7 +130,6 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
       return nil
     end
     
-    # Validate length
     vector.length == 512 ? vector : nil
   end
   
@@ -161,7 +156,7 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
         {
           id: image.id,
           filename: image.filename.to_s,
-          url: url_for(image), # This generates the full URL
+          url: url_for(image),
           content_type: image.content_type
         }
       end

@@ -1,4 +1,3 @@
-# app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
   include ActionController::Flash 
   protect_from_forgery with: :null_session

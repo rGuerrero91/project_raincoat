@@ -7,7 +7,6 @@ class ClothingEmbedding < ApplicationRecord
   validates :model_version, presence: true
   validates :vector_data, length: { is: 512, message: "must contain exactly 512 dimensions" }
   
-  # Find similar embeddings using pgvector cosine similarity
   def similar_embeddings(limit: 10)
     return [] unless vector_data.present?
     
@@ -21,11 +20,10 @@ class ClothingEmbedding < ApplicationRecord
       .includes(:clothing_piece)
   end
   
-  # Get similarity score between two embeddings
+  # Get similarity score between two embeddings (Do not ask me why this works, I had the AI help me with this one)
   def similarity_to(other_embedding)
     return 0.0 unless other_embedding&.vector_data && vector_data
     
-    # Calculate cosine similarity (1 - cosine distance)
     distance = ActiveRecord::Base.connection.execute(
       "SELECT '#{vector_data}'::vector <=> '#{other_embedding.vector_data}'::vector as distance"
     ).first['distance'].to_f
