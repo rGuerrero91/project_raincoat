@@ -5,6 +5,6 @@ notes_and_test data/test_images_2/
 notes_and_test data/processed_images
 
 # Ignore model + weights
-scripts/model_extractions/models/fashionclip_image_encoder.onnx
-scripts/model_extractions/models/fashionclip_text_encoder.onnx
-scripts/model_extractions/models/u2net.onnx
+raincoat_api/public/models/fashionclip_image_encoder.onnx
+raincoat_api/public/models/fashionclip_text_encoder.onnx
+raincoat_api/public/models/u2net.onnx
