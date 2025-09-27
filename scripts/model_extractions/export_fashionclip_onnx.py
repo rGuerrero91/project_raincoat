@@ -2,12 +2,13 @@
 """
 Export FashionCLIP to ONNX format for browser deployment.
 Creates separate models for image and text encoding.
+Loads directly from HuggingFace without requiring the fashion-clip package.
 """
 
 import torch
 import json
 from pathlib import Path
-from fashion_clip.fashion_clip import FashionCLIP
+from transformers import CLIPModel, CLIPProcessor
 
 def export_fashionclip_models(output_dir="./models"):
     """
@@ -19,8 +20,9 @@ def export_fashionclip_models(output_dir="./models"):
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     
-    print("Loading FashionCLIP model...")
-    fclip = FashionCLIP('fashion-clip')
+    print("Loading FashionCLIP model from HuggingFace...")
+    model = CLIPModel.from_pretrained("patrickjohncyh/fashion-clip")
+    processor = CLIPProcessor.from_pretrained("patrickjohncyh/fashion-clip")
     
     # Export Image Encoder
     print("\n" + "="*60)
@@ -33,23 +35,23 @@ def export_fashionclip_models(output_dir="./models"):
     image_encoder_path = output_path / "fashionclip_image_encoder.onnx"
     
     torch.onnx.export(
-        fclip.model.visual,  # Image encoder component
+        model.vision_model,  # Image encoder component
         dummy_image,
         image_encoder_path,
         export_params=True,
         opset_version=14,
         do_constant_folding=True,
-        input_names=['image'],
+        input_names=['pixel_values'],
         output_names=['image_embedding'],
         dynamic_axes={
-            'image': {0: 'batch_size'},
+            'pixel_values': {0: 'batch_size'},
             'image_embedding': {0: 'batch_size'}
         }
     )
     
     size_mb = image_encoder_path.stat().st_size / (1024 * 1024)
-    print(f" Image encoder exported: {image_encoder_path}")
-    print(f"   Size: {size_mb:.2f} MB")
+    print(f"Image encoder exported: {image_encoder_path}")
+    print(f"Size: {size_mb:.2f} MB")
     
     # Export Text Encoder
     print("\n" + "="*60)
@@ -62,16 +64,16 @@ def export_fashionclip_models(output_dir="./models"):
     text_encoder_path = output_path / "fashionclip_text_encoder.onnx"
     
     torch.onnx.export(
-        fclip.model.transformer,  # Text encoder component
+        model.text_model,  # Text encoder component
         dummy_text,
         text_encoder_path,
         export_params=True,
         opset_version=14,
         do_constant_folding=True,
-        input_names=['text_tokens'],
+        input_names=['input_ids'],
         output_names=['text_embedding'],
         dynamic_axes={
-            'text_tokens': {0: 'batch_size'},
+            'input_ids': {0: 'batch_size'},
             'text_embedding': {0: 'batch_size'}
         }
     )
