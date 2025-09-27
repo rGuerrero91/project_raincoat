@@ -11,45 +11,45 @@ class ClothingPiece < ApplicationRecord
   has_many :outfit_pieces, dependent: :destroy
   has_many :outfits, through: :outfit_pieces
   has_one :clothing_embedding, dependent: :destroy
-  
+
   # Active Storage for images
   has_many_attached :images
   has_one_attached :processed_image
-  
+
   # Validations
   validates :name, presence: true
   validates :category, presence: true, inclusion: { in: %w[tops bottoms outerwear shoes accessories hats] }
   validates :processing_status, inclusion: { in: %w[pending processing segmented embedding_generated failed] }
-  
+
   # Scopes
   scope :by_category, ->(category) { where(category: category) }
   scope :processing_complete, -> { where(processing_status: 'embedding_generated') }
   scope :pending_processing, -> { where(processing_status: ['pending', 'processing']) }
-  
+
   # Processing status management
   enum processing_status: {
     pending: 'pending',
-    processing: 'processing', 
+    processing: 'processing',
     segmented: 'segmented',
     embedding_generated: 'embedding_generated',
     failed: 'failed'
   }
-  
+
   # JSON serialization for processing metadata
   serialize :ai_generated_tags, JSON
   serialize :processing_metadata, JSON
   serialize :colors, JSON
   serialize :materials, JSON
   serialize :weather_suitability, JSON
-  
+
   def primary_image
     images.attached? ? images.first : nil
   end
-  
+
   def has_embedding?
     clothing_embedding.present? && processing_status == 'embedding_generated'
   end
-  
+
   def processing_complete?
     embedding_generated?
   end
@@ -77,7 +77,7 @@ class CreateClothingPieces < ActiveRecord::Migration[7.1]
       t.string :brand
       t.timestamps
     end
-    
+
     add_index :clothing_pieces, [:user_id, :category]
     add_index :clothing_pieces, :processing_status
   end
@@ -91,34 +91,34 @@ end
 class ClothingPiecesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_clothing_piece, only: [:show, :update, :destroy, :process_image, :approve_segmentation]
-  
+
   def index
     @clothing_pieces = current_user.clothing_pieces.includes(:clothing_embedding)
     render json: @clothing_pieces.as_json(include: :clothing_embedding)
   end
-  
+
   def show
     render json: @clothing_piece.as_json(
       include: :clothing_embedding,
       methods: [:primary_image_url, :processed_image_url]
     )
   end
-  
+
   def create
     @clothing_piece = current_user.clothing_pieces.build(clothing_piece_params)
-    
+
     if @clothing_piece.save
       # Attach uploaded images
       if params[:images].present?
         @clothing_piece.images.attach(params[:images])
       end
-      
+
       render json: @clothing_piece.as_json(methods: [:primary_image_url]), status: :created
     else
       render json: { errors: @clothing_piece.errors }, status: :unprocessable_entity
     end
   end
-  
+
   def update
     if @clothing_piece.update(clothing_piece_params)
       render json: @clothing_piece
@@ -126,31 +126,31 @@ class ClothingPiecesController < ApplicationController
       render json: { errors: @clothing_piece.errors }, status: :unprocessable_entity
     end
   end
-  
+
   def destroy
     @clothing_piece.destroy
     head :no_content
   end
-  
+
   # POST /clothing_pieces/:id/process_image
   def process_image
     if @clothing_piece.images.empty?
       render json: { error: 'No images attached' }, status: :bad_request
       return
     end
-    
+
     @clothing_piece.update!(processing_status: 'processing')
-    
+
     # Queue background job for processing
     ClothingProcessingJob.perform_later(@clothing_piece.id, params[:selected_category])
-    
-    render json: { 
+
+    render json: {
       message: 'Processing started',
       status: @clothing_piece.processing_status,
       processing_id: @clothing_piece.id
     }
   end
-  
+
   # GET /clothing_pieces/:id/processing_status
   def processing_status
     render json: {
@@ -160,35 +160,35 @@ class ClothingPiecesController < ApplicationController
       has_embedding: @clothing_piece.has_embedding?
     }
   end
-  
+
   # POST /clothing_pieces/:id/approve_segmentation
   def approve_segmentation
     if @clothing_piece.processing_status != 'segmented'
       render json: { error: 'Piece not ready for approval' }, status: :bad_request
       return
     end
-    
+
     # Queue embedding generation
     EmbeddingGenerationJob.perform_later(@clothing_piece.id)
-    
+
     render json: { message: 'Embedding generation started' }
   end
-  
+
   # POST /clothing_pieces/:id/retry_processing
   def retry_processing
     @clothing_piece.update!(processing_status: 'pending', processing_metadata: {})
-    
+
     ClothingProcessingJob.perform_later(@clothing_piece.id, params[:selected_category])
-    
+
     render json: { message: 'Processing restarted' }
   end
-  
+
   private
-  
+
   def set_clothing_piece
     @clothing_piece = current_user.clothing_pieces.find(params[:id])
   end
-  
+
   def clothing_piece_params
     params.require(:clothing_piece).permit(
       :name, :description, :category, :brand, :purchase_date,
@@ -204,35 +204,35 @@ end
 # app/services/clothing_processing_service.rb
 class ClothingProcessingService
   include ActiveModel::Model
-  
+
   attr_accessor :clothing_piece, :category_hint
-  
+
   def initialize(clothing_piece, category_hint = nil)
     @clothing_piece = clothing_piece
     @category_hint = category_hint
   end
-  
+
   def process!
     Rails.logger.info "Starting processing for ClothingPiece #{clothing_piece.id}"
-    
+
     begin
       # Step 1: Object Detection
       detection_result = perform_object_detection
       update_processing_metadata('detection_completed', detection_result)
-      
+
       # Step 2: Segmentation
       segmentation_result = perform_segmentation(detection_result)
       update_processing_metadata('segmentation_completed', segmentation_result)
-      
+
       # Step 3: Create processed image
       processed_image_data = create_processed_image(segmentation_result)
       attach_processed_image(processed_image_data)
-      
+
       # Update status to segmented (awaiting user approval)
       clothing_piece.update!(processing_status: 'segmented')
-      
+
       Rails.logger.info "Processing completed for ClothingPiece #{clothing_piece.id}"
-      
+
     rescue StandardError => e
       Rails.logger.error "Processing failed for ClothingPiece #{clothing_piece.id}: #{e.message}"
       clothing_piece.update!(
@@ -245,9 +245,9 @@ class ClothingProcessingService
       raise e
     end
   end
-  
+
   private
-  
+
   def perform_object_detection
     # This would integrate with your YOLO model
     # For now, return mock detection results
@@ -258,7 +258,7 @@ class ClothingProcessingService
       processing_time_ms: rand(200..800)
     }
   end
-  
+
   def perform_segmentation(detection_result)
     # This would integrate with your FastSAM model
     # For now, return mock segmentation results
@@ -269,13 +269,13 @@ class ClothingProcessingService
       processing_time_ms: rand(300..1200)
     }
   end
-  
+
   def create_processed_image(segmentation_result)
     # This would apply the segmentation mask to create the final processed image
     # For now, return the original image data as placeholder
     clothing_piece.primary_image.blob.download
   end
-  
+
   def attach_processed_image(image_data)
     clothing_piece.processed_image.attach(
       io: StringIO.new(image_data),
@@ -283,7 +283,7 @@ class ClothingProcessingService
       content_type: 'image/jpeg'
     )
   end
-  
+
   def update_processing_metadata(step, data)
     current_metadata = clothing_piece.processing_metadata || {}
     current_metadata[step] = data.merge('completed_at' => Time.current)
@@ -298,10 +298,10 @@ end
 # app/jobs/clothing_processing_job.rb
 class ClothingProcessingJob < ApplicationJob
   queue_as :default
-  
+
   def perform(clothing_piece_id, category_hint = nil)
     clothing_piece = ClothingPiece.find(clothing_piece_id)
-    
+
     service = ClothingProcessingService.new(clothing_piece, category_hint)
     service.process!
   end
@@ -310,10 +310,10 @@ end
 # app/jobs/embedding_generation_job.rb
 class EmbeddingGenerationJob < ApplicationJob
   queue_as :default
-  
+
   def perform(clothing_piece_id)
     clothing_piece = ClothingPiece.find(clothing_piece_id)
-    
+
     service = EmbeddingGenerationService.new(clothing_piece)
     service.generate_embedding!
   end
@@ -326,48 +326,48 @@ end
 # app/services/embedding_generation_service.rb
 class EmbeddingGenerationService
   include ActiveModel::Model
-  
+
   attr_accessor :clothing_piece
-  
+
   def initialize(clothing_piece)
     @clothing_piece = clothing_piece
   end
-  
+
   def generate_embedding!
     Rails.logger.info "Generating embedding for ClothingPiece #{clothing_piece.id}"
-    
+
     begin
       # Get the processed image
       unless clothing_piece.processed_image.attached?
         raise "No processed image available for embedding generation"
       end
-      
+
       # Generate FashionCLIP embedding
       embedding_vector = generate_fashion_clip_embedding
-      
+
       # Store embedding in database
       store_embedding(embedding_vector)
-      
+
       # Update clothing piece status
       clothing_piece.update!(processing_status: 'embedding_generated')
-      
+
       Rails.logger.info "Embedding generated successfully for ClothingPiece #{clothing_piece.id}"
-      
+
     rescue StandardError => e
       Rails.logger.error "Embedding generation failed for ClothingPiece #{clothing_piece.id}: #{e.message}"
       clothing_piece.update!(processing_status: 'failed')
       raise e
     end
   end
-  
+
   private
-  
+
   def generate_fashion_clip_embedding
     # This would integrate with your FashionCLIP ONNX model
     # For now, return mock 768-dimensional embedding
     Array.new(768) { rand(-1.0..1.0) }
   end
-  
+
   def store_embedding(vector)
     clothing_piece.create_clothing_embedding!(
       vector_data: vector,
@@ -393,7 +393,7 @@ end
       <h1 class="text-2xl font-bold">🌧️ Raincoat - Add Clothing Piece</h1>
       <p class="text-blue-100">Upload and process your clothing pieces with AI</p>
     </div>
-    
+
     <!-- Pipeline Steps -->
     <div class="flex justify-between items-center p-4 bg-gray-50 border-b">
       <div class="step active" data-step="upload">
@@ -417,14 +417,14 @@ end
         <span>Complete</span>
       </div>
     </div>
-    
+
     <!-- Content Area -->
     <div class="p-6">
       <!-- Upload Section -->
       <div id="upload-section" class="section active">
         <%= form_with model: @clothing_piece, local: false, html: { multipart: true, id: 'clothing-form' } do |form| %>
           <div class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
-            <div class="text-4xl mb-4">📸</div>
+            <div class="text-4xl mb-4"></div>
             <h3 class="text-lg font-semibold mb-2">Upload Clothing Piece</h3>
             <p class="text-gray-600 mb-4">Drag and drop an image or click to select</p>
             <%= form.file_field :images, multiple: true, accept: 'image/*', class: 'hidden', id: 'file-input' %>
@@ -432,32 +432,32 @@ end
               Choose Files
             </button>
           </div>
-          
+
           <div class="mt-4">
             <%= form.text_field :name, placeholder: 'Piece name (e.g., Blue Denim Jacket)', class: 'w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500' %>
           </div>
-          
+
           <div class="mt-4">
             <%= form.text_area :description, placeholder: 'Optional description...', rows: 3, class: 'w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500' %>
           </div>
         <% end %>
-        
+
         <div id="image-preview" class="mt-4 hidden">
           <img id="preview-image" class="max-w-full h-64 object-cover rounded-lg">
         </div>
       </div>
-      
+
       <!-- Category Selection -->
       <div id="category-section" class="section hidden">
         <h3 class="text-lg font-semibold mb-4">Select Category</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="category-btn" data-category="tops">👕 Tops</div>
-          <div class="category-btn" data-category="bottoms">👖 Bottoms</div>
-          <div class="category-btn" data-category="shoes">👟 Shoes</div>
-          <div class="category-btn" data-category="hats">🧢 Hats</div>
+          <div class="category-btn" data-category="tops"> Tops</div>
+          <div class="category-btn" data-category="bottoms"> Bottoms</div>
+          <div class="category-btn" data-category="shoes"> Shoes</div>
+          <div class="category-btn" data-category="hats"> Hats</div>
         </div>
       </div>
-      
+
       <!-- Processing Section -->
       <div id="process-section" class="section hidden">
         <div class="space-y-4">
@@ -466,7 +466,7 @@ end
             <div class="progress-bar"><div class="progress-fill" id="detection-progress"></div></div>
             <p class="text-sm text-gray-600" id="detection-status">Waiting...</p>
           </div>
-          
+
           <div class="processing-stage">
             <h4 class="font-semibold">Background Segmentation</h4>
             <div class="progress-bar"><div class="progress-fill" id="segmentation-progress"></div></div>
@@ -474,7 +474,7 @@ end
           </div>
         </div>
       </div>
-      
+
       <!-- Validation Section -->
       <div id="validate-section" class="section hidden">
         <h3 class="text-lg font-semibold mb-4">Validate Result</h3>
@@ -485,38 +485,38 @@ end
               <img id="processed-image" class="max-w-full h-64 object-cover rounded">
             </div>
           </div>
-          
+
           <div class="space-y-4">
             <h4 class="font-medium">Does this look correct?</h4>
             <button id="approve-btn" class="w-full bg-green-500 text-white p-3 rounded hover:bg-green-600">
-              ✅ Looks Good - Generate Embedding
+               Looks Good - Generate Embedding
             </button>
             <button id="retry-btn" class="w-full bg-yellow-500 text-white p-3 rounded hover:bg-yellow-600">
-              🔄 Retry Processing
+               Retry Processing
             </button>
           </div>
         </div>
       </div>
-      
+
       <!-- Complete Section -->
       <div id="complete-section" class="section hidden">
         <div class="text-center py-8">
-          <div class="text-6xl mb-4">✅</div>
+          <div class="text-6xl mb-4"></div>
           <h3 class="text-xl font-semibold mb-2">Processing Complete!</h3>
           <p class="text-gray-600 mb-4">Your clothing piece has been processed and is ready for recommendations.</p>
-          
+
           <div class="bg-gray-50 rounded-lg p-4 mb-4">
             <h4 class="font-medium mb-2">Embedding Details</h4>
             <div id="embedding-info" class="text-sm text-gray-600 font-mono"></div>
           </div>
-          
+
           <button onclick="window.location.href='/clothing_pieces'" class="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600">
             View All Pieces
           </button>
         </div>
       </div>
     </div>
-    
+
     <!-- Process Log -->
     <div class="border-t bg-gray-900 text-green-400 p-4 font-mono text-sm max-h-32 overflow-y-auto" id="process-log">
       <div>System ready. Upload an image to begin...</div>
@@ -532,11 +532,11 @@ end
     opacity: 0.5;
     transition: opacity 0.3s;
   }
-  
+
   .step.active, .step.completed {
     opacity: 1;
   }
-  
+
   .step-number {
     width: 32px;
     height: 32px;
@@ -548,21 +548,21 @@ end
     font-weight: bold;
     margin-bottom: 4px;
   }
-  
+
   .step.active .step-number {
     background: #3b82f6;
     color: white;
   }
-  
+
   .step.completed .step-number {
     background: #10b981;
     color: white;
   }
-  
+
   .section.hidden {
     display: none;
   }
-  
+
   .category-btn {
     padding: 16px;
     border: 2px solid #e5e7eb;
@@ -571,18 +571,18 @@ end
     cursor: pointer;
     transition: all 0.3s;
   }
-  
+
   .category-btn:hover {
     border-color: #3b82f6;
     background: #eff6ff;
   }
-  
+
   .category-btn.selected {
     border-color: #3b82f6;
     background: #3b82f6;
     color: white;
   }
-  
+
   .progress-bar {
     width: 100%;
     height: 8px;
@@ -591,7 +591,7 @@ end
     overflow: hidden;
     margin: 8px 0;
   }
-  
+
   .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #3b82f6, #1d4ed8);
@@ -606,19 +606,19 @@ end
     let currentClothingPiece = null;
     let selectedCategory = null;
     let currentStep = 'upload';
-    
+
     // File upload handling
     const fileInput = document.getElementById('file-input');
     const uploadArea = document.querySelector('.upload-area');
-    
+
     uploadArea.addEventListener('click', () => fileInput.click());
-    
+
     fileInput.addEventListener('change', function(e) {
       if (e.target.files.length > 0) {
         handleFileUpload(e.target.files[0]);
       }
     });
-    
+
     // Category selection
     document.querySelectorAll('.category-btn').forEach(btn => {
       btn.addEventListener('click', function() {
@@ -626,7 +626,7 @@ end
         this.classList.add('selected');
         selectedCategory = this.dataset.category;
         log(`Category selected: ${selectedCategory}`);
-        
+
         if (currentClothingPiece) {
           setTimeout(() => {
             moveToStep('process');
@@ -635,19 +635,19 @@ end
         }
       });
     });
-    
+
     // Validation buttons
     document.getElementById('approve-btn').addEventListener('click', approveSegmentation);
     document.getElementById('retry-btn').addEventListener('click', retryProcessing);
-    
+
     function handleFileUpload(file) {
       log(`Uploading file: ${file.name}`);
-      
+
       const formData = new FormData();
       formData.append('clothing_piece[name]', document.querySelector('input[name="clothing_piece[name]"]').value || 'New Piece');
       formData.append('clothing_piece[description]', document.querySelector('textarea[name="clothing_piece[description]"]').value || '');
       formData.append('images[]', file);
-      
+
       fetch('/clothing_pieces', {
         method: 'POST',
         headers: {
@@ -670,7 +670,7 @@ end
         log('Upload error: ' + error.message);
       });
     }
-    
+
     function showImagePreview(file) {
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -680,10 +680,10 @@ end
       };
       reader.readAsDataURL(file);
     }
-    
+
     function startProcessing() {
       log('Starting processing pipeline...');
-      
+
       fetch(`/clothing_pieces/${currentClothingPiece.id}/process_image`, {
         method: 'POST',
         headers: {
@@ -698,14 +698,14 @@ end
         pollProcessingStatus();
       });
     }
-    
+
     function pollProcessingStatus() {
       const poll = setInterval(() => {
         fetch(`/clothing_pieces/${currentClothingPiece.id}/processing_status`)
           .then(response => response.json())
           .then(data => {
             updateProcessingUI(data);
-            
+
             if (data.status === 'segmented') {
               clearInterval(poll);
               moveToStep('validate');
@@ -717,7 +717,7 @@ end
           });
       }, 2000);
     }
-    
+
     function updateProcessingUI(data) {
       // Update progress bars based on processing status
       if (data.status === 'processing') {
@@ -727,17 +727,17 @@ end
         document.getElementById('segmentation-status').textContent = 'In progress...';
       }
     }
-    
+
     function loadProcessedImage() {
       // Load the processed image for validation
       const img = document.getElementById('processed-image');
       img.src = `/clothing_pieces/${currentClothingPiece.id}/processed_image`;
       log('Segmentation complete. Please validate the result.');
     }
-    
+
     function approveSegmentation() {
       log('User approved segmentation. Generating embedding...');
-      
+
       fetch(`/clothing_pieces/${currentClothingPiece.id}/approve_segmentation`, {
         method: 'POST',
         headers: {
@@ -748,13 +748,13 @@ end
         pollEmbeddingStatus();
       });
     }
-    
+
     function retryProcessing() {
       log('Retrying processing...');
       moveToStep('process');
       startProcessing();
     }
-    
+
     function pollEmbeddingStatus() {
       const poll = setInterval(() => {
         fetch(`/clothing_pieces/${currentClothingPiece.id}/processing_status`)
@@ -768,7 +768,7 @@ end
           });
       }, 2000);
     }
-    
+
     function showEmbeddingResults(data) {
       const info = document.getElementById('embedding-info');
       info.innerHTML = `
@@ -777,22 +777,22 @@ end
         Dimensions: 768<br>
         Model: FashionCLIP
       `;
-      log('Processing pipeline complete! ✅');
+      log('Processing pipeline complete! ');
     }
-    
+
     function moveToStep(step) {
       // Hide all sections
       document.querySelectorAll('.section').forEach(section => {
         section.classList.add('hidden');
       });
-      
+
       // Show target section
       document.getElementById(`${step}-section`).classList.remove('hidden');
-      
+
       // Update step indicators
       const steps = ['upload', 'category', 'process', 'validate', 'complete'];
       const currentIndex = steps.indexOf(step);
-      
+
       document.querySelectorAll('.step').forEach((stepEl, index) => {
         stepEl.classList.remove('active', 'completed');
         if (index < currentIndex) {
@@ -801,10 +801,10 @@ end
           stepEl.classList.add('active');
         }
       });
-      
+
       currentStep = step;
     }
-    
+
     function log(message) {
       const logArea = document.getElementById('process-log');
       const timestamp = new Date().toLocaleTimeString();
@@ -822,7 +822,7 @@ end
 Rails.application.routes.draw do
   devise_for :users
   root 'clothing_pieces#index'
-  
+
   resources :clothing_pieces do
     member do
       post :process_image
@@ -831,7 +831,7 @@ Rails.application.routes.draw do
       post :retry_processing
       get :processed_image
     end
-    
+
     collection do
       get :process, to: 'clothing_pieces#new_process'
     end
@@ -857,30 +857,30 @@ The structure integrates seamlessly with your existing Raincoat architecture and
 # app/models/clothing_embedding.rb
 class ClothingEmbedding < ApplicationRecord
   belongs_to :clothing_piece
-  
+
   # Use pgvector for similarity searches
   validates :vector_data, presence: true
   validates :model_version, presence: true
-  
+
   # Serialize metadata
   serialize :embedding_metadata, JSON
-  
+
   # Scopes for similarity searches
   scope :similar_to, ->(vector, limit = 10) {
     select("*, vector_data <=> '[#{vector.join(',')}]' AS distance")
       .order('distance')
       .limit(limit)
   }
-  
+
   def similarity_to(other_embedding)
     # Calculate cosine similarity
     return 0.0 unless other_embedding.is_a?(ClothingEmbedding)
-    
+
     # This would use pgvector's similarity operators in production
     # For now, return a mock similarity score
     rand(0.1..0.9)
   end
-  
+
   def vector_magnitude
     Math.sqrt(vector_data.sum { |x| x ** 2 })
   end
@@ -895,7 +895,7 @@ class CreateClothingEmbeddings < ActiveRecord::Migration[7.1]
   def change
     # Enable pgvector extension
     enable_extension 'vector'
-    
+
     create_table :clothing_embeddings do |t|
       t.references :clothing_piece, null: false, foreign_key: true
       t.vector :vector_data, limit: 768  # 768 dimensions for FashionCLIP
@@ -903,7 +903,7 @@ class CreateClothingEmbeddings < ActiveRecord::Migration[7.1]
       t.json :embedding_metadata, default: {}
       t.timestamps
     end
-    
+
     # Add index for similarity searches
     add_index :clothing_embeddings, :vector_data, using: :hnsw, opclass: :vector_cosine_ops
     add_index :clothing_embeddings, :clothing_piece_id, unique: true
@@ -916,7 +916,7 @@ end
 ```ruby
 # Additional methods for ClothingPiecesController
 class ClothingPiecesController < ApplicationController
-  
+
   # GET /clothing_pieces/:id/processed_image
   def processed_image
     if @clothing_piece.processed_image.attached?
@@ -925,20 +925,20 @@ class ClothingPiecesController < ApplicationController
       head :not_found
     end
   end
-  
+
   # GET /clothing_pieces/:id/similar
   def similar_pieces
     unless @clothing_piece.has_embedding?
       render json: { error: 'Piece does not have embedding' }, status: :bad_request
       return
     end
-    
+
     similar_pieces = ClothingEmbedding
       .joins(:clothing_piece)
       .where(clothing_pieces: { user_id: current_user.id })
       .where.not(clothing_piece_id: @clothing_piece.id)
       .similar_to(@clothing_piece.clothing_embedding.vector_data, 5)
-    
+
     render json: similar_pieces.map(&:clothing_piece).as_json(
       only: [:id, :name, :category],
       methods: [:primary_image_url],
@@ -950,24 +950,24 @@ class ClothingPiecesController < ApplicationController
       }
     )
   end
-  
+
   # GET /clothing_pieces/search
   def search
     query_params = search_params
     pieces = current_user.clothing_pieces.includes(:clothing_embedding)
-    
+
     pieces = pieces.where(category: query_params[:category]) if query_params[:category].present?
     pieces = pieces.where("name ILIKE ?", "%#{query_params[:query]}%") if query_params[:query].present?
     pieces = pieces.processing_complete if query_params[:only_processed] == 'true'
-    
+
     render json: pieces.as_json(
       include: :clothing_embedding,
       methods: [:primary_image_url, :processed_image_url]
     )
   end
-  
+
   private
-  
+
   def search_params
     params.permit(:category, :query, :only_processed)
   end
@@ -979,19 +979,19 @@ end
 ```ruby
 # app/serializers/clothing_piece_serializer.rb
 class ClothingPieceSerializer < ActiveModel::Serializer
-  attributes :id, :name, :description, :category, :colors, :materials, 
+  attributes :id, :name, :description, :category, :colors, :materials,
              :processing_status, :brand, :purchase_date, :created_at
-  
+
   has_one :clothing_embedding
-  
+
   def primary_image_url
     object.primary_image.present? ? rails_blob_url(object.primary_image) : nil
   end
-  
+
   def processed_image_url
     object.processed_image.present? ? rails_blob_url(object.processed_image) : nil
   end
-  
+
   def processing_complete
     object.processing_complete?
   end
@@ -1000,12 +1000,12 @@ end
 # app/serializers/clothing_embedding_serializer.rb
 class ClothingEmbeddingSerializer < ActiveModel::Serializer
   attributes :id, :model_version, :embedding_metadata, :created_at
-  
+
   # Don't expose raw vector data by default for performance
   def vector_preview
     object.vector_data&.first(5)&.map { |v| v.round(4) }
   end
-  
+
   def vector_dimensions
     object.vector_data&.length || 0
   end
@@ -1021,7 +1021,7 @@ Rails.application.config.active_storage.variant_processor = :mini_magick
 # Configure allowed image types for clothing pieces
 Rails.application.config.active_storage.content_types_allowed_inline += [
   'image/jpeg',
-  'image/png', 
+  'image/png',
   'image/gif',
   'image/webp'
 ]
@@ -1030,7 +1030,7 @@ Rails.application.config.active_storage.content_types_allowed_inline += [
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     origins 'localhost:3001', '127.0.0.1:3001' # Your frontend URL
-    
+
     resource '*',
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head],
@@ -1047,7 +1047,7 @@ module ProjectRaincoat
   class Application < Rails::Application
     # Configure Active Job adapter
     config.active_job.queue_adapter = :sidekiq
-    
+
     # Configure queue priorities
     config.active_job.queue_priority = {
       default: 0,
@@ -1073,33 +1073,33 @@ end
 # app/controllers/concerns/error_handling.rb
 module ErrorHandling
   extend ActiveSupport::Concern
-  
+
   included do
     rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
     rescue_from ActiveRecord::RecordInvalid, with: :render_unprocessable_entity
     rescue_from ClothingProcessingService::ProcessingError, with: :render_processing_error
   end
-  
+
   private
-  
+
   def render_not_found(exception)
-    render json: { 
+    render json: {
       error: 'Resource not found',
-      message: exception.message 
+      message: exception.message
     }, status: :not_found
   end
-  
+
   def render_unprocessable_entity(exception)
-    render json: { 
+    render json: {
       error: 'Validation failed',
-      details: exception.record.errors.full_messages 
+      details: exception.record.errors.full_messages
     }, status: :unprocessable_entity
   end
-  
+
   def render_processing_error(exception)
-    render json: { 
+    render json: {
       error: 'Processing failed',
-      message: exception.message 
+      message: exception.message
     }, status: :internal_server_error
   end
 end
@@ -1126,7 +1126,7 @@ FactoryBot.define do
     processing_status { 'pending' }
     brand { Faker::Company.name }
     purchase_date { Faker::Date.backward(days: 365) }
-    
+
     after(:build) do |clothing_piece|
       clothing_piece.images.attach(
         io: File.open(Rails.root.join('spec', 'fixtures', 'test_shirt.jpg')),
@@ -1134,18 +1134,18 @@ FactoryBot.define do
         content_type: 'image/jpeg'
       )
     end
-    
+
     trait :with_embedding do
       processing_status { 'embedding_generated' }
-      
+
       after(:create) do |clothing_piece|
         create(:clothing_embedding, clothing_piece: clothing_piece)
       end
     end
-    
+
     trait :processed do
       processing_status { 'segmented' }
-      
+
       after(:create) do |clothing_piece|
         clothing_piece.processed_image.attach(
           io: File.open(Rails.root.join('spec', 'fixtures', 'processed_shirt.jpg')),
@@ -1184,27 +1184,27 @@ RSpec.describe ClothingPiece, type: :model do
     it { should have_many_attached(:images) }
     it { should have_one_attached(:processed_image) }
   end
-  
+
   describe 'validations' do
     it { should validate_presence_of(:name) }
     it { should validate_presence_of(:category) }
     it { should validate_inclusion_of(:category).in_array(%w[tops bottoms outerwear shoes accessories hats]) }
   end
-  
+
   describe '#has_embedding?' do
     let(:clothing_piece) { create(:clothing_piece) }
-    
+
     context 'when piece has embedding and is processed' do
       before do
         clothing_piece.update(processing_status: 'embedding_generated')
         create(:clothing_embedding, clothing_piece: clothing_piece)
       end
-      
+
       it 'returns true' do
         expect(clothing_piece.has_embedding?).to be true
       end
     end
-    
+
     context 'when piece has no embedding' do
       it 'returns false' do
         expect(clothing_piece.has_embedding?).to be false
@@ -1220,7 +1220,7 @@ RSpec.describe ClothingProcessingService do
   let(:user) { create(:user) }
   let(:clothing_piece) { create(:clothing_piece, user: user) }
   let(:service) { described_class.new(clothing_piece, 'tops') }
-  
+
   describe '#process!' do
     context 'when processing succeeds' do
       it 'updates processing status to segmented' do
@@ -1229,26 +1229,26 @@ RSpec.describe ClothingProcessingService do
           .from('pending')
           .to('segmented')
       end
-      
+
       it 'attaches processed image' do
         service.process!
         expect(clothing_piece.processed_image).to be_attached
       end
-      
+
       it 'updates processing metadata' do
         service.process!
         metadata = clothing_piece.reload.processing_metadata
-        
+
         expect(metadata).to have_key('detection_completed')
         expect(metadata).to have_key('segmentation_completed')
       end
     end
-    
+
     context 'when processing fails' do
       before do
         allow(service).to receive(:perform_object_detection).and_raise(StandardError.new('Detection failed'))
       end
-      
+
       it 'updates status to failed' do
         expect { service.process! }.to raise_error(StandardError)
         expect(clothing_piece.reload.processing_status).to eq('failed')
@@ -1273,15 +1273,15 @@ paths:
     get:
       summary: List all clothing pieces for current user
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ClothingPiece'
-    
+                  $ref: "#/components/schemas/ClothingPiece"
+
     post:
       summary: Create new clothing piece
       requestBody:
@@ -1290,11 +1290,11 @@ paths:
             schema:
               type: object
               properties:
-                'clothing_piece[name]':
+                "clothing_piece[name]":
                   type: string
-                'clothing_piece[description]':
+                "clothing_piece[description]":
                   type: string
-                'clothing_piece[category]':
+                "clothing_piece[category]":
                   type: string
                   enum: [tops, bottoms, shoes, hats, outerwear, accessories]
                 images:
@@ -1303,9 +1303,9 @@ paths:
                     type: string
                     format: binary
       responses:
-        '201':
+        "201":
           description: Clothing piece created
-        '422':
+        "422":
           description: Validation errors
 
   /clothing_pieces/{id}/process_image:
@@ -1327,7 +1327,7 @@ paths:
                   type: string
                   enum: [tops, bottoms, shoes, hats]
       responses:
-        '200':
+        "200":
           description: Processing started
 
   /clothing_pieces/{id}/processing_status:
@@ -1340,7 +1340,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Status retrieved
           content:
             application/json:
@@ -1351,7 +1351,14 @@ paths:
                     type: integer
                   status:
                     type: string
-                    enum: [pending, processing, segmented, embedding_generated, failed]
+                    enum:
+                      [
+                        pending,
+                        processing,
+                        segmented,
+                        embedding_generated,
+                        failed,
+                      ]
                   metadata:
                     type: object
                   has_embedding:
@@ -1385,24 +1392,28 @@ components:
 
 This completes the comprehensive Rails implementation of your pre-embedding pipeline! The system provides:
 
-**✅ Complete MVC Structure**
+** Complete MVC Structure**
+
 - Models with proper associations and validations
 - Controllers with RESTful endpoints and error handling
 - Views with interactive UI and real-time updates
 
-**✅ Production-Ready Features**
+** Production-Ready Features**
+
 - Background job processing for heavy AI operations
 - File upload handling with Active Storage
 - Database optimization with proper indexing
 - Comprehensive error handling and logging
 
-**✅ Scalable Architecture** 
+** Scalable Architecture**
+
 - Service objects for business logic separation
 - Serializers for clean API responses
 - Queue management for processing priorities
 - Extensible for additional AI models
 
-**✅ Testing & Documentation**
+** Testing & Documentation**
+
 - Factory definitions for test data
 - Model and service specs
 - API documentation with OpenAPI
