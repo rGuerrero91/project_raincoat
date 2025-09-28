@@ -287,10 +287,12 @@
       }
       
       const tensor = new ort.Tensor('float32', tensorData, [1, 3, 320, 320]);
-      const feeds = { input: tensor };
+      const inputName = u2netSession.inputNames[0]; // Get first input name
+      const feeds = {};
+      feeds[inputName] = tensor;
+      
       const outputs = await u2netSession.run(feeds);
       const mask = outputs[Object.keys(outputs)[0]].data;
-      
       // Apply mask to original image
       return applyMask(img, mask, 320, 320);
     }
