@@ -4,7 +4,7 @@ class ClothingPiece < ApplicationRecord
   has_one :clothing_embedding, dependent: :destroy
   has_many_attached :images 
   
-  serialize :ai_tags, JSON
+  # serialize :ai_tags, coder: JSON
   
   validates :name, presence: true
   validates :category, presence: true, inclusion: { 
