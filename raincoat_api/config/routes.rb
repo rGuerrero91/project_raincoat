@@ -17,6 +17,7 @@ Rails.application.routes.draw do
       get 'similar'           # Show similar items
     end
   end
+  get 'clothing_pieces/new', to: 'clothing_pieces#new', as: 'new_clothing_piece'
 
   # get '/closet/search', to: 'clothing_pieces#search', as: 'search_clothing_pieces'
 
