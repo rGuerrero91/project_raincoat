@@ -25,27 +25,27 @@ services:
       - redis_data:/data
       
   # Rails docker environment omitted to simplify development. May reinstate once team starts to scale. 
-  rails:
-    build:
-      context: ./raincoat_api
-      dockerfile: Dockerfile.dev
-    # command: bundle exec rails server -b 0.0.0.0 -p 3000
-    volumes:
-      - ./raincoat_api:/app
-      - bundle_cache:/usr/local/bundle
-    ports:
-      - "3000:3000"
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/raincoat_api_development
-      REDIS_URL: redis://redis:6379/0
-      RAILS_ENV: development
-    stdin_open: true
-    tty: true
+  # rails:
+  #   build:
+  #     context: ./raincoat_api
+  #     dockerfile: Dockerfile.dev
+  #   # command: bundle exec rails server -b 0.0.0.0 -p 3000
+  #   volumes:
+  #     - ./raincoat_api:/app
+  #     - bundle_cache:/usr/local/bundle
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_started
+  #   environment:
+  #     DATABASE_URL: postgresql://postgres:password@db:5432/raincoat_api_development
+  #     REDIS_URL: redis://redis:6379/0
+  #     RAILS_ENV: development
+  #   stdin_open: true
+  #   tty: true
 
 volumes:
   postgres_data:
