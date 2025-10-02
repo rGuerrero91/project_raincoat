@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from transformers import CLIPModel, CLIPProcessor
 
-def export_fashionclip_models(output_dir="./models"):
+def export_fashionclip_models(output_dir="./raincoat_api/public/models"):
     """
     Export FashionCLIP image and text encoders to ONNX.
     
@@ -162,7 +162,7 @@ def create_metadata_files(output_path):
     
     print("\n📝 Created metadata files")
 
-def create_browser_integration_guide(output_dir="./models"):
+def create_browser_integration_guide(output_dir="./notes_and_test data/models"):
     """Create comprehensive browser integration guide."""
     
     guide_content = """# FashionCLIP Browser Integration Guide

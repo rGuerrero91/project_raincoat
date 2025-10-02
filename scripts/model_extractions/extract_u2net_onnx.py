@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 from rembg import new_session
 
-def extract_u2net_model(output_dir="./models"):
+def extract_u2net_model(output_dir="./raincoat_api/public/models"):
     """
     Extract U2-Net ONNX model from rembg cache.
     
@@ -78,7 +78,7 @@ def extract_u2net_model(output_dir="./models"):
     
     return True
 
-def create_deployment_readme(output_dir="./models"):
+def create_deployment_readme(output_dir="./notes_and_test data/models"):
     """Create README with deployment instructions."""
     readme_content = """# U2-Net ONNX Model for Browser Deployment
 
