@@ -128,7 +128,7 @@
                      ['Accessories', 'accessories']
                    ]), 
                    { prompt: 'Select a category' },
-                   required: true %>
+                   { required: true, id: 'clothing_piece_category' } %>
     </div>
     
     <div class="form-group">
@@ -221,23 +221,18 @@
       showStatus('Step 1/3: Removing background...', 'loading');
       
       try {
-        // Step 1: Load and preprocess image
         const img = await loadImage(currentImageFile);
-        
-        // Step 2: Remove background with U2-Net
         const cleanedImage = await removeBackground(img);
         document.getElementById('previewImage').src = cleanedImage;
         
         showStatus('Step 2/3: Generating embedding...', 'loading');
         
-        // Step 3: Generate FashionCLIP embedding
         const embedding = await generateEmbedding(cleanedImage);
         currentImageEmbedding = embedding;
         document.getElementById('embeddingField').value = JSON.stringify(embedding);
         
         showStatus('Step 3/3: Auto-tagging...', 'loading');
         
-        // Step 4: Auto-tag
         const tags = await autoTag(embedding);
         displayTags(tags);
         
@@ -265,20 +260,17 @@
     }
     
     async function removeBackground(img) {
-      // Preprocess for U2-Net (320x320)
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = 320;
       canvas.height = 320;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, 320, 320);
-      
-      // ctx.imageSmoothingEnabled = true;
-      // ctx.imageSmoothingQuality = 'high';
       
       const imageData = ctx.getImageData(0, 0, 320, 320);
       const tensorData = new Float32Array(3 * 320 * 320);
       
-      // Normalize for U2-Net
       const mean = [0.485, 0.456, 0.406];
       const std = [0.229, 0.224, 0.225];
       
@@ -290,15 +282,11 @@
       }
       
       const tensor = new ort.Tensor('float32', tensorData, [1, 3, 320, 320]);
-      const inputName = u2netSession.inputNames[0]; // Get first input name
-      const feeds = {'input.1': tensor};
-      // feeds[inputName] = tensor;
-
-      
+      const feeds = { 'input.1': tensor };
       const outputs = await u2netSession.run(feeds);
       const outputName = u2netSession.outputNames[0];
       const mask = outputs[outputName].data;
-      // Apply mask to original image
+      
       return applyMask(img, mask, 320, 320);
     }
     
@@ -332,13 +320,10 @@
         img.src = imageSrc;
       });
       
-      // Preprocess for FashionCLIP (224x224)
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = 224;
       canvas.height = 224;
-      
-      // Use high-quality image smoothing
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, 224, 224);
@@ -346,7 +331,6 @@
       const imageData = ctx.getImageData(0, 0, 224, 224);
       const tensorData = new Float32Array(3 * 224 * 224);
       
-      // Normalize for FashionCLIP
       const mean = [0.48145466, 0.4578275, 0.40821073];
       const std = [0.26862954, 0.26130258, 0.27577711];
       
@@ -361,73 +345,61 @@
       const feeds = { pixel_values: tensor };
       const outputs = await fashionClipSession.run(feeds);
       
-      // Get the raw embedding
       const rawEmbedding = Array.from(outputs[Object.keys(outputs)[0]].data);
-      
-      // Normalize the embedding (L2 normalization)
       const norm = Math.sqrt(rawEmbedding.reduce((sum, val) => sum + val * val, 0));
       const normalizedEmbedding = rawEmbedding.map(val => val / norm);
-      
-      console.log('Embedding stats:', {
-        length: normalizedEmbedding.length,
-        norm: Math.sqrt(normalizedEmbedding.reduce((sum, val) => sum + val * val, 0)),
-        sample: normalizedEmbedding.slice(0, 5)
-      });
       
       return normalizedEmbedding;
     }
     
     async function autoTag(imageEmbedding) {
       const similarities = {};
+      const selectedCategory = document.getElementById('clothing_piece_category').value;
       
-      console.log('Image embedding length:', imageEmbedding.length);
-      console.log('Label embeddings count:', Object.keys(labelEmbeddings).length);
+      // Category-relevant label patterns
+      const categoryBoosts = {
+        'tops': ['shirt', 't-shirt', 'blouse', 'sweater', 'hoodie', 'tank', 'cardigan', 'polo', 'top'],
+        'bottoms': ['jeans', 'pants', 'shorts', 'skirt', 'leggings', 'trousers', 'joggers', 'sweatpants'],
+        'outerwear': ['jacket', 'coat', 'blazer', 'parka', 'windbreaker', 'cardigan', 'vest'],
+        'shoes': ['shoes', 'sneakers', 'boots', 'heels', 'sandals', 'flats', 'loafers', 'pumps'],
+        'accessories': ['hat', 'cap', 'beanie', 'scarf', 'gloves', 'belt', 'tie', 'bag', 'backpack', 'purse', 'sunglasses', 'watch', 'umbrella']
+      };
       
       for (const [label, textEmbed] of Object.entries(labelEmbeddings)) {
-        // Verify dimensions match
-        if (textEmbed.length !== imageEmbedding.length) {
-          console.warn(`Dimension mismatch for ${label}: ${textEmbed.length} vs ${imageEmbedding.length}`);
-          continue;
+        if (textEmbed.length !== imageEmbedding.length) continue;
+        
+        let similarity = cosineSimilarity(imageEmbedding, textEmbed);
+        
+        // Apply category boost
+        if (selectedCategory && categoryBoosts[selectedCategory]) {
+          const isRelevant = categoryBoosts[selectedCategory].some(pattern => 
+            label.toLowerCase().includes(pattern.toLowerCase())
+          );
+          
+          if (isRelevant) {
+            similarity *= 1.3; // 30% boost
+          }
         }
         
-        const similarity = cosineSimilarity(imageEmbedding, textEmbed);
-        
-        // Debug NaN values
-        if (isNaN(similarity)) {
-          console.error(`NaN similarity for ${label}`, {
-            imageEmbedSample: imageEmbedding.slice(0, 3),
-            textEmbedSample: textEmbed.slice(0, 3)
-          });
+        if (!isNaN(similarity)) {
+          similarities[label] = similarity;
         }
-        
-        similarities[label] = similarity;
       }
       
-      const sortedTags = Object.entries(similarities)
-        .filter(([_, score]) => !isNaN(score))
+      return Object.entries(similarities)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
         .map(([label, score]) => ({ label, score }));
-      
-      console.log('Top tags:', sortedTags);
-      
-      return sortedTags;
     }
     
     function cosineSimilarity(a, b) {
-      if (a.length !== b.length) {
-        console.error('Dimension mismatch:', a.length, 'vs', b.length);
-        return NaN;
-      }
+      if (a.length !== b.length) return NaN;
       
       const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
       const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
       const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
       
-      if (normA === 0 || normB === 0) {
-        console.error('Zero norm detected:', { normA, normB });
-        return NaN;
-      }
+      if (normA === 0 || normB === 0) return NaN;
       
       return dotProduct / (normA * normB);
     }
