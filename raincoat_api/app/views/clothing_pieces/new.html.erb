@@ -272,6 +272,9 @@
       canvas.height = 320;
       ctx.drawImage(img, 0, 0, 320, 320);
       
+      // ctx.imageSmoothingEnabled = true;
+      // ctx.imageSmoothingQuality = 'high';
+      
       const imageData = ctx.getImageData(0, 0, 320, 320);
       const tensorData = new Float32Array(3 * 320 * 320);
       
@@ -288,11 +291,13 @@
       
       const tensor = new ort.Tensor('float32', tensorData, [1, 3, 320, 320]);
       const inputName = u2netSession.inputNames[0]; // Get first input name
-      const feeds = {};
-      feeds[inputName] = tensor;
+      const feeds = {'input.1': tensor};
+      // feeds[inputName] = tensor;
+
       
       const outputs = await u2netSession.run(feeds);
-      const mask = outputs[Object.keys(outputs)[0]].data;
+      const outputName = u2netSession.outputNames[0];
+      const mask = outputs[outputName].data;
       // Apply mask to original image
       return applyMask(img, mask, 320, 320);
     }
@@ -332,6 +337,10 @@
       const ctx = canvas.getContext('2d');
       canvas.width = 224;
       canvas.height = 224;
+      
+      // Use high-quality image smoothing
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, 224, 224);
       
       const imageData = ctx.getImageData(0, 0, 224, 224);
@@ -352,26 +361,74 @@
       const feeds = { pixel_values: tensor };
       const outputs = await fashionClipSession.run(feeds);
       
-      return Array.from(outputs[Object.keys(outputs)[0]].data);
+      // Get the raw embedding
+      const rawEmbedding = Array.from(outputs[Object.keys(outputs)[0]].data);
+      
+      // Normalize the embedding (L2 normalization)
+      const norm = Math.sqrt(rawEmbedding.reduce((sum, val) => sum + val * val, 0));
+      const normalizedEmbedding = rawEmbedding.map(val => val / norm);
+      
+      console.log('Embedding stats:', {
+        length: normalizedEmbedding.length,
+        norm: Math.sqrt(normalizedEmbedding.reduce((sum, val) => sum + val * val, 0)),
+        sample: normalizedEmbedding.slice(0, 5)
+      });
+      
+      return normalizedEmbedding;
     }
     
     async function autoTag(imageEmbedding) {
       const similarities = {};
       
+      console.log('Image embedding length:', imageEmbedding.length);
+      console.log('Label embeddings count:', Object.keys(labelEmbeddings).length);
+      
       for (const [label, textEmbed] of Object.entries(labelEmbeddings)) {
-        similarities[label] = cosineSimilarity(imageEmbedding, textEmbed);
+        // Verify dimensions match
+        if (textEmbed.length !== imageEmbedding.length) {
+          console.warn(`Dimension mismatch for ${label}: ${textEmbed.length} vs ${imageEmbedding.length}`);
+          continue;
+        }
+        
+        const similarity = cosineSimilarity(imageEmbedding, textEmbed);
+        
+        // Debug NaN values
+        if (isNaN(similarity)) {
+          console.error(`NaN similarity for ${label}`, {
+            imageEmbedSample: imageEmbedding.slice(0, 3),
+            textEmbedSample: textEmbed.slice(0, 3)
+          });
+        }
+        
+        similarities[label] = similarity;
       }
       
-      return Object.entries(similarities)
+      const sortedTags = Object.entries(similarities)
+        .filter(([_, score]) => !isNaN(score))
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
         .map(([label, score]) => ({ label, score }));
+      
+      console.log('Top tags:', sortedTags);
+      
+      return sortedTags;
     }
     
     function cosineSimilarity(a, b) {
+      if (a.length !== b.length) {
+        console.error('Dimension mismatch:', a.length, 'vs', b.length);
+        return NaN;
+      }
+      
       const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
       const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
       const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+      
+      if (normA === 0 || normB === 0) {
+        console.error('Zero norm detected:', { normA, normB });
+        return NaN;
+      }
+      
       return dotProduct / (normA * normB);
     }
     
