@@ -24,18 +24,42 @@ def export_fashionclip_models(output_dir="./models"):
     model = CLIPModel.from_pretrained("patrickjohncyh/fashion-clip")
     processor = CLIPProcessor.from_pretrained("patrickjohncyh/fashion-clip")
     
-    # Export Image Encoder
+    # Export Image Encoder WITH projection layer
     print("\n" + "="*60)
     print("Exporting Image Encoder...")
     print("="*60)
     
+    # Create a wrapper that includes the projection layer
+    class ImageEncoderWithProjection(torch.nn.Module):
+        def __init__(self, clip_model):
+            super().__init__()
+            self.vision_model = clip_model.vision_model
+            self.visual_projection = clip_model.visual_projection
+            
+        def forward(self, pixel_values):
+            vision_outputs = self.vision_model(pixel_values)
+            image_embeds = vision_outputs[1]  # pooled output
+            image_embeds = self.visual_projection(image_embeds)
+            # Normalize
+            image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
+            return image_embeds
+    
+    # Create wrapper model
+    wrapped_model = ImageEncoderWithProjection(model)
+    wrapped_model.eval()
+    
     # Create dummy image input (batch_size=1, channels=3, height=224, width=224)
     dummy_image = torch.randn(1, 3, 224, 224)
+    
+    # Test output dimension
+    with torch.no_grad():
+        test_output = wrapped_model(dummy_image)
+        print(f"Output dimension: {test_output.shape[-1]}")
     
     image_encoder_path = output_path / "fashionclip_image_encoder.onnx"
     
     torch.onnx.export(
-        model.vision_model,  # Image encoder component
+        wrapped_model,  # Image encoder WITH projection
         dummy_image,
         image_encoder_path,
         export_params=True,
@@ -79,7 +103,7 @@ def export_fashionclip_models(output_dir="./models"):
     )
     
     size_mb = text_encoder_path.stat().st_size / (1024 * 1024)
-    print(f" Text encoder exported: {text_encoder_path}")
+    print(f"✅ Text encoder exported: {text_encoder_path}")
     print(f"   Size: {size_mb:.2f} MB")
     
     # Create metadata files
@@ -136,7 +160,7 @@ def create_metadata_files(output_path):
     with open(output_path / "fashionclip_text_metadata.json", 'w') as f:
         json.dump(text_metadata, f, indent=2)
     
-    print("\n Created metadata files")
+    print("\n📝 Created metadata files")
 
 def create_browser_integration_guide(output_dir="./models"):
     """Create comprehensive browser integration guide."""
@@ -304,7 +328,7 @@ async function processClothingImage(imageFile) {
     guide_path = Path(output_dir) / "FASHIONCLIP_BROWSER_GUIDE.md"
     with open(guide_path, 'w') as f:
         f.write(guide_content)
-    print(f" Created browser integration guide: {guide_path}")
+    print(f"📚 Created browser integration guide: {guide_path}")
 
 if __name__ == "__main__":
     print("=" * 60)
@@ -316,7 +340,7 @@ if __name__ == "__main__":
         create_browser_integration_guide()
         
         print("\n" + "=" * 60)
-        print(" SUCCESS! FashionCLIP models exported.")
+        print("✅ SUCCESS! FashionCLIP models exported.")
         print("\nGenerated files:")
         print("  - fashionclip_image_encoder.onnx")
         print("  - fashionclip_text_encoder.onnx")
@@ -326,6 +350,6 @@ if __name__ == "__main__":
         print("=" * 60)
         
     except Exception as e:
-        print(f"\n Export failed: {e}")
+        print(f"\n❌ Export failed: {e}")
         import traceback
         traceback.print_exc()
