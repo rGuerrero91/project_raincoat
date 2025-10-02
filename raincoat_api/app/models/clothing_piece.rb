@@ -4,11 +4,15 @@ class ClothingPiece < ApplicationRecord
   has_one :clothing_embedding, dependent: :destroy
   has_many_attached :images 
   
+  # serialize :ai_tags, coder: JSON
+  
   validates :name, presence: true
   validates :category, presence: true, inclusion: { 
     in: %w[tops bottoms outerwear shoes accessories],
     message: "must be one of: tops, bottoms, outerwear, shoes, accessories"
   }
+   
+  validate :embedding_vector_format, if: -> { embedding_vector.present? }
   
   enum :processing_status, [
     :pending,
@@ -33,7 +37,14 @@ class ClothingPiece < ApplicationRecord
   def has_embedding?
     clothing_embedding.present?
   end
-  
+
+  def embedding_vector_format
+    vector = JSON.parse(embedding_vector)
+    errors.add(:embedding_vector, "must be 512 dimensions") unless vector.length == 512
+  rescue JSON::ParserError
+    errors.add(:embedding_vector, "must be valid JSON")
+  end
+
   def embedding_confidence
     clothing_embedding&.confidence_score
   end

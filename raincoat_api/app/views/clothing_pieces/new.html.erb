@@ -1,0 +1,479 @@
+<!-- app/views/clothing_pieces/new.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Clothing Item - Raincoat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      max-width: 800px; 
+      margin: 50px auto; 
+      padding: 20px; 
+    }
+    .upload-area { 
+      border: 2px dashed #ccc; 
+      padding: 40px; 
+      text-align: center; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      margin: 20px 0;
+    }
+    .upload-area:hover { 
+      border-color: #007cba; 
+      background: #f9f9f9; 
+    }
+    .preview { 
+      text-align: center; 
+      margin: 20px 0; 
+    }
+    .preview img { 
+      max-width: 300px; 
+      max-height: 300px; 
+      border-radius: 8px; 
+    }
+    .form-group { 
+      margin: 15px 0; 
+    }
+    .form-group label { 
+      display: block; 
+      margin-bottom: 5px; 
+      font-weight: bold; 
+    }
+    .form-group input, .form-group select { 
+      width: 100%; 
+      padding: 8px; 
+      border: 1px solid #ddd; 
+      border-radius: 4px; 
+    }
+    .status { 
+      padding: 10px; 
+      border-radius: 4px; 
+      margin: 10px 0; 
+      text-align: center; 
+    }
+    .loading { background: #fff3cd; color: #856404; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .tag {
+      background: #e3f2fd;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tag .remove {
+      cursor: pointer;
+      color: #666;
+    }
+    button { 
+      background: #007cba; 
+      color: white; 
+      padding: 10px 20px; 
+      border: none; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      font-size: 16px;
+    }
+    button:disabled { 
+      background: #ccc; 
+      cursor: not-allowed;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Add New Clothing Item</h1>
+  
+  <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+    <p>Click to upload a clothing photo</p>
+    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+  </div>
+  
+  <div id="preview" class="preview hidden">
+    <h3>Preview</h3>
+    <img id="previewImage" alt="Preview">
+  </div>
+  
+  <div id="status" class="status hidden"></div>
+  
+  <%= form_with model: @clothing_piece || ClothingPiece.new, 
+                url: clothing_pieces_path, 
+                method: :post, 
+                id: "clothingForm", 
+                local: true do |f| %>
+    
+    <div class="form-group">
+      <%= f.label :name, "Item Name" %>
+      <%= f.text_field :name, placeholder: "e.g., Blue Denim Jacket", required: true %>
+    </div>
+    
+    <div class="form-group">
+      <%= f.label :category, "Category" %>
+      <%= f.select :category, 
+                   options_for_select([
+                     ['Tops', 'tops'],
+                     ['Bottoms', 'bottoms'],
+                     ['Outerwear', 'outerwear'],
+                     ['Shoes', 'shoes'],
+                     ['Accessories', 'accessories']
+                   ]), 
+                   { prompt: 'Select a category' },
+                   required: true %>
+    </div>
+    
+    <div class="form-group">
+      <%= f.label :brand, "Brand (Optional)" %>
+      <%= f.text_field :brand, placeholder: "e.g., Levi's" %>
+    </div>
+    
+    <div class="form-group">
+      <%= f.label :description, "Description (Optional)" %>
+      <%= f.text_field :description, placeholder: "Additional details" %>
+    </div>
+    
+    <div class="form-group">
+      <label>AI-Suggested Tags</label>
+      <div id="tagsContainer" class="tags-container"></div>
+      <%= f.hidden_field :ai_tags, id: "aiTagsField" %>
+    </div>
+    
+    <%= f.hidden_field :embedding_vector, id: "embeddingField" %>
+    <%= f.hidden_field :model_version, value: "fashionclip-1.0" %>
+    
+    <button type="button" id="processBtn" onclick="processImage()" disabled>
+      Process Image
+    </button>
+    
+    <button type="submit" id="submitBtn" disabled>
+      Save Clothing Item
+    </button>
+  <% end %>
+
+  <script src="/js/onnx/ort.min.js"></script>
+  
+  <script>
+    let u2netSession = null;
+    let fashionClipSession = null;
+    let labelEmbeddings = null;
+    let weatherRules = null;
+    let currentImageEmbedding = null;
+    let currentImageFile = null;
+    
+    // Load models and embeddings on page load
+    window.addEventListener('load', async () => {
+      showStatus('Loading AI models...', 'loading');
+      
+      try {
+        ort.env.wasm.wasmPaths = '/js/onnx/';
+        
+        // Load all resources in parallel
+        const [u2net, fashionClip, labels, rules] = await Promise.all([
+          ort.InferenceSession.create('/models/u2net.onnx'),
+          ort.InferenceSession.create('/models/fashionclip_image_encoder.onnx'),
+          fetch('/models/label_embeddings.json').then(r => r.json()),
+          fetch('/models/weather_rules.json').then(r => r.json())
+        ]);
+        
+        u2netSession = u2net;
+        fashionClipSession = fashionClip;
+        labelEmbeddings = labels;
+        weatherRules = rules;
+        
+        showStatus('AI models loaded successfully', 'success');
+        setTimeout(() => hideStatus(), 2000);
+      } catch (error) {
+        showStatus('Failed to load AI models: ' + error.message, 'error');
+      }
+    });
+    
+    // Handle image upload
+    document.getElementById('imageInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        currentImageFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('previewImage').src = e.target.result;
+          document.getElementById('preview').classList.remove('hidden');
+          document.getElementById('processBtn').disabled = false;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    
+    async function processImage() {
+      if (!u2netSession || !fashionClipSession || !currentImageFile) {
+        alert('Models not loaded or no image selected');
+        return;
+      }
+      
+      document.getElementById('processBtn').disabled = true;
+      showStatus('Step 1/3: Removing background...', 'loading');
+      
+      try {
+        // Step 1: Load and preprocess image
+        const img = await loadImage(currentImageFile);
+        
+        // Step 2: Remove background with U2-Net
+        const cleanedImage = await removeBackground(img);
+        document.getElementById('previewImage').src = cleanedImage;
+        
+        showStatus('Step 2/3: Generating embedding...', 'loading');
+        
+        // Step 3: Generate FashionCLIP embedding
+        const embedding = await generateEmbedding(cleanedImage);
+        currentImageEmbedding = embedding;
+        document.getElementById('embeddingField').value = JSON.stringify(embedding);
+        
+        showStatus('Step 3/3: Auto-tagging...', 'loading');
+        
+        // Step 4: Auto-tag
+        const tags = await autoTag(embedding);
+        displayTags(tags);
+        
+        showStatus('Processing complete!', 'success');
+        document.getElementById('submitBtn').disabled = false;
+        
+      } catch (error) {
+        showStatus('Processing failed: ' + error.message, 'error');
+        document.getElementById('processBtn').disabled = false;
+      }
+    }
+    
+    function loadImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    async function removeBackground(img) {
+      // Preprocess for U2-Net (320x320)
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 320;
+      canvas.height = 320;
+      ctx.drawImage(img, 0, 0, 320, 320);
+      
+      // ctx.imageSmoothingEnabled = true;
+      // ctx.imageSmoothingQuality = 'high';
+      
+      const imageData = ctx.getImageData(0, 0, 320, 320);
+      const tensorData = new Float32Array(3 * 320 * 320);
+      
+      // Normalize for U2-Net
+      const mean = [0.485, 0.456, 0.406];
+      const std = [0.229, 0.224, 0.225];
+      
+      for (let i = 0; i < 320 * 320; i++) {
+        const pixelIndex = i * 4;
+        tensorData[i] = ((imageData.data[pixelIndex] / 255.0) - mean[0]) / std[0];
+        tensorData[320 * 320 + i] = ((imageData.data[pixelIndex + 1] / 255.0) - mean[1]) / std[1];
+        tensorData[2 * 320 * 320 + i] = ((imageData.data[pixelIndex + 2] / 255.0) - mean[2]) / std[2];
+      }
+      
+      const tensor = new ort.Tensor('float32', tensorData, [1, 3, 320, 320]);
+      const inputName = u2netSession.inputNames[0]; // Get first input name
+      const feeds = {'input.1': tensor};
+      // feeds[inputName] = tensor;
+
+      
+      const outputs = await u2netSession.run(feeds);
+      const outputName = u2netSession.outputNames[0];
+      const mask = outputs[outputName].data;
+      // Apply mask to original image
+      return applyMask(img, mask, 320, 320);
+    }
+    
+    function applyMask(img, mask, maskWidth, maskHeight) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      
+      const imageData = ctx.getImageData(0, 0, img.width, img.height);
+      
+      for (let y = 0; y < img.height; y++) {
+        for (let x = 0; x < img.width; x++) {
+          const maskX = Math.floor(x * maskWidth / img.width);
+          const maskY = Math.floor(y * maskHeight / img.height);
+          const maskValue = mask[maskY * maskWidth + maskX];
+          const alpha = Math.floor(maskValue * 255);
+          imageData.data[(y * img.width + x) * 4 + 3] = alpha;
+        }
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+      return canvas.toDataURL();
+    }
+    
+    async function generateEmbedding(imageSrc) {
+      const img = new Image();
+      await new Promise((resolve) => {
+        img.onload = resolve;
+        img.src = imageSrc;
+      });
+      
+      // Preprocess for FashionCLIP (224x224)
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 224;
+      canvas.height = 224;
+      
+      // Use high-quality image smoothing
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, 224, 224);
+      
+      const imageData = ctx.getImageData(0, 0, 224, 224);
+      const tensorData = new Float32Array(3 * 224 * 224);
+      
+      // Normalize for FashionCLIP
+      const mean = [0.48145466, 0.4578275, 0.40821073];
+      const std = [0.26862954, 0.26130258, 0.27577711];
+      
+      for (let i = 0; i < 224 * 224; i++) {
+        const pixelIndex = i * 4;
+        tensorData[i] = ((imageData.data[pixelIndex] / 255.0) - mean[0]) / std[0];
+        tensorData[224 * 224 + i] = ((imageData.data[pixelIndex + 1] / 255.0) - mean[1]) / std[1];
+        tensorData[2 * 224 * 224 + i] = ((imageData.data[pixelIndex + 2] / 255.0) - mean[2]) / std[2];
+      }
+      
+      const tensor = new ort.Tensor('float32', tensorData, [1, 3, 224, 224]);
+      const feeds = { pixel_values: tensor };
+      const outputs = await fashionClipSession.run(feeds);
+      
+      // Get the raw embedding
+      const rawEmbedding = Array.from(outputs[Object.keys(outputs)[0]].data);
+      
+      // Normalize the embedding (L2 normalization)
+      const norm = Math.sqrt(rawEmbedding.reduce((sum, val) => sum + val * val, 0));
+      const normalizedEmbedding = rawEmbedding.map(val => val / norm);
+      
+      console.log('Embedding stats:', {
+        length: normalizedEmbedding.length,
+        norm: Math.sqrt(normalizedEmbedding.reduce((sum, val) => sum + val * val, 0)),
+        sample: normalizedEmbedding.slice(0, 5)
+      });
+      
+      return normalizedEmbedding;
+    }
+    
+    async function autoTag(imageEmbedding) {
+      const similarities = {};
+      
+      console.log('Image embedding length:', imageEmbedding.length);
+      console.log('Label embeddings count:', Object.keys(labelEmbeddings).length);
+      
+      for (const [label, textEmbed] of Object.entries(labelEmbeddings)) {
+        // Verify dimensions match
+        if (textEmbed.length !== imageEmbedding.length) {
+          console.warn(`Dimension mismatch for ${label}: ${textEmbed.length} vs ${imageEmbedding.length}`);
+          continue;
+        }
+        
+        const similarity = cosineSimilarity(imageEmbedding, textEmbed);
+        
+        // Debug NaN values
+        if (isNaN(similarity)) {
+          console.error(`NaN similarity for ${label}`, {
+            imageEmbedSample: imageEmbedding.slice(0, 3),
+            textEmbedSample: textEmbed.slice(0, 3)
+          });
+        }
+        
+        similarities[label] = similarity;
+      }
+      
+      const sortedTags = Object.entries(similarities)
+        .filter(([_, score]) => !isNaN(score))
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([label, score]) => ({ label, score }));
+      
+      console.log('Top tags:', sortedTags);
+      
+      return sortedTags;
+    }
+    
+    function cosineSimilarity(a, b) {
+      if (a.length !== b.length) {
+        console.error('Dimension mismatch:', a.length, 'vs', b.length);
+        return NaN;
+      }
+      
+      const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
+      const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+      const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+      
+      if (normA === 0 || normB === 0) {
+        console.error('Zero norm detected:', { normA, normB });
+        return NaN;
+      }
+      
+      return dotProduct / (normA * normB);
+    }
+    
+    function displayTags(tags) {
+      const container = document.getElementById('tagsContainer');
+      container.innerHTML = '';
+      
+      const tagValues = tags.map(t => t.label);
+      document.getElementById('aiTagsField').value = JSON.stringify(tagValues);
+      
+      tags.forEach(tag => {
+        const tagEl = document.createElement('div');
+        tagEl.className = 'tag';
+        tagEl.innerHTML = `
+          ${tag.label} (${(tag.score * 100).toFixed(0)}%)
+          <span class="remove" onclick="removeTag('${tag.label}')">×</span>
+        `;
+        container.appendChild(tagEl);
+      });
+    }
+    
+    function removeTag(label) {
+      const field = document.getElementById('aiTagsField');
+      const tags = JSON.parse(field.value);
+      const newTags = tags.filter(t => t !== label);
+      field.value = JSON.stringify(newTags);
+      
+      const tagEls = document.querySelectorAll('.tag');
+      tagEls.forEach(el => {
+        if (el.textContent.includes(label)) {
+          el.remove();
+        }
+      });
+    }
+    
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = 'status ' + type;
+      status.classList.remove('hidden');
+    }
+    
+    function hideStatus() {
+      document.getElementById('status').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
