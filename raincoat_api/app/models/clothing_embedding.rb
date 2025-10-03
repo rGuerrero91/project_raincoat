@@ -1,4 +1,3 @@
-# app/models/clothing_embedding.rb
 class ClothingEmbedding < ApplicationRecord
   belongs_to :clothing_piece
   

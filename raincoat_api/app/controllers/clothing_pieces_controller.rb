@@ -1,7 +1,7 @@
 class ClothingPiecesController < ApplicationController
   before_action :require_login
   before_action :set_clothing_piece, only: [:show, :similar]
- 
+
   def index
     @clothing_pieces = current_user.clothing_pieces.includes(:clothing_embedding)
     @clothing_piece = ClothingPiece.new
@@ -17,42 +17,64 @@ class ClothingPiecesController < ApplicationController
   end
  
   def create
+    embedding_vector = params[:clothing_piece].delete(:embedding_vector)
+    model_version = params[:clothing_piece].delete(:model_version)
+    
     @clothing_piece = current_user.clothing_pieces.build(clothing_piece_params)
     
     if @clothing_piece.save
-      begin
-        vector = JSON.parse(params[:clothing_piece][:embedding_vector])
-        @clothing_piece.create_clothing_embedding(
-          vector_data: vector,
-          model_version: params[:clothing_piece][:model_version] || 'fashionclip-1.0'
-        )
-      rescue JSON::ParserError => e
-        Rails.logger.error "Failed to parse embedding: #{e.message}"
+      if embedding_vector.present?
+        @clothing_piece.processing!
+
+        begin
+          vector = JSON.parse(embedding_vector)
+
+          if @clothing_piece.create_clothing_embedding(
+            vector_data: vector,
+            model_version: model_version || 'fashionclip-2.0'
+          )
+            @clothing_piece.embedding_generated!
+          else
+            @clothing_piece.embedding_failed!
+          end
+        rescue JSON::ParserError => e
+          Rails.logger.error "Failed to parse embedding: #{e.message}"
+          @clothing_piece.embedding_failed!
+        end
+      else
+        @clothing_piece.pending!
       end
-      
-      redirect_to clothing_pieces_path, notice: 'Clothing piece created successfully!'
+
+      redirect_to clothing_pieces_path, notice: 'Clothing piece uploaded successfully!'
     else
       @clothing_pieces = current_user.clothing_pieces.includes(:clothing_embedding)
       render :new, status: :unprocessable_entity
     end
   end
- 
+
   def similar
     @embedding = @clothing_piece.clothing_embedding
     @similar_pieces = @clothing_piece.similar_pieces(limit: 10)
   end
- 
+  
+  
   private
  
   def set_clothing_piece
     @clothing_piece = current_user.clothing_pieces.find(params[:id])
   end
- 
+  
+
   def clothing_piece_params
     params.require(:clothing_piece).permit(
       :name, :description, :category, :brand,
-      :embedding_vector, :ai_tags, :model_version,
-      images: []
+      :embedding_vector, :model_version, :purchase_date,
+      :ai_tags, 
+      images: [], 
+      user_tags: [], 
+      colors: [], 
+      materials: [], 
+      weather_suitability: []
     )
   end
 end
