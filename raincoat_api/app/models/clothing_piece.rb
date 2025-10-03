@@ -33,7 +33,4 @@ class ClothingPiece < ApplicationRecord
     clothing_embedding.present?
   end
   
-  def embedding_confidence
-    clothing_embedding&.confidence_score
-  end
 end

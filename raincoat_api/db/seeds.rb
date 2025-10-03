@@ -375,7 +375,7 @@ sample_pieces.each_with_index do |piece, index|
   piece.create_clothing_embedding!(
     vector_data: vector_data,
     model_version: "tinyclip-1.0",
-    confidence_score: rand(0.7..0.95).round(3)
+    # confidence_score: rand(0.7..0.95).round(3)
   )
   
   puts "  Generated embedding for: #{piece.name}"

@@ -19,24 +19,30 @@ class ClothingPiecesController < ApplicationController
   def create
     embedding_vector = params[:clothing_piece].delete(:embedding_vector)
     model_version = params[:clothing_piece].delete(:model_version)
-
     
     @clothing_piece = current_user.clothing_pieces.build(clothing_piece_params)
     
     if @clothing_piece.save
-      puts "====================== !!!!!!!!!!!!!! ===================== EMBEDDING VECTOR: #{embedding_vector}"
-      # Handle embedding separately after save
-      if embedding_vector
+      if embedding_vector.present?
+        @clothing_piece.processing!
+
         begin
           vector = JSON.parse(embedding_vector)
-          @clothing_piece.create_clothing_embedding(
+
+          if @clothing_piece.create_clothing_embedding(
             vector_data: vector,
-            model_version: model_version || 'fashionclip-2.0',
-            confidence_score: params[:confidence_score]&.to_f
+            model_version: model_version || 'fashionclip-2.0'
           )
+            @clothing_piece.embedding_generated!
+          else
+            @clothing_piece.embedding_failed!
+          end
         rescue JSON::ParserError => e
           Rails.logger.error "Failed to parse embedding: #{e.message}"
+          @clothing_piece.embedding_failed!
         end
+      else
+        @clothing_piece.pending!
       end
 
       redirect_to clothing_pieces_path, notice: 'Clothing piece uploaded successfully!'
@@ -45,7 +51,7 @@ class ClothingPiecesController < ApplicationController
       render :new, status: :unprocessable_entity
     end
   end
- 
+
   def similar
     @embedding = @clothing_piece.clothing_embedding
     @similar_pieces = @clothing_piece.similar_pieces(limit: 10)
