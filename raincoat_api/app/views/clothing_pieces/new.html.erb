@@ -148,7 +148,7 @@
     </div>
     
     <%= f.hidden_field :embedding_vector, id: "embeddingField" %>
-    <%= f.hidden_field :model_version, value: "fashionclip-1.0" %>
+    <%= f.hidden_field :model_version, value: "fashionclip-2.0" %>
     
     <button type="button" id="processBtn" onclick="processImage()" disabled>
       Process Image
@@ -188,6 +188,8 @@
         fashionClipSession = fashionClip;
         labelEmbeddings = labels;
         weatherRules = rules;
+        
+        console.log('fashionClipSession:', fashionClipSession);
         
         showStatus('AI models loaded successfully', 'success');
         setTimeout(() => hideStatus(), 2000);
@@ -349,6 +351,8 @@
       const norm = Math.sqrt(rawEmbedding.reduce((sum, val) => sum + val * val, 0));
       const normalizedEmbedding = rawEmbedding.map(val => val / norm);
       
+      console.log('Raw embedding:', rawEmbedding);
+      
       return normalizedEmbedding;
     }
     
@@ -411,6 +415,9 @@
       const tagValues = tags.map(t => t.label);
       document.getElementById('aiTagsField').value = JSON.stringify(tagValues);
       
+      // trying to figure out the shape of the data
+      console.log('Auto-generated tags:', tags);
+
       tags.forEach(tag => {
         const tagEl = document.createElement('div');
         tagEl.className = 'tag';
