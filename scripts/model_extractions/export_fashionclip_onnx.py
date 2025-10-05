@@ -103,7 +103,7 @@ def export_fashionclip_models(output_dir="./raincoat_api/public/models"):
     )
     
     size_mb = text_encoder_path.stat().st_size / (1024 * 1024)
-    print(f"✅ Text encoder exported: {text_encoder_path}")
+    print(f" Text encoder exported: {text_encoder_path}")
     print(f"   Size: {size_mb:.2f} MB")
     
     # Create metadata files
@@ -160,7 +160,7 @@ def create_metadata_files(output_path):
     with open(output_path / "fashionclip_text_metadata.json", 'w') as f:
         json.dump(text_metadata, f, indent=2)
     
-    print("\n📝 Created metadata files")
+    print("\n Created metadata files")
 
 def create_browser_integration_guide(output_dir="./notes_and_test data/models"):
     """Create comprehensive browser integration guide."""
@@ -328,7 +328,7 @@ async function processClothingImage(imageFile) {
     guide_path = Path(output_dir) / "FASHIONCLIP_BROWSER_GUIDE.md"
     with open(guide_path, 'w') as f:
         f.write(guide_content)
-    print(f"📚 Created browser integration guide: {guide_path}")
+    print(f" Created browser integration guide: {guide_path}")
 
 if __name__ == "__main__":
     print("=" * 60)
@@ -340,7 +340,7 @@ if __name__ == "__main__":
         create_browser_integration_guide()
         
         print("\n" + "=" * 60)
-        print("✅ SUCCESS! FashionCLIP models exported.")
+        print(" SUCCESS! FashionCLIP models exported.")
         print("\nGenerated files:")
         print("  - fashionclip_image_encoder.onnx")
         print("  - fashionclip_text_encoder.onnx")
@@ -350,6 +350,6 @@ if __name__ == "__main__":
         print("=" * 60)
         
     except Exception as e:
-        print(f"\n❌ Export failed: {e}")
+        print(f"\n Export failed: {e}")
         import traceback
         traceback.print_exc()
