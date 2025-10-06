@@ -1,6 +1,6 @@
 # Raincoat
 
-A privacy-first, AI-powered weather-based outfit recommendation app. Upload your closet with client-side AI processing, get smart outfit suggestions based on weather conditions, and organize your clothing with intelligent collections.
+Raincoat is a privacy first, Machine learning powered, weather based outfit recommendation app. Upload your closet with client-side visual processing, get smart outfit suggestions based on weather conditions, and organize your clothing with intelligent collections.
 
 ## Features
 
