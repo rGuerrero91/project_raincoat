@@ -79,14 +79,15 @@
 
     .status-badge {
         display: inline-block;
-        background: rgba(46, 213, 115, 0.2);
-        border: 2px solid rgba(46, 213, 115, 0.5);
-        color: #2ed573;
+        background: rgba(213, 46, 191, 0.2);
+        border: 2px solid rgba(213, 46, 149, 0.5);
+        color: #d52eb6;
         padding: 8px 20px;
         border-radius: 20px;
         font-weight: 600;
         margin-bottom: 20px;
         font-size: 0.9rem;
+        opacity: 0.45;
     }
 
     /* Floating weather icons */
@@ -141,7 +142,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        color: rgb(255, 255, 255);
         font-size: 1.5rem;
         transition: transform 0.3s ease;
     }
@@ -210,10 +211,6 @@
 </head>
 <body>
 <div class="container">
-    <header>
-        <div class="logo">Raincoat</div>
-        <div class="tagline">Outfit ideas for any weather—without sharing your photos</div>
-    </header>
 
     <div class="hero">
         <!-- floating weather icons -->
@@ -222,59 +219,60 @@
         <div class="weather-icon">🌧️</div>
         <div class="weather-icon"> todo: insert clipart </div> -->
 
-        <div class="status-badge">In Development – Phase 3</div>
+        <div class="status-badge">In Development </div>
         <h1>Smart Outfits, Zero Privacy Compromises</h1>
-        <p>Upload your closet once and get daily weather-based outfit suggestions. Everything is processed on your device—your photos never leave your browser.</p>
+        <span> <img src="notes_and_test data/raincoat_basic_mockup.png" alt="Raincoat App Mockup" style="width: 100%; max-width: 600px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);"><p style="font-size: 14px;">(Mockup, final product will look so much cuter than this.) </p></span>
+        <p>Upload your closet once and get daily weather-based outfit suggestions.</br>Everything is processed in app; your photos never leave your device.</p>
         <!-- <a href="#" class="cta-button">Get Early Access</a> -->
-        <p style="margin-top: 10px; color: #95a5a6; font-size: 0.95rem;">No spam, just fashion that works for you.</p>
+        <!-- <p style="margin-top: 10px; color: #95a5a6; font-size: 0.95rem;">No spam, just fashion that works for you.</p> -->
     </div>
 
     <div class="privacy-badge">
-        <h2>Your Closet Stays Private</h2>
-        <p>Raincoat processes all images locally in your browser using advanced AI. We only ever receive anonymized data—never your actual photos.</p>
+        <h2>Your Photos Stay Private</h2>
+        <p>Raincoat processes all images locally in your browser using lightweight image models. We only ever receive anonymized data, never your actual photos.</p>
     </div>
 
     <div class="features">
         <div class="feature-card">
-            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <!-- <div class="feature-icon">todo: insert clipart</div> -->
             <h3>Smart Auto-Tagging</h3>
-            <p>AI tags your clothes automatically so you can focus on picking outfits you love, not tagging photos.</p>
+            <p>A vision model tags your clothes automatically so you can focus on picking outfits you love, not tagging photos.</p>
         </div>
 
         <div class="feature-card">
-            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <!-- <div class="feature-icon">todo: insert clipart</div> -->
             <h3>Weather-Based Suggestions</h3>
-            <p>Get outfit recommendations tailored to the current weather and forecast—never be caught unprepared again.</p>
+            <p>Get outfit recommendations tailored to the current weather and forecast. Never get caught offguard again.</p>
         </div>
 
         <div class="feature-card">
-            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <!-- <div class="feature-icon">todo: insert clipart</div> -->
             <h3>Organize Your Closet</h3>
             <p>Find similar items, create collections, and build outfits with AI-powered similarity search across your wardrobe.</p>
         </div>
 
         <div class="feature-card">
-            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <!-- <div class="feature-icon">todo: insert clipart</div> -->
             <h3>Multi-Location Support</h3>
             <p>Manage wardrobes for home, work, or vacation spots with location-specific weather recommendations.</p>
         </div>
 
         <div class="feature-card">
-            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <!-- <div class="feature-icon">todo: insert clipart</div> -->
             <h3>Instant Processing</h3>
-            <p>Client-side AI models run directly in your browser with WebGPU acceleration for near-instant results.</p>
+            <p>Client-side models run directly in your browser with WebGPU acceleration for near-instant results.</p>
         </div>
 
         <div class="feature-card">
-            <div class="feature-icon"><!-- todo: insert clipart --></div>
-            <h3>Hybrid Intelligence</h3>
-            <p>Combines AI understanding with rule-based weather logic for reliable, context-aware recommendations.</p>
+            <!-- <div class="feature-icon">todo: insert clipart</div> -->
+            <h3>Travel Mode</h3>
+            <p>Set an itinerary and get a suggested list to pack depending on the weather forecast during the days you'll be traveling.</p>
         </div>
     </div>
 
     <div class="tech-stack">
         <h2>Built With Modern Tech</h2>
-        <p style="color: #7f8c8d; margin-bottom: 20px;">Privacy-first architecture powered by cutting-edge AI and web technologies</p>
+        <p style="color: #7f8c8d; margin-bottom: 20px;">Privacy first architecture powered by cutting-edge visual and web technologies</p>
         <div class="tech-grid">
             <span class="tech-item">Next.js 14</span>
             <span class="tech-item">Ruby on Rails 8</span>
@@ -288,7 +286,7 @@
     </div>
 
     <footer>
-        <p>Built for weather-conscious fashion lovers who value privacy</p>
+        <p>Built for my fellow weather-blind fashion lovers who value privacy</p>
         <p style="margin-top: 10px; opacity: 0.8;">© 2025 Raincoat – Currently in Development</p>
     </footer>
 </div>
