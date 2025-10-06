@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raincoat - Smart & Private Weather Outfit Recommendations</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #2c3e50;
+        background: linear-gradient(135deg, #667eea 0%, #ff7f50 100%);
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+    header { padding: 40px 0; text-align: center; }
+
+    .logo {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 10px;
+        letter-spacing: -0.5px;
+    }
+
+    .tagline { color: rgba(255,255,255,0.95); font-size: 1.2rem; font-weight: 400; }
+
+    /* Hero */
+    .hero {
+        background: white;
+        border-radius: 25px;
+        padding: 60px 40px;
+        margin: 40px auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        line-height: 1.3;
+    }
+
+    .hero p {
+        font-size: 1.15rem;
+        color: #7f8c8d;
+        margin-bottom: 40px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #ff7f50 100%);
+        color: white;
+        padding: 15px 40px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .status-badge {
+        display: inline-block;
+        background: rgba(46, 213, 115, 0.2);
+        border: 2px solid rgba(46, 213, 115, 0.5);
+        color: #2ed573;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+    }
+
+    /* Floating weather icons */
+    .weather-icon {
+        position: absolute;
+        font-size: 2.5rem;
+        opacity: 0.7;
+        animation: float 6s ease-in-out infinite alternate;
+    }
+
+    .weather-icon:nth-child(1) { top: 10%; left: 5%; animation-duration: 8s; }
+    .weather-icon:nth-child(2) { top: 20%; right: 10%; animation-duration: 10s; }
+    .weather-icon:nth-child(3) { bottom: 15%; left: 20%; animation-duration: 7s; }
+    .weather-icon:nth-child(4) { bottom: 5%; right: 15%; animation-duration: 9s; }
+
+    @keyframes float {
+        0% { transform: translateY(0) translateX(0); }
+        50% { transform: translateY(-15px) translateX(5px); }
+        100% { transform: translateY(0) translateX(0); }
+    }
+
+    /* Features */
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        margin: 60px 0;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 40px 30px;
+        border-radius: 20px;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 20px;
+        background: linear-gradient(135deg, #667eea 0%, #ff7f50 100%);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.2);
+    }
+
+    .feature-card h3 { font-size: 1.4rem; color: #2c3e50; margin-bottom: 10px; }
+    .feature-card p { color: #7f8c8d; line-height: 1.5; font-size: 0.95rem; }
+
+    .privacy-badge {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(8px);
+        border: 2px solid rgba(255,255,255,0.25);
+        border-radius: 20px;
+        padding: 30px;
+        margin: 40px 0;
+        text-align: center;
+    }
+
+    .privacy-badge h2 { color: white; font-size: 2rem; margin-bottom: 15px; }
+    .privacy-badge p { color: rgba(255,255,255,0.95); font-size: 1.1rem; max-width: 800px; margin: 0 auto; }
+
+    /* Tech Stack */
+    .tech-stack {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        margin: 40px 0;
+        text-align: center;
+    }
+
+    .tech-stack h2 { color: #2c3e50; margin-bottom: 25px; font-size: 2rem; }
+    .tech-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .tech-item {
+        background: linear-gradient(135deg, #667eea 0%, #ff7f50 100%);
+        color: white;
+        padding: 8px 18px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    footer {
+        text-align: center;
+        padding: 40px 0;
+        color: rgba(255,255,255,0.85);
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .hero h1 { font-size: 2rem; }
+        .hero p { font-size: 1rem; }
+        .logo { font-size: 2rem; }
+        .features { grid-template-columns: 1fr; }
+        .hero { padding: 40px 30px; }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="logo">Raincoat</div>
+        <div class="tagline">Outfit ideas for any weather—without sharing your photos</div>
+    </header>
+
+    <div class="hero">
+        <!-- floating weather icons -->
+        <!-- <div class="weather-icon">☀️</div>
+        <div class="weather-icon">🌤️</div>
+        <div class="weather-icon">🌧️</div>
+        <div class="weather-icon"> todo: insert clipart </div> -->
+
+        <div class="status-badge">In Development – Phase 3</div>
+        <h1>Smart Outfits, Zero Privacy Compromises</h1>
+        <p>Upload your closet once and get daily weather-based outfit suggestions. Everything is processed on your device—your photos never leave your browser.</p>
+        <!-- <a href="#" class="cta-button">Get Early Access</a> -->
+        <p style="margin-top: 10px; color: #95a5a6; font-size: 0.95rem;">No spam, just fashion that works for you.</p>
+    </div>
+
+    <div class="privacy-badge">
+        <h2>Your Closet Stays Private</h2>
+        <p>Raincoat processes all images locally in your browser using advanced AI. We only ever receive anonymized data—never your actual photos.</p>
+    </div>
+
+    <div class="features">
+        <div class="feature-card">
+            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <h3>Smart Auto-Tagging</h3>
+            <p>AI tags your clothes automatically so you can focus on picking outfits you love, not tagging photos.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <h3>Weather-Based Suggestions</h3>
+            <p>Get outfit recommendations tailored to the current weather and forecast—never be caught unprepared again.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <h3>Organize Your Closet</h3>
+            <p>Find similar items, create collections, and build outfits with AI-powered similarity search across your wardrobe.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <h3>Multi-Location Support</h3>
+            <p>Manage wardrobes for home, work, or vacation spots with location-specific weather recommendations.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <h3>Instant Processing</h3>
+            <p>Client-side AI models run directly in your browser with WebGPU acceleration for near-instant results.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon"><!-- todo: insert clipart --></div>
+            <h3>Hybrid Intelligence</h3>
+            <p>Combines AI understanding with rule-based weather logic for reliable, context-aware recommendations.</p>
+        </div>
+    </div>
+
+    <div class="tech-stack">
+        <h2>Built With Modern Tech</h2>
+        <p style="color: #7f8c8d; margin-bottom: 20px;">Privacy-first architecture powered by cutting-edge AI and web technologies</p>
+        <div class="tech-grid">
+            <span class="tech-item">Next.js 14</span>
+            <span class="tech-item">Ruby on Rails 8</span>
+            <span class="tech-item">PostgreSQL + pgvector</span>
+            <span class="tech-item">ONNX Runtime</span>
+            <span class="tech-item">FashionCLIP</span>
+            <span class="tech-item">U2-Net</span>
+            <span class="tech-item">WebGPU</span>
+            <span class="tech-item">TypeScript</span>
+        </div>
+    </div>
+
+    <footer>
+        <p>Built for weather-conscious fashion lovers who value privacy</p>
+        <p style="margin-top: 10px; opacity: 0.8;">© 2025 Raincoat – Currently in Development</p>
+    </footer>
+</div>
+</body>
+</html>
