@@ -85,26 +85,26 @@ def remap_modanet_to_raincoat(dataset_path):
     #                     6,           7,       8,      9,       10,      11,         12]
     
     class_mapping = {
-        0: 4,   # bag → accessories
-        1: 4,   # belt → accessories
-        2: 3,   # boots → shoes
-        3: 3,   # footwear → shoes
-        4: 2,   # outer → outerwear
-        5: 0,   # dress → top
-        6: 4,   # sunglasses → accessories
-        7: 1,   # pants → bottom
-        8: 0,   # top → top
-        9: 1,   # shorts → bottom
-        10: 1,  # skirt → bottom
-        11: 4,  # headwear → accessories
-        12: 4,  # scarf/tie → accessories
+    0: 4,   # bag → accessories
+    1: 4,   # belt → accessories
+    2: 3,   # boots → shoes
+    3: 0,   # dress → top  (will handle dresses as tops for cropping)
+    4: 3,   # footwear → shoes
+    5: 4,   # headwear → accessories
+    6: 2,   # outer → outerwear 
+    7: 1,   # pants → bottom 
+    8: 4,   # scarf-tie → accessories 
+    9: 1,   # shorts → bottom
+    10: 1,  # skirt → bottom
+    11: 4,  # sunglasses → accessories
+    12: 0,  # top → top
     }
     
     raincoat_classes = ["top", "bottom", "outerwear", "shoes", "accessories"]
     
     print(f"\nMapping ModaNet's 13 classes → Raincoat's 5 categories:")
-    modanet_classes = ['bag', 'belt', 'boots', 'footwear', 'outer', 'dress', 
-                       'sunglasses', 'pants', 'top', 'shorts', 'skirt', 'headwear', 'scarf/tie']
+    modanet_classes = ['bag', 'belt', 'boots', 'dress', 'footwear', 'headwear',
+                   'outer', 'pants', 'scarf-tie', 'shorts', 'skirt', 'sunglasses', 'top']
     
     for old_idx, new_idx in class_mapping.items():
         print(f"  {modanet_classes[old_idx]:12} → {raincoat_classes[new_idx]}")
@@ -224,7 +224,7 @@ def download_modanet_dataset(api_key, output_dir="datasets"):
     
     print("2. Loading ModaNet project...")
     # Using the ModaNet dataset from Roboflow Universe
-    project = rf.workspace("gizem").project("modanet-97ezb")
+    project = rf.workspace("new-workspace-5nurl").project("modanet-osd3s")
     
     print("3. Downloading dataset in YOLOv8 format...")
     print("   This may take a few minutes (55K+ images)...")
@@ -758,16 +758,23 @@ def main():
     if not api_key:
         return 1
     
-    # Download dataset
-    try:
-        dataset_path = download_modanet_dataset(api_key)
-    except Exception as e:
-        print(f"\n✗ Dataset download failed: {e}")
-        print("\nPossible issues:")
-        print("  • Invalid API key")
-        print("  • Network connection problem")
-        print("  • Roboflow service unavailable")
-        return 1
+    # # Download dataset
+    # try:
+    #     dataset_path = download_modanet_dataset(api_key)
+    # except Exception as e:
+    #     print(f"\n✗ Dataset download failed: {e}")
+    #     print("\nPossible issues:")
+    #     print("  • Invalid API key")
+    #     print("  • Network connection problem")
+    #     print("  • Roboflow service unavailable")
+    #     return 1
+
+    dataset_path = "datasets/modanet-osd3s"
+
+    # Remap it
+    from pathlib import Path
+    raincoat_classes = remap_modanet_to_raincoat(dataset_path)
+    print(f"\n✓ Using existing dataset with {len(raincoat_classes)} Raincoat categories")
     
     # Ask user for training parameters
     print("\n" + "="*60)
