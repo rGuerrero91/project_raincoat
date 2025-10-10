@@ -231,8 +231,48 @@ def download_modanet_dataset(api_key, output_dir="datasets"):
     dataset = project.version(1).download("yolov8", location=output_dir)
     
     print(f"\n✓ Dataset downloaded to: {dataset.location}")
-    print(f"   Training images: ~52,000")
-    print(f"   Validation images: ~2,800")
+    
+    # Check if valid directory exists, if not create train/val split
+    valid_path = Path(dataset.location) / "valid"
+    train_path = Path(dataset.location) / "train"
+    
+    if not valid_path.exists() and train_path.exists():
+        print("\n⚠️  No validation set found, creating 10% train/val split...")
+        
+        # Create valid directory structure
+        (valid_path / "images").mkdir(parents=True, exist_ok=True)
+        (valid_path / "labels").mkdir(parents=True, exist_ok=True)
+        
+        # Get all training images
+        train_images = list((train_path / "images").glob("*.jpg")) + \
+                      list((train_path / "images").glob("*.png")) + \
+                      list((train_path / "images").glob("*.jpeg"))
+        
+        # Calculate 10% for validation
+        import random
+        random.seed(42)
+        num_val = max(1, int(len(train_images) * 0.1))
+        val_images = random.sample(train_images, num_val)
+        
+        print(f"   Moving {num_val} images to validation set...")
+        
+        # Move images and labels to valid
+        for img_path in val_images:
+            # Move image
+            new_img_path = valid_path / "images" / img_path.name
+            img_path.rename(new_img_path)
+            
+            # Move corresponding label
+            label_name = img_path.stem + ".txt"
+            label_path = train_path / "labels" / label_name
+            if label_path.exists():
+                new_label_path = valid_path / "labels" / label_name
+                label_path.rename(new_label_path)
+        
+        print(f"   ✓ Created validation set: {num_val} images")
+    
+    print(f"   Training images: {len(list((train_path / 'images').glob('*')))}")
+    print(f"   Validation images: {len(list((valid_path / 'images').glob('*')))}")
     print(f"   Original classes: 13 ModaNet categories")
     
     # Remap to Raincoat categories
