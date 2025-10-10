@@ -221,7 +221,7 @@
 
         <div class="status-badge">In Development </div>
         <h1>Smart outfits without</br>compromising on privacy </h1>
-        <span> <img src="notes_and_test data/raincoat_basic_mockup.png" alt="Raincoat App Mockup" style="width: 100%; max-width: 600px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);"><p style="font-size: 14px;">(Mockup, final design will be way cuter) </p></span>
+        <span> <img src="" id="mockup" alt="Raincoat App Mockup" style="width: 100%; max-width: 600px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);"><p style="font-size: 14px;">(Mockup) </p></span>
         <p>Upload your closet once and get daily weather-based outfit suggestions.</br>Everything is processed in app; your photos never leave your device.</p>
         <!-- <a href="#" class="cta-button">Get Early Access</a> -->
         <!-- <p style="margin-top: 10px; color: #95a5a6; font-size: 0.95rem;">No spam, just fashion that works for you.</p> -->
@@ -292,3 +292,23 @@
 </div>
 </body>
 </html>
+
+
+<script>
+    // Randomly select a mockup image based on screen size
+    
+    const randomNum = window.innerWidth < 650 ? Math.floor(Math.random() * 2) : Math.floor(Math.random() * 5);
+    
+    const mockupImg = document.getElementById('mockup');
+    
+    if (mockupImg) {
+      if (window.innerWidth < 650) {
+        // var randomNum = Math.floor(Math.random() * 2);
+        mockupImg.src = `./assets/preview_mockups/mobile${randomNum}.png`;
+      } else {
+        // var randomNum = Math.floor(Math.random() * 5);
+        mockupImg.src = `./assets/preview_mockups/mockup${randomNum}.png`;
+      }
+    } 
+    
+</script>
