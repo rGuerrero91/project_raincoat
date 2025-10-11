@@ -74,6 +74,21 @@ def remap_modanet_to_raincoat(dataset_path):
     Remap ModaNet's 13 classes to Raincoat's 5 categories
     Modifies the dataset labels in-place
     """
+    dataset_path = Path(dataset_path)
+    # check if already remapped
+    data_yaml_path = dataset_path / "data.yaml"
+
+    if data_yaml_path.exists():
+        with open(data_yaml_path, 'r') as f:
+            data_config = yaml.safe_load(f)
+
+        current_classes = data_config.get('names', [])
+
+        # Check if already remapped
+        if current_classes == ["top", "bottom", "outerwear", "shoes", "accessories"]:
+            print("\n⚠️  Dataset already remapped to Raincoat categories!")
+            print("   Skipping remapping to avoid corruption.")
+            return ["top", "bottom", "outerwear", "shoes", "accessories"]
     print("\n" + "="*60)
     print("Remapping ModaNet Classes to Raincoat Categories")
     print("="*60)
@@ -109,14 +124,13 @@ def remap_modanet_to_raincoat(dataset_path):
     for old_idx, new_idx in class_mapping.items():
         print(f"  {modanet_classes[old_idx]:12} → {raincoat_classes[new_idx]}")
     
-    dataset_path = Path(dataset_path)
     
     # Update data.yaml with new classes
     print("\n1. Updating data.yaml...")
     data_yaml_path = dataset_path / "data.yaml"
     
     if data_yaml_path.exists():
-        import yaml
+        # import yaml
         with open(data_yaml_path, 'r') as f:
             data_config = yaml.safe_load(f)
         
@@ -769,7 +783,7 @@ def main():
     #     print("  • Roboflow service unavailable")
     #     return 1
 
-    dataset_path = "datasets/modanet-osd3s"
+    dataset_path = "datasets"
 
     # Remap it
     from pathlib import Path
