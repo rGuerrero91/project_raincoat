@@ -78,7 +78,7 @@ def extract_u2net_model(output_dir="./raincoat_api/public/models"):
     
     return True
 
-def create_deployment_readme(output_dir="./notes_and_test data/models"):
+def create_deployment_readme(output_dir="./notes_and_test_data/models"):
     """Create README with deployment instructions."""
     readme_content = """# U2-Net ONNX Model for Browser Deployment
 
