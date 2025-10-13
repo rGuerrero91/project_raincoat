@@ -575,6 +575,24 @@ def train_model(dataset_path, epochs=50, batch=16, resume=False):
     
     return model, best
 
+
+def export_onnx(model, output_dir="models"):
+    """Export to ONNX"""
+    
+    output_dir = Path(output_dir)
+    output_dir.mkdir(exist_ok=True)
+    
+    print("\nExporting to ONNX...")
+    onnx = model.export(format="onnx", imgsz=640, simplify=True, opset=14)
+    
+    final = output_dir / "raincoat_fashion_yolov8n.onnx"
+    Path(onnx).rename(final)
+    
+    size_mb = final.stat().st_size / (1024 * 1024)
+    print(f"[OK] ONNX: {final} ({size_mb:.1f}MB)")
+    
+    return final
+
 def main():
     print("="*60)
     print("Fashionpedia + ModaNet Training Pipeline")
