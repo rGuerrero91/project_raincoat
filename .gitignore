@@ -11,3 +11,4 @@ raincoat_api/public/models/u2net.onnx
 
 scripts/model_extractions/test_datasets
 scripts/model_extractions/datasets
+scripts/model_extractions/runs
