@@ -3,8 +3,6 @@ Download Full Fashionpedia and Merge with ModaNet
 Smart resume functionality with checkpoints
 """
 
-roboflow_api_key = '8Wt2X9rtqQk1TsJOZW3r'
-
 import os
 import sys
 from pathlib import Path

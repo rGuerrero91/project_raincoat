@@ -3,7 +3,7 @@ Fine-tune YOLOv8n on ModaNet Dataset for Clothing Detection
 Downloads ModaNet dataset and fine-tunes YOLOv8n for 13 clothing categories
 Exports to ONNX format for browser deployment in Raincoat
 """
-roboflow_api_key = '8Wt2X9rtqQk1TsJOZW3r'
+roboflow_api_key = ''  # Optional: Set your Roboflow API key here or via ROBOFLOW_API_KEY env variable
 
 import os
 import sys
