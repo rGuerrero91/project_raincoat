@@ -162,7 +162,7 @@ def create_metadata_files(output_path):
     
     print("\n Created metadata files")
 
-def create_browser_integration_guide(output_dir="./notes_and_test data/models"):
+def create_browser_integration_guide(output_dir="./notes_and_test_data/models"):
     """Create comprehensive browser integration guide."""
     
     guide_content = """# FashionCLIP Browser Integration Guide

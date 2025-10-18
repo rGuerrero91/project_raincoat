@@ -1,0 +1,19 @@
+{
+  "classes": [
+    "top",
+    "bottom",
+    "outerwear",
+    "shoes",
+    "accessories"
+  ],
+  "num_classes": 5,
+  "descriptions": {
+    "top": "Shirts, blouses, t-shirts, sweaters, tank tops",
+    "bottom": "Pants, jeans, shorts, skirts, leggings",
+    "outerwear": "Jackets, coats, blazers, vests, cardigans",
+    "shoes": "All footwear: shoes, boots, sandals, sneakers",
+    "accessories": "Bags, belts, hats, sunglasses, scarves, ties"
+  },
+  "dataset": "ModaNet",
+  "model": "YOLOv8n fine-tuned"
+}

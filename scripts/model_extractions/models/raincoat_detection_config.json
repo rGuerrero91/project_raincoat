@@ -1,0 +1,71 @@
+{
+  "model_info": {
+    "name": "ModaNet YOLOv8n",
+    "architecture": "YOLOv8n",
+    "dataset": "ModaNet (55K+ images)",
+    "num_classes": 5,
+    "input_shape": [
+      1,
+      3,
+      640,
+      640
+    ],
+    "input_name": "images",
+    "output_names": [
+      "output0"
+    ],
+    "format": "xyxy + confidence + class_id"
+  },
+  "classes": [
+    "top",
+    "bottom",
+    "outerwear",
+    "shoes",
+    "accessories"
+  ],
+  "preprocessing": {
+    "resize": [
+      640,
+      640
+    ],
+    "normalize": true,
+    "mean": [
+      0,
+      0,
+      0
+    ],
+    "std": [
+      255,
+      255,
+      255
+    ],
+    "letter_box": true,
+    "bgr_to_rgb": false,
+    "note": "YOLOv8 expects RGB [0-1] range, shape [1, 3, 640, 640]"
+  },
+  "postprocessing": {
+    "confidence_threshold": 0.25,
+    "iou_threshold": 0.45,
+    "max_detections": 100,
+    "output_format": "Array of [x1, y1, x2, y2, confidence, class_id]",
+    "nms_required": true
+  },
+  "usage": {
+    "pipeline_position": "before_background_removal",
+    "purpose": "Detect and auto-crop clothing items from photos",
+    "workflow": [
+      "1. User uploads photo",
+      "2. YOLOv8n detects clothing bounding boxes",
+      "3. Crop to largest/most centered clothing item",
+      "4. Pass cropped image to U2-Net for background removal",
+      "5. Generate FashionCLIP embedding",
+      "6. Auto-tag and present to user for validation"
+    ],
+    "fallback": "If no detection or confidence < 0.25, use full image"
+  },
+  "performance": {
+    "inference_time_browser": "1-2 seconds (CPU)",
+    "model_size": "~6MB",
+    "accuracy": "mAP50: ~0.75 on ModaNet validation set"
+  }
+}
