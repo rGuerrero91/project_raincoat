@@ -1,4 +1,5 @@
 """
+Trains existing YOLOv8n model on merged Fashionpedia + ModaNet dataset 
 Download Full Fashionpedia and Merge with ModaNet
 Smart resume functionality with checkpoints
 """
