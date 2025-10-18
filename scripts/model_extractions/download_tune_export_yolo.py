@@ -86,7 +86,7 @@ def remap_modanet_to_raincoat(dataset_path):
 
         # Check if already remapped
         if current_classes == ["top", "bottom", "outerwear", "shoes", "accessories"]:
-            print("\n⚠️  Dataset already remapped to Raincoat categories!")
+            print("\n Dataset already remapped to Raincoat categories!")
             print("   Skipping remapping to avoid corruption.")
             return ["top", "bottom", "outerwear", "shoes", "accessories"]
     print("\n" + "="*60)
@@ -155,7 +155,7 @@ def remap_modanet_to_raincoat(dataset_path):
             labels_dir = dataset_path / 'labels' / split
         
         if not labels_dir.exists():
-            print(f"   ⚠️  Skipping {split} - directory not found")
+            print(f"    Skipping {split} - directory not found")
             continue
         
         label_files = list(labels_dir.glob("*.txt"))
@@ -251,7 +251,7 @@ def download_modanet_dataset(api_key, output_dir="datasets"):
     train_path = Path(dataset.location) / "train"
     
     if not valid_path.exists() and train_path.exists():
-        print("\n⚠️  No validation set found, creating 10% train/val split...")
+        print("\n No validation set found, creating 10% train/val split...")
         
         # Create valid directory structure
         (valid_path / "images").mkdir(parents=True, exist_ok=True)
@@ -325,7 +325,7 @@ def finetune_yolov8_raincoat(dataset_path, epochs=50, imgsz=640, batch=16, devic
 
     checkpoint_file = Path("models/.dataset_checkpoint.json")
     if not Path(dataset_path).exists() and checkpoint_file.exists():
-        print("\n⚠️  Dataset path not found, checking checkpoint...")
+        print("\n Dataset path not found, checking checkpoint...")
         with open(checkpoint_file, "r") as f:
             checkpoint = json.load(f)
             dataset_path = checkpoint["dataset_path"]
@@ -338,7 +338,7 @@ def finetune_yolov8_raincoat(dataset_path, epochs=50, imgsz=640, batch=16, devic
             print("\n✓ GPU detected - using CUDA")
         else:
             device = 'cpu'
-            print("\n⚠️  No GPU detected - using CPU (training will be slower)")
+            print("\n No GPU detected - using CPU (training will be slower)")
             print("   Consider using Google Colab for free GPU access")
     
     print(f"\nTraining Configuration:")
@@ -428,7 +428,7 @@ def export_to_onnx(model, output_dir="models"):
 
     checkpoint_file = Path("models/.training_checkpoint.json")
     if checkpoint_file.exists() and model is None:
-        print("\n⚠️  Loading model from checkpoint...")
+        print("\n Loading model from checkpoint...")
         with open(checkpoint_file, "r") as f:
             checkpoint = json.load(f)
             from ultralytics import YOLO
