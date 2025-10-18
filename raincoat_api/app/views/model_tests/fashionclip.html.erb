@@ -88,6 +88,36 @@
       text-align: center;
       font-weight: bold;
     }
+
+    .tags-section {
+      background: white;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      background: #e3f2fd;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #1976d2;
+    }
+    
+    .tag-score {
+      margin-left: 5px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
     
     .loading { background: #fff3cd; color: #856404; }
     .success { background: #d4edda; color: #155724; }
@@ -163,11 +193,15 @@
       <button onclick="processImage()">Generate Embedding</button>
       <button onclick="clearImage()">Clear</button>
     </div>
-    
     <div id="results" class="results hidden">
       <h3>Embedding Results</h3>
       
       <div id="stats" class="stats"></div>
+      
+      <div class="tags-section">
+        <strong>Auto-Generated Tags:</strong>
+        <div id="tagsContainer" class="tags-container"></div>
+      </div>
       
       <div class="embedding-info">
         <strong>Sample Values (first 10):</strong>
@@ -182,22 +216,33 @@
       <button onclick="copyEmbedding()">Copy Embedding to Clipboard</button>
       <button onclick="downloadEmbedding()">Download as JSON</button>
     </div>
+  
   </div>
 
   <script src="/js/onnx/ort.min.js"></script>
   
   <script>
     let fashionClipSession = null;
+    let labelEmbeddings = null;
     let currentEmbedding = null;
     
-    // Load model on page load
+    // Load model and label embeddings on page load
     window.addEventListener('load', async () => {
-      showStatus('Loading FashionCLIP model...', 'loading');
+      showStatus('Loading FashionCLIP model and labels...', 'loading');
       
       try {
         ort.env.wasm.wasmPaths = '/js/onnx/';
-        fashionClipSession = await ort.InferenceSession.create('/models/fashionclip_image_encoder.onnx');
-        showStatus('FashionCLIP model loaded successfully', 'success');
+        
+        // Load both model and label embeddings in parallel
+        const [session, labels] = await Promise.all([
+          ort.InferenceSession.create('/models/fashionclip_image_encoder.onnx'),
+          fetch('/models/label_embeddings.json').then(r => r.json())
+        ]);
+        
+        fashionClipSession = session;
+        labelEmbeddings = labels;
+        
+        showStatus('FashionCLIP model and labels loaded successfully', 'success');
         setTimeout(() => hideStatus(), 2000);
       } catch (error) {
         showStatus('Failed to load model: ' + error.message, 'error');
@@ -295,7 +340,13 @@
         
         const elapsed = performance.now() - startTime;
         
-        showResults(normalizedEmbedding, elapsed);
+        // Generate tags if label embeddings are available
+        let tags = [];
+        if (labelEmbeddings) {
+          tags = await autoTag(normalizedEmbedding);
+        }
+        
+        showResults(normalizedEmbedding, tags, elapsed);
         showStatus('Embedding generated successfully', 'success');
         
       } catch (error) {
@@ -304,7 +355,38 @@
       }
     }
     
-    function showResults(embedding, elapsed) {
+    async function autoTag(imageEmbedding) {
+      const similarities = {};
+      
+      for (const [label, textEmbed] of Object.entries(labelEmbeddings)) {
+        if (textEmbed.length !== imageEmbedding.length) continue;
+        
+        const similarity = cosineSimilarity(imageEmbedding, textEmbed);
+        
+        if (!isNaN(similarity)) {
+          similarities[label] = similarity;
+        }
+      }
+      
+      return Object.entries(similarities)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([label, score]) => ({ label, score }));
+    }
+    
+    function cosineSimilarity(a, b) {
+      if (a.length !== b.length) return NaN;
+      
+      const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
+      const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+      const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+      
+      if (normA === 0 || normB === 0) return NaN;
+      
+      return dotProduct / (normA * normB);
+    }
+    
+    function showResults(embedding, tags, elapsed) {
       // Statistics
       const min = Math.min(...embedding);
       const max = Math.max(...embedding);
@@ -333,6 +415,23 @@
           <div class="stat-label">Average</div>
         </div>
       `;
+      
+      // Display tags
+      const tagsContainer = document.getElementById('tagsContainer');
+      if (tags && tags.length > 0) {
+        tagsContainer.innerHTML = '';
+        tags.forEach(tag => {
+          const tagEl = document.createElement('div');
+          tagEl.className = 'tag';
+          tagEl.innerHTML = `
+            ${tag.label}
+            <span class="tag-score">${(tag.score * 100).toFixed(0)}%</span>
+          `;
+          tagsContainer.appendChild(tagEl);
+        });
+      } else {
+        tagsContainer.innerHTML = '<em style="color: #666;">No label embeddings available</em>';
+      }
       
       // Sample values
       const sampleDiv = document.getElementById('embeddingSample');
