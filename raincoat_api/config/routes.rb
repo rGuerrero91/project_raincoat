@@ -21,12 +21,15 @@ Rails.application.routes.draw do
 
   # get '/closet/search', to: 'clothing_pieces#search', as: 'search_clothing_pieces'
 
-  get '/ai_models/vanilla_clip', to: 'ai_models#vanilla_clip'
-  get '/ai_models/fashion_clip', to: 'ai_models#fashion_clip'
-
+  # get 'model_tests/yolo', to: 'model_tests#yolo'
+  # Test pages for AI models
+  namespace :model_tests do
+    get 'yolo', to: 'yolo'
+    get 'u2net', to: 'u2net'
+    get 'fashionclip', to: 'fashionclip'
+  end
   get '/ai_models/similarity_comparison', to: 'ai_models#similarity_comparison'
   
-  # API endpoints
   namespace :api do
     namespace :v1 do
       resources :clothing_pieces, only: [:show, :create, :index] do
