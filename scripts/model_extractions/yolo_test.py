@@ -14,25 +14,24 @@ import cv2
 import numpy as np
 
 def install_dependencies():
-    """Install required packages"""
     try:
         import onnxruntime
-        print("✓ ONNX Runtime found")
+        print("ONNX Runtime found")
     except ImportError:
         print("Installing onnxruntime...")
         import subprocess
         subprocess.check_call([sys.executable, "-m", "pip", "install", "onnxruntime"])
         import onnxruntime
-        print("✓ ONNX Runtime installed")
+        print("ONNX Runtime installed")
     
     try:
         import cv2
-        print("✓ OpenCV found")
+        print("OpenCV found")
     except ImportError:
         print("Installing opencv-python...")
         import subprocess
         subprocess.check_call([sys.executable, "-m", "pip", "install", "opencv-python"])
-        print("✓ OpenCV installed")
+        print("OpenCV installed")
 
 
 def preprocess_image(image_path, target_size=640):
@@ -219,7 +218,7 @@ def draw_detections(image, detections, output_path):
     
     # Save output
     cv2.imwrite(str(output_path), img_draw)
-    print(f"\n✓ Saved visualization: {output_path}")
+    print(f"\nSaved visualization: {output_path}")
 
 
 def test_yolo(image_path, model_path="models/raincoat_yolov8n.onnx"):
@@ -252,20 +251,20 @@ def test_yolo(image_path, model_path="models/raincoat_yolov8n.onnx"):
     print("\n1. Loading ONNX model...")
     session = ort.InferenceSession(str(model_path))
     input_name = session.get_inputs()[0].name
-    print(f"   ✓ Model loaded")
+    print(f"   Model loaded")
     print(f"   Input name: {input_name}")
     
     # Preprocess image
     print("\n2. Preprocessing image...")
     img_tensor, original_img, scale, offset_x, offset_y, orig_w, orig_h = preprocess_image(image_path)
-    print(f"   ✓ Image preprocessed")
+    print(f"   Image preprocessed")
     print(f"   Original size: {orig_w}x{orig_h}")
     print(f"   Scale factor: {scale:.3f}")
     
     # Run inference
     print("\n3. Running inference...")
     outputs = session.run(None, {input_name: img_tensor})
-    print(f"   ✓ Inference complete")
+    print(f"   Inference complete")
     print(f"   Output shape: {outputs[0].shape}")
     
     # Post-process detections
@@ -275,7 +274,7 @@ def test_yolo(image_path, model_path="models/raincoat_yolov8n.onnx"):
         conf_threshold=0.25, iou_threshold=0.45
     )
     
-    print(f"\n   ✓ Found {len(detections)} detection(s)")
+    print(f"\n   Found {len(detections)} detection(s)")
     
     # Print detections
     if len(detections) > 0:
@@ -299,7 +298,7 @@ def test_yolo(image_path, model_path="models/raincoat_yolov8n.onnx"):
         print(f"\n→ Largest detection: {largest['class_name']} ({largest['confidence']:.2%})")
         
     else:
-        print("\n⚠️  No clothing detected above confidence threshold")
+        print("\n  No clothing detected above confidence threshold")
         print("   Try lowering confidence threshold or use a different image")
     
     # Draw and save visualization
