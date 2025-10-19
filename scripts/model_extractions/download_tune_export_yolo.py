@@ -237,7 +237,7 @@ def download_modanet_dataset(api_key, output_dir="datasets"):
     rf = Roboflow(api_key=api_key)
     
     print("2. Loading ModaNet project...")
-    # Using the ModaNet dataset from Roboflow Universe
+    # Using the ModaNet dataset from Roboflow
     project = rf.workspace("new-workspace-5nurl").project("modanet-osd3s")
     
     print("3. Downloading dataset in YOLOv8 format...")
@@ -772,18 +772,19 @@ def main():
     if not api_key:
         return 1
     
-    # # Download dataset
-    # try:
-    #     dataset_path = download_modanet_dataset(api_key)
-    # except Exception as e:
-    #     print(f"\n✗ Dataset download failed: {e}")
-    #     print("\nPossible issues:")
-    #     print("  • Invalid API key")
-    #     print("  • Network connection problem")
-    #     print("  • Roboflow service unavailable")
-    #     return 1
+    # Download dataset
+    dataset_path = Path("datasets/modanet-yolov8")
+    if not dataset_path.exists():
+        try:
+            dataset_path = download_modanet_dataset(api_key)
+        except Exception as e:
+            print(f"\n✗ Dataset download failed: {e}")
+            print("\nPossible issues:")
+            print("  • Invalid API key")
+            print("  • Network connection problem")
+            print("  • Roboflow service unavailable")
+            return 1
 
-    dataset_path = "datasets"
 
     # Remap it
     from pathlib import Path
