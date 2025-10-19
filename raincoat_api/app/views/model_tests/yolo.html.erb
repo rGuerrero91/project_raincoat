@@ -163,6 +163,7 @@
 
   <script src="/js/onnx/ort.min.js"></script>
   <script src="/js/yolo_detector.js"></script>
+  <script src="/js/model_cache.js"></script>
   
   <script>
     let yoloDetector = null;
@@ -170,11 +171,15 @@
     
     // Load model on page load
     window.addEventListener('load', async () => {
-      showStatus('Loading YOLO model...', 'loading');
+      showStatus('Loading YOLO model from cache...', 'loading');
       
       try {
+        // Initialize cache
+        await window.modelCache.initialize();
+        
         yoloDetector = new YOLODetector();
-        await yoloDetector.initialize();
+        await yoloDetector.initializeWithCache();
+        
         showStatus('YOLO model loaded successfully', 'success');
         setTimeout(() => hideStatus(), 2000);
       } catch (error) {

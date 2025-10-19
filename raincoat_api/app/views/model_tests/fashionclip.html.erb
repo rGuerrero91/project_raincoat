@@ -220,6 +220,7 @@
   </div>
 
   <script src="/js/onnx/ort.min.js"></script>
+  <script src="/js/model_cache.js"></script>
   
   <script>
     let fashionClipSession = null;
@@ -228,15 +229,18 @@
     
     // Load model and label embeddings on page load
     window.addEventListener('load', async () => {
-      showStatus('Loading FashionCLIP model and labels...', 'loading');
+      showStatus('Loading FashionCLIP model and labels from cache...', 'loading');
       
       try {
         ort.env.wasm.wasmPaths = '/js/onnx/';
         
-        // Load both model and label embeddings in parallel
+        // Initialize cache
+        await window.modelCache.initialize();
+        
+        // Load both model and label embeddings with caching
         const [session, labels] = await Promise.all([
-          ort.InferenceSession.create('/models/fashionclip_image_encoder.onnx'),
-          fetch('/models/label_embeddings.json').then(r => r.json())
+          window.modelCache.loadONNXModel('/models/fashionclip_image_encoder.onnx'),
+          window.modelCache.loadJSON('/models/label_embeddings.json')
         ]);
         
         fashionClipSession = session;
