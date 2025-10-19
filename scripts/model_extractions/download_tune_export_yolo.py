@@ -773,7 +773,7 @@ def main():
         return 1
     
     # Download dataset
-    dataset_path = Path("datasets/modanet-yolov8")
+    dataset_path = Path("datasets/")
     if not dataset_path.exists():
         try:
             dataset_path = download_modanet_dataset(api_key)
