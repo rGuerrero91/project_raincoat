@@ -13,4 +13,8 @@ class ModelTestsController < ApplicationController
 
   end
 
+  def pipeline
+    @clothing_piece = ClothingPiece.new
+  end
+
 end
