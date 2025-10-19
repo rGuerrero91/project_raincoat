@@ -166,7 +166,7 @@
   <script src="/js/model_cache.js"></script>
   
   <script>
-    let yoloDetector = null;
+    let yoloHandler = null;
     let currentImage = null;
     
     // Load model on page load
@@ -177,8 +177,8 @@
         // Initialize cache
         await window.modelCache.initialize();
         
-        yoloDetector = new YOLODetector();
-        await yoloDetector.initializeWithCache();
+        yoloHandler = new YOLOHandler();
+        await yoloHandler.initializeWithCache();
         
         showStatus('YOLO model loaded successfully', 'success');
         setTimeout(() => hideStatus(), 2000);
@@ -231,7 +231,7 @@
     }
     
     async function detectClothing() {
-      if (!yoloDetector || !currentImage) {
+      if (!yoloHandler || !currentImage) {
         showStatus('Model or image not ready', 'error');
         return;
       }
@@ -241,7 +241,7 @@
       
       try {
         // Run detection
-        const detections = await yoloDetector.detect(currentImage);
+        const detections = await yoloHandler.detect(currentImage);
         const elapsed = performance.now() - startTime;
         
         // Draw results
@@ -251,7 +251,7 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(currentImage, 0, 0);
         
-        yoloDetector.visualizeDetections(canvas, detections);
+        yoloHandler.visualizeDetections(canvas, detections);
         
         // Show preview
         document.getElementById('preview').classList.remove('hidden');

@@ -1,8 +1,8 @@
-// import YOLODetector from "./yolo_handler";
+// import YOLOHandler from "./yolo_handler";
 
 class PipelineHandler {
   constructor() {
-    this.yoloDetector = null;
+    this.yoloHandler = null;
     this.u2netSession = null;
     this.fashionClipSession = null;
     this.labelEmbeddings = null;
@@ -39,7 +39,7 @@ class PipelineHandler {
         window.modelCache.loadJSON('/models/weather_rules.json')
       ]);
 
-      this.yoloDetector = yolo;
+      this.yoloHandler = yolo;
       this.u2netSession = u2net;
       this.fashionClipSession = fashionClip;
       this.labelEmbeddings = labels;
@@ -54,7 +54,7 @@ class PipelineHandler {
       console.error("[Upload] Initialization failed:", error);
       this.showStatus("Failed to load AI models: " + error.message, "error");
       // Continue without YOLO if it fails
-      this.yoloDetector = null;
+      this.yoloHandler = null;
       return false;
     }
   }
@@ -64,7 +64,7 @@ class PipelineHandler {
    */
   async initializeYOLO() {
     try {
-      const detector = new YOLODetector();
+      const detector = new YOLOHandler();
       await detector.initializeWithCache();
       return detector;
     } catch (error) {
@@ -96,12 +96,12 @@ class PipelineHandler {
       const categorySelect = document.getElementById("clothing_piece_category");
       const selectedCategory = categorySelect ? categorySelect.value : null;
 
-      if (this.yoloDetector && selectedCategory) {
+      if (this.yoloHandler && selectedCategory) {
         // Run YOLO detection
         this.showStatus("Detecting and cropping clothing...", "loading");
 
         try {
-          this.detections = await this.yoloDetector.detect(image);
+          this.detections = await this.yoloHandler.detect(image);
 
           if (this.detections.length > 0) {
             // Map form category to YOLO category
@@ -154,7 +154,7 @@ class PipelineHandler {
     console.log("[Upload] Auto-cropping to:", detection.category);
 
     // Crop to detection bbox
-    const croppedCanvas = this.yoloDetector.cropToBbox(
+    const croppedCanvas = this.yoloHandler.cropToBbox(
       this.currentImage,
       detection.bbox,
       0.05 // 5% padding

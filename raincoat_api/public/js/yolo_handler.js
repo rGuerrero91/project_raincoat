@@ -3,7 +3,7 @@
  * Detects clothing items and provides bounding boxes for cropping
  */
 
-class YOLODetector {
+class YOLOHandler {
   constructor() {
     this.session = null;
     this.config = null;
@@ -376,5 +376,5 @@ class YOLODetector {
 }
 
 // Export for use in other modules
-window.YOLODetector = YOLODetector;
-// export default YOLODetector;
+window.YOLOHandler = YOLOHandler;
+// export default YOLOHandler;
