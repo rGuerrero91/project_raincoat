@@ -1,7 +1,7 @@
 """
 Interactive Model Improvement with User Corrections
 Collects user corrections and retrains model periodically
-Complete script with robust error handling
+Complete script with error handling
 """
 
 import sys

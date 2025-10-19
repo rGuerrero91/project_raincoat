@@ -52,7 +52,7 @@ class ClothingPiecesController < ApplicationController
     end
     
     if @clothing_piece.save
-      # Handle embedding
+      # handle embedding
       if embedding_vector.present?
         @clothing_piece.processing!
         

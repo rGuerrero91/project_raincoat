@@ -1,11 +1,8 @@
-/**
- * Enhanced Clothing Upload with YOLO Detection
- * Integrates with existing U2-Net and FashionCLIP pipeline
- */
+// import YOLOHandler from "./yolo_handler";
 
-class UploadClothing {
+class PipelineHandler {
   constructor() {
-    this.yoloDetector = null;
+    this.yoloHandler = null;
     this.u2netSession = null;
     this.fashionClipSession = null;
     this.labelEmbeddings = null;
@@ -20,26 +17,29 @@ class UploadClothing {
   }
 
   /**
-   * Initialize all models and resources
+   * Initialize all models and resources with caching
    */
   async initialize() {
     console.log("[Upload] Initializing...");
-    this.showStatus("Loading AI models...", "loading");
+    this.showStatus("Loading AI models from cache...", "loading");
 
     try {
       // Set WASM paths
       ort.env.wasm.wasmPaths = "/js/onnx/";
 
-      // Load all models in parallel
+      // Initialize cache
+      await window.modelCache.initialize();
+
+      // Load all models with caching
       const [yolo, u2net, fashionClip, labels, rules] = await Promise.all([
         this.initializeYOLO(),
-        ort.InferenceSession.create("/models/u2net.onnx"),
-        ort.InferenceSession.create("/models/fashionclip_image_encoder.onnx"),
-        fetch("/models/label_embeddings.json").then((r) => r.json()),
-        fetch("/models/weather_rules.json").then((r) => r.json()),
+        window.modelCache.loadONNXModel('/models/u2net.onnx'),
+        window.modelCache.loadONNXModel('/models/fashionclip_image_encoder.onnx'),
+        window.modelCache.loadJSON('/models/label_embeddings.json'),
+        window.modelCache.loadJSON('/models/weather_rules.json')
       ]);
 
-      this.yoloDetector = yolo;
+      this.yoloHandler = yolo;
       this.u2netSession = u2net;
       this.fashionClipSession = fashionClip;
       this.labelEmbeddings = labels;
@@ -54,18 +54,18 @@ class UploadClothing {
       console.error("[Upload] Initialization failed:", error);
       this.showStatus("Failed to load AI models: " + error.message, "error");
       // Continue without YOLO if it fails
-      this.yoloDetector = null;
+      this.yoloHandler = null;
       return false;
     }
   }
 
   /**
-   * Initialize YOLO detector
+   * Initialize YOLO detector with caching
    */
   async initializeYOLO() {
     try {
-      const detector = new YOLODetector();
-      await detector.initialize();
+      const detector = new YOLOHandler();
+      await detector.initializeWithCache();
       return detector;
     } catch (error) {
       console.warn(
@@ -96,12 +96,12 @@ class UploadClothing {
       const categorySelect = document.getElementById("clothing_piece_category");
       const selectedCategory = categorySelect ? categorySelect.value : null;
 
-      if (this.yoloDetector && selectedCategory) {
+      if (this.yoloHandler && selectedCategory) {
         // Run YOLO detection
         this.showStatus("Detecting and cropping clothing...", "loading");
 
         try {
-          this.detections = await this.yoloDetector.detect(image);
+          this.detections = await this.yoloHandler.detect(image);
 
           if (this.detections.length > 0) {
             // Map form category to YOLO category
@@ -154,7 +154,7 @@ class UploadClothing {
     console.log("[Upload] Auto-cropping to:", detection.category);
 
     // Crop to detection bbox
-    const croppedCanvas = this.yoloDetector.cropToBbox(
+    const croppedCanvas = this.yoloHandler.cropToBbox(
       this.currentImage,
       detection.bbox,
       0.05 // 5% padding
@@ -186,11 +186,7 @@ class UploadClothing {
   }
 
   /**
-   * Main processing function - integrates with your existing pipeline
-   */
-  /**
-   * Main processing function (called by your existing processImage button)
-   * This integrates with your existing pipeline
+   * Main processing function (called by existing processImage button)
    */
   async processImage() {
     if (!this.u2netSession || !this.fashionClipSession) {
@@ -206,13 +202,13 @@ class UploadClothing {
       const imgSrc = document.getElementById("previewImage").src;
       const img = await this.loadImageFromSrc(imgSrc);
 
-      // Step 1: Background removal (your existing code)
+      // Step 1: Remove background
       const cleanedImage = await this.removeBackground(img);
       document.getElementById("previewImage").src = cleanedImage;
 
       this.showStatus("Step 2/3: Generating embedding...", "loading");
 
-      // Step 2: Generate embedding (your existing code)
+      // Step 2: Generate embedding
       const embedding = await this.generateEmbedding(cleanedImage);
       this.currentImageEmbedding = embedding;
       document.getElementById("embeddingField").value =
@@ -220,7 +216,7 @@ class UploadClothing {
 
       this.showStatus("Step 3/3: Auto-tagging...", "loading");
 
-      // Step 3: Auto-tag (your existing code)
+      // Step 3: Auto-tag using embeddings
       const tags = await this.autoTag(embedding);
       this.displayTags(tags);
 
@@ -262,7 +258,7 @@ class UploadClothing {
   }
 
   /**
-   * Remove background using U2-Net (your existing implementation)
+   * Remove background using U2-Net 
    */
   async removeBackground(img) {
     const canvas = document.createElement("canvas");
@@ -298,7 +294,7 @@ class UploadClothing {
   }
 
   /**
-   * Apply mask to image (your existing implementation)
+   * Apply mask to image 
    */
   applyMask(img, mask, maskWidth, maskHeight) {
     const canvas = document.createElement("canvas");
@@ -324,7 +320,7 @@ class UploadClothing {
   }
 
   /**
-   * Generate embedding using FashionCLIP (your existing implementation)
+   * Generate embedding using FashionCLIP 
    */
   async generateEmbedding(imageSrc) {
     const img = new Image();
@@ -370,7 +366,7 @@ class UploadClothing {
   }
 
   /**
-   * Auto-tag using label embeddings (your existing implementation)
+   * Auto-tag using label embeddings 
    */
   async autoTag(imageEmbedding) {
     const similarities = {};
@@ -378,7 +374,7 @@ class UploadClothing {
       "clothing_piece_category"
     ).value;
 
-    // Category-relevant label patterns (your existing logic)
+    // Category-relevant label patterns 
     const categoryBoosts = {
       tops: [
         "shirt",
@@ -465,7 +461,7 @@ class UploadClothing {
   }
 
   /**
-   * Cosine similarity (your existing implementation)
+   * Cosine similarity between two vectors
    */
   cosineSimilarity(a, b) {
     if (a.length !== b.length) return NaN;
@@ -480,7 +476,7 @@ class UploadClothing {
   }
 
   /**
-   * Display tags (your existing implementation)
+   * Display tags
    */
   displayTags(tags) {
     const container = document.getElementById("tagsContainer");
@@ -503,7 +499,7 @@ class UploadClothing {
   }
 
   /**
-   * Remove tag (your existing implementation)
+   * Remove tag 
    */
   removeTag(label) {
     const field = document.getElementById("aiTagsField");
@@ -520,7 +516,7 @@ class UploadClothing {
   }
 
   /**
-   * Show status message (your existing implementation)
+   * Show status message 
    */
   showStatus(message, type) {
     const status = document.getElementById("status");
@@ -530,7 +526,7 @@ class UploadClothing {
   }
 
   /**
-   * Hide status message (your existing implementation)
+   * Hide status message 
    */
   hideStatus() {
     const statusEl = document.getElementById("status");
@@ -543,10 +539,9 @@ class UploadClothing {
 // Initialize on page load
 let clothingUpload;
 window.addEventListener("load", async () => {
-  clothingUpload = new UploadClothing();
+  clothingUpload = new PipelineHandler();
   await clothingUpload.initialize();
 
-  // Hook into your existing image input
   const imageInput = document.getElementById("imageInput");
   if (imageInput) {
     imageInput.addEventListener("change", async (e) => {
@@ -557,7 +552,7 @@ window.addEventListener("load", async () => {
   }
 });
 
-// Make processImage available globally for your existing button
+// Expose processImage globally for button onclick
 async function processImage() {
   if (clothingUpload) {
     await clothingUpload.processImage();

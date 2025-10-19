@@ -47,7 +47,6 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
       return render_error('Invalid vector data. Must be array of 512 numbers or comma-separated string.')
     end
     
-    # Create or update embedding
     embedding = @clothing_piece.clothing_embedding || @clothing_piece.build_clothing_embedding
     
     embedding.assign_attributes(
