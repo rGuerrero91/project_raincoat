@@ -42,6 +42,33 @@ class YOLODetector {
   }
 
   /**
+   * Initialize with caching support
+   */
+  async initializeWithCache() {
+    console.log("[YOLO] Initializing with cache...");
+
+    try {
+      // Load configuration (lightweight, always fetch)
+      const configResponse = await fetch("/models/yolo_config.json");
+      this.config = await configResponse.json();
+      console.log("[YOLO] Config loaded:", this.config.model_info.name);
+
+      // Load model with caching
+      this.session = await window.modelCache.loadONNXModel(
+        "/models/yolo_raincoat.onnx"
+      );
+
+      this.modelLoaded = true;
+      console.log("[YOLO] Model loaded successfully");
+
+      return true;
+    } catch (error) {
+      console.error("[YOLO] Initialization failed:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Preprocess image for YOLO
    * @param {HTMLImageElement|HTMLCanvasElement} image - Input image
    * @returns {Object} - Preprocessed tensor and metadata
