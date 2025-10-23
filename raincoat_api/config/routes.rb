@@ -27,6 +27,7 @@ Rails.application.routes.draw do
     get 'yolo', to: 'yolo'
     get 'u2net', to: 'u2net'
     get 'fashionclip', to: 'fashionclip'
+    get 'fashionclip2', to: 'fashionclip2'
     get 'pipeline', to: 'pipeline'
   end
   get '/ai_models/similarity_comparison', to: 'ai_models#similarity_comparison'
