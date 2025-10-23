@@ -7,7 +7,7 @@
   <style>
     body { 
       font-family: Arial, sans-serif; 
-      max-width: 800px; 
+      max-width: 1200px; 
       margin: 50px auto; 
       padding: 20px; 
       background: #f5f5f5;
@@ -30,6 +30,26 @@
       margin-bottom: 30px;
     }
     
+    .upload-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .upload-box {
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      background: #fafafa;
+    }
+    
+    .upload-box h3 {
+      margin-top: 0;
+      color: #333;
+      text-align: center;
+    }
+    
     .upload-area { 
       border: 2px dashed #ccc; 
       padding: 40px; 
@@ -37,6 +57,10 @@
       border-radius: 8px; 
       cursor: pointer;
       transition: all 0.3s;
+      min-height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
     .upload-area:hover { 
@@ -44,16 +68,61 @@
       background: #f9f9f9; 
     }
     
+    .upload-area.has-image {
+      border-color: #4CAF50;
+      background: #e8f5e9;
+    }
+    
     .preview { 
       text-align: center; 
-      margin: 20px 0; 
+      margin: 15px 0; 
     }
     
     .preview img { 
-      max-width: 300px; 
-      max-height: 300px; 
+      max-width: 100%; 
+      max-height: 200px; 
       border-radius: 8px;
       border: 2px solid #ddd;
+    }
+    
+    .comparison-section {
+      background: #fff3e0;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border: 2px solid #ff9800;
+    }
+    
+    .similarity-score {
+      text-align: center;
+      padding: 0px 40px 0px 40px;
+    }
+    
+    .similarity-value {
+      font-size: 48px;
+      font-weight: bold;
+      color: #ff9800;
+    }
+    
+    .similarity-label {
+      font-size: 18px;
+      color: #666;
+      margin-top: 0px;
+    }
+    
+    .similarity-bar {
+      width: 100%;
+      height: 30px;
+      background: #e0e0e0;
+      border-radius: 15px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    
+    .similarity-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f44336 0%, #ff9800 50%, #4CAF50 100%);
+      transition: width 0.5s ease;
     }
     
     .results { 
@@ -63,32 +132,19 @@
       margin: 20px 0;
     }
     
-    .embedding-info {
+    .result-box {
       background: white;
       padding: 15px;
-      border-radius: 5px;
-      margin: 10px 0;
+      border-radius: 8px;
+      margin: 15px 0;
+      border-left: 4px solid #007cba;
     }
     
-    .embedding-sample {
-      background: #f9f9f9;
-      padding: 15px;
-      border-radius: 5px;
-      font-family: monospace;
-      font-size: 12px;
-      overflow-x: auto;
-      max-height: 200px;
-      overflow-y: auto;
+    .result-box h4 {
+      margin-top: 0;
+      color: #007cba;
     }
     
-    .status { 
-      padding: 15px; 
-      border-radius: 8px; 
-      margin: 20px 0; 
-      text-align: center;
-      font-weight: bold;
-    }
-
     .tags-section {
       background: white;
       padding: 15px;
@@ -119,6 +175,32 @@
       color: #0d47a1;
     }
     
+    .embedding-info {
+      background: white;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    
+    .embedding-sample {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    
+    .status { 
+      padding: 15px; 
+      border-radius: 8px; 
+      margin: 20px 0; 
+      text-align: center;
+      font-weight: bold;
+    }
+    
     .loading { background: #fff3cd; color: #856404; }
     .success { background: #d4edda; color: #155724; }
     .error { background: #f8d7da; color: #721c24; }
@@ -143,6 +225,14 @@
     button:disabled { 
       background: #ccc;
       cursor: not-allowed;
+    }
+    
+    button.secondary {
+      background: #6c757d;
+    }
+    
+    button.secondary:hover {
+      background: #545b62;
     }
     
     .stats {
@@ -171,6 +261,11 @@
       font-size: 12px;
       margin-top: 5px;
     }
+    
+    .action-buttons {
+      text-align: center;
+      margin: 20px 0;
+    }
   </style>
 </head>
 <body>
@@ -178,45 +273,105 @@
     <h1>FashionCLIP Embedding Test</h1>
     <p class="description">
       Test the FashionCLIP model's ability to generate semantic embeddings for clothing images.
-      Upload an image to see the 512-dimensional embedding vector.
+      Upload one or two images to see embeddings and similarity comparison.
     </p>
-    <div class="upload-area" onclick="document.getElementById('imageInput').click()">
-      <p>Click to upload an image or drag and drop</p>
-      <input type="file" id="imageInput" accept="image/*" style="display: none;">
-    </div>
-    
+
     <div id="status" class="status hidden"></div>
-    
-    <div id="preview" class="preview hidden">
-      <img id="previewImage" alt="Preview">
-      <br><br>
-      <button onclick="processImage()">Generate Embedding</button>
-      <button onclick="clearImage()">Clear</button>
+    <div class="upload-section">
+      <!-- Image 1 -->
+      <div class="upload-box">
+        <h3>Image 1</h3>
+        <div class="upload-area" id="uploadArea1" onclick="document.getElementById('imageInput1').click()">
+          <p>Click to attach image</p>
+          <input type="file" id="imageInput1" accept="image/*" style="display: none;">
+        </div>
+        
+        <div id="preview1" class="preview hidden">
+          <img id="previewImage1" alt="Preview 1">
+          <br>
+          <button onclick="clearImage(1)" class="secondary">Clear</button>
+        </div>
+      </div>
+
+      <!-- Image 2 -->
+      <div class="upload-box">
+        <h3>Image 2 (Optional)</h3>
+        <div class="upload-area" id="uploadArea2" onclick="document.getElementById('imageInput2').click()">
+          <p>Click to attach image</p>
+          <input type="file" id="imageInput2" accept="image/*" style="display: none;">
+        </div>
+        
+        <div id="preview2" class="preview hidden">
+          <img id="previewImage2" alt="Preview 2">
+          <br>
+          <button onclick="clearImage(2)" class="secondary">Clear</button>
+        </div>
+      </div>
     </div>
+
+    <div class="action-buttons">
+      <button onclick="processImages()" id="processBtn" disabled>Generate Embeddings</button>
+      <button onclick="clearAll()" class="secondary">Clear All</button>
+    </div>
+    
+    
+    <!-- Comparison(only shown when 2 images) -->
+    <div id="comparisonSection" class="comparison-section hidden">
+      <h3 style="text-align: center; margin-top: 0;">Similarity Comparison</h3>
+      
+      <div class="similarity-score">
+        <div class="similarity-value" id="similarityValue">--</div>
+        <div class="similarity-label">Similarity Score</div>
+        <div class="similarity-bar">
+          <div class="similarity-fill" id="similarityBar" style="width: 0%"></div>
+        </div>
+        <p style="color: #666; font-size: 14px;" id="similarityDescription"></p>
+      </div>
+    </div>
+
     <div id="results" class="results hidden">
       <h3>Embedding Results</h3>
       
-      <div id="stats" class="stats"></div>
-      
-      <div class="tags-section">
-        <strong>Auto-Generated Tags:</strong>
-        <div id="tagsContainer" class="tags-container"></div>
+      <!-- Image 1 Results -->
+      <div id="results1" class="result-box hidden">
+        <h4>Image 1 Results</h4>
+        
+        <div id="stats1" class="stats"></div>
+        
+        <div class="tags-section">
+          <strong>Auto-Generated Tags:</strong>
+          <div id="tagsContainer1" class="tags-container"></div>
+        </div>
+        
+        <div class="embedding-info">
+          <strong>Sample Values (first 10):</strong>
+          <div id="embeddingSample1" class="embedding-sample"></div>
+        </div>
+        
+        <button onclick="copyEmbedding(1)">Copy Embedding 1</button>
+        <button onclick="downloadEmbedding(1)">Download JSON 1</button>
       </div>
       
-      <div class="embedding-info">
-        <strong>Sample Values (first 10):</strong>
-        <div id="embeddingSample" class="embedding-sample"></div>
+      <!-- Image 2 Results -->
+      <div id="results2" class="result-box hidden">
+        <h4>Image 2 Results</h4>
+        
+        <div id="stats2" class="stats"></div>
+        
+        <div class="tags-section">
+          <strong>Auto-Generated Tags:</strong>
+          <div id="tagsContainer2" class="tags-container"></div>
+        </div>
+        
+        <div class="embedding-info">
+          <strong>Sample Values (first 10):</strong>
+          <div id="embeddingSample2" class="embedding-sample"></div>
+        </div>
+        
+        <button onclick="copyEmbedding(2)">Copy Embedding 2</button>
+        <button onclick="downloadEmbedding(2)">Download JSON 2</button>
       </div>
-      
-      <div class="embedding-info">
-        <strong>Full Embedding:</strong>
-        <div id="embeddingFull" class="embedding-sample"></div>
-      </div>
-      
-      <button onclick="copyEmbedding()">Copy Embedding to Clipboard</button>
-      <button onclick="downloadEmbedding()">Download as JSON</button>
     </div>
-  
   </div>
 
   <script src="/js/onnx/ort.min.js"></script>
@@ -225,9 +380,15 @@
   <script>
     let fashionClipSession = null;
     let labelEmbeddings = null;
-    let currentEmbedding = null;
+    let embeddings = {
+      1: null,
+      2: null
+    };
+    let images = {
+      1: null,
+      2: null
+    };
     
-    // Load model and label embeddings on page load
     window.addEventListener('load', async () => {
       showStatus('Loading FashionCLIP model and labels from cache...', 'loading');
       
@@ -254,109 +415,163 @@
       }
     });
     
-    // Handle image upload
-    document.getElementById('imageInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        loadImagePreview(file);
+    // image uploads
+    document.getElementById('imageInput1').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        loadImagePreview(1, e.target.files[0]);
       }
     });
     
-    // Drag and drop
-    const uploadArea = document.querySelector('.upload-area');
-    uploadArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadArea.style.borderColor = '#007cba';
-      uploadArea.style.background = '#f0f8ff';
+    document.getElementById('imageInput2').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        loadImagePreview(2, e.target.files[0]);
+      }
     });
     
-    uploadArea.addEventListener('dragleave', () => {
-      uploadArea.style.borderColor = '#ccc';
-      uploadArea.style.background = 'transparent';
-    });
+    setupDragAndDrop('uploadArea1', 'imageInput1', 1);
+    setupDragAndDrop('uploadArea2', 'imageInput2', 2);
     
-    uploadArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadArea.style.borderColor = '#ccc';
-      uploadArea.style.background = 'transparent';
+    function setupDragAndDrop(areaId, inputId, imageNum) {
+      const uploadArea = document.getElementById(areaId);
       
-      if (e.dataTransfer.files.length > 0) {
-        loadImagePreview(e.dataTransfer.files[0]);
-      }
-    });
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#007cba';
+        uploadArea.style.background = '#f0f8ff';
+      });
+      
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.style.borderColor = '#ccc';
+        uploadArea.style.background = 'transparent';
+      });
+      
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#ccc';
+        uploadArea.style.background = 'transparent';
+        
+        if (e.dataTransfer.files.length > 0) {
+          loadImagePreview(imageNum, e.dataTransfer.files[0]);
+        }
+      });
+    }
     
-    function loadImagePreview(file) {
+    function loadImagePreview(imageNum, file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        document.getElementById('previewImage').src = e.target.result;
-        document.getElementById('preview').classList.remove('hidden');
-        document.getElementById('results').classList.add('hidden');
+        const img = new Image();
+        img.onload = () => {
+          images[imageNum] = img;
+          document.getElementById(`previewImage${imageNum}`).src = e.target.result;
+          document.getElementById(`preview${imageNum}`).classList.remove('hidden');
+          document.getElementById(`uploadArea${imageNum}`).classList.add('hidden');
+          
+          //  process button if at least one image is present
+          document.getElementById('processBtn').disabled = false;
+          
+          // hide previous results
+          document.getElementById('results').classList.add('hidden');
+          document.getElementById('comparisonSection').classList.add('hidden');
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
     
-    async function processImage() {
+    async function processImages() {
       if (!fashionClipSession) {
         showStatus('Model not loaded yet', 'error');
         return;
       }
       
-      showStatus('Generating embedding...', 'loading');
-      const startTime = performance.now();
+      const hasImage1 = images[1] !== null;
+      const hasImage2 = images[2] !== null;
+      
+      if (!hasImage1) {
+        showStatus('Please upload at least one image', 'error');
+        return;
+      }
+      
+      showStatus('Generating embeddings...', 'loading');
       
       try {
-        const img = document.getElementById('previewImage');
+        const startTime = performance.now();
         
-        // Preprocess image
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 224;
-        canvas.height = 224;
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, 224, 224);
+        const result1 = await processImage(images[1]);
+        embeddings[1] = result1.embedding;
         
-        const imageData = ctx.getImageData(0, 0, 224, 224);
-        const tensorData = new Float32Array(3 * 224 * 224);
-        
-        const mean = [0.48145466, 0.4578275, 0.40821073];
-        const std = [0.26862954, 0.26130258, 0.27577711];
-        
-        for (let i = 0; i < 224 * 224; i++) {
-          const pixelIndex = i * 4;
-          tensorData[i] = ((imageData.data[pixelIndex] / 255.0) - mean[0]) / std[0];
-          tensorData[224 * 224 + i] = ((imageData.data[pixelIndex + 1] / 255.0) - mean[1]) / std[1];
-          tensorData[2 * 224 * 224 + i] = ((imageData.data[pixelIndex + 2] / 255.0) - mean[2]) / std[2];
+        // Process image 2 if present
+        let result2 = null;
+        if (hasImage2) {
+          result2 = await processImage(images[2]);
+          embeddings[2] = result2.embedding;
         }
-        
-        const tensor = new ort.Tensor('float32', tensorData, [1, 3, 224, 224]);
-        const feeds = { pixel_values: tensor };
-        
-        // Run inference
-        const outputs = await fashionClipSession.run(feeds);
-        const rawEmbedding = Array.from(outputs[Object.keys(outputs)[0]].data);
-        
-        // Normalize embedding
-        const norm = Math.sqrt(rawEmbedding.reduce((sum, val) => sum + val * val, 0));
-        const normalizedEmbedding = rawEmbedding.map(val => val / norm);
-        
-        currentEmbedding = normalizedEmbedding;
         
         const elapsed = performance.now() - startTime;
         
-        // Generate tags if label embeddings are available
-        let tags = [];
-        if (labelEmbeddings) {
-          tags = await autoTag(normalizedEmbedding);
+        //results
+        showResults(1, result1.embedding, result1.tags, elapsed);
+        
+        if (hasImage2) {
+          showResults(2, result2.embedding, result2.tags, elapsed);
+          
+          // similarity
+          const similarity = calculateCosineSimilarity(embeddings[1], embeddings[2]);
+          showSimilarityComparison(similarity);
+        } else {
+          document.getElementById('comparisonSection').classList.add('hidden');
         }
         
-        showResults(normalizedEmbedding, tags, elapsed);
-        showStatus('Embedding generated successfully', 'success');
+        document.getElementById('results').classList.remove('hidden');
+        showStatus('Processing complete', 'success');
         
       } catch (error) {
-        showStatus('Failed to generate embedding: ' + error.message, 'error');
+        showStatus('Failed to process images: ' + error.message, 'error');
         console.error(error);
       }
+    }
+    
+    async function processImage(img) {
+      // Pre process image
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 224;
+      canvas.height = 224;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, 224, 224);
+      
+      const imageData = ctx.getImageData(0, 0, 224, 224);
+      const tensorData = new Float32Array(3 * 224 * 224);
+      
+      const mean = [0.48145466, 0.4578275, 0.40821073];
+      const std = [0.26862954, 0.26130258, 0.27577711];
+      
+      for (let i = 0; i < 224 * 224; i++) {
+        const pixelIndex = i * 4;
+        tensorData[i] = ((imageData.data[pixelIndex] / 255.0) - mean[0]) / std[0];
+        tensorData[224 * 224 + i] = ((imageData.data[pixelIndex + 1] / 255.0) - mean[1]) / std[1];
+        tensorData[2 * 224 * 224 + i] = ((imageData.data[pixelIndex + 2] / 255.0) - mean[2]) / std[2];
+      }
+      
+      const tensor = new ort.Tensor('float32', tensorData, [1, 3, 224, 224]);
+      const feeds = { pixel_values: tensor };
+      
+      // run inference
+      const outputs = await fashionClipSession.run(feeds);
+      const rawEmbedding = Array.from(outputs[Object.keys(outputs)[0]].data);
+      
+      // Normalize embeddings
+      const norm = Math.sqrt(rawEmbedding.reduce((sum, val) => sum + val * val, 0));
+      const normalizedEmbedding = rawEmbedding.map(val => val / norm);
+      
+      // generate tags
+      const tags = labelEmbeddings ? await autoTag(normalizedEmbedding) : [];
+      
+      return {
+        embedding: normalizedEmbedding,
+        tags: tags
+      };
     }
     
     async function autoTag(imageEmbedding) {
@@ -390,13 +605,40 @@
       return dotProduct / (normA * normB);
     }
     
-    function showResults(embedding, tags, elapsed) {
+    function calculateCosineSimilarity(embedding1, embedding2) {
+      return cosineSimilarity(embedding1, embedding2);
+    }
+    
+    function showSimilarityComparison(similarity) {
+      const percentage = (similarity * 100).toFixed(1);
+      
+      document.getElementById('similarityValue').textContent = percentage + '%';
+      document.getElementById('similarityBar').style.width = percentage + '%';
+      
+      let description = '';
+      if (similarity > 0.9) {
+        description = 'Very High Similarity - Items are very similar';
+      } else if (similarity > 0.7) {
+        description = 'High Similarity - Items share many characteristics';
+      } else if (similarity > 0.5) {
+        description = 'Moderate Similarity - Items have some common features';
+      } else if (similarity > 0.3) {
+        description = 'Low Similarity - Items are somewhat different';
+      } else {
+        description = 'Very Low Similarity - Items are very different';
+      }
+      
+      document.getElementById('similarityDescription').textContent = description;
+      document.getElementById('comparisonSection').classList.remove('hidden');
+    }
+    
+    function showResults(imageNum, embedding, tags, elapsed) {
       // Statistics
       const min = Math.min(...embedding);
       const max = Math.max(...embedding);
       const avg = embedding.reduce((sum, val) => sum + val, 0) / embedding.length;
       
-      const statsDiv = document.getElementById('stats');
+      const statsDiv = document.getElementById(`stats${imageNum}`);
       statsDiv.innerHTML = `
         <div class="stat-box">
           <div class="stat-value">${embedding.length}</div>
@@ -421,7 +663,7 @@
       `;
       
       // Display tags
-      const tagsContainer = document.getElementById('tagsContainer');
+      const tagsContainer = document.getElementById(`tagsContainer${imageNum}`);
       if (tags && tags.length > 0) {
         tagsContainer.innerHTML = '';
         tags.forEach(tag => {
@@ -437,22 +679,18 @@
         tagsContainer.innerHTML = '<em style="color: #666;">No label embeddings available</em>';
       }
       
-      // Sample values
-      const sampleDiv = document.getElementById('embeddingSample');
+      // top ten labelvalues
+      const sampleDiv = document.getElementById(`embeddingSample${imageNum}`);
       sampleDiv.textContent = embedding.slice(0, 10).map(v => v.toFixed(6)).join(', ');
       
-      // Full embedding
-      const fullDiv = document.getElementById('embeddingFull');
-      fullDiv.textContent = embedding.map(v => v.toFixed(6)).join(', ');
-      
-      document.getElementById('results').classList.remove('hidden');
+      document.getElementById(`results${imageNum}`).classList.remove('hidden');
     }
     
-    function copyEmbedding() {
-      if (currentEmbedding) {
-        const text = JSON.stringify(currentEmbedding);
+    function copyEmbedding(imageNum) {
+      if (embeddings[imageNum]) {
+        const text = JSON.stringify(embeddings[imageNum]);
         navigator.clipboard.writeText(text).then(() => {
-          showStatus('Embedding copied to clipboard', 'success');
+          showStatus(`Embedding ${imageNum} copied to clipboard`, 'success');
           setTimeout(() => hideStatus(), 2000);
         }).catch(err => {
           showStatus('Failed to copy: ' + err.message, 'error');
@@ -460,12 +698,13 @@
       }
     }
     
-    function downloadEmbedding() {
-      if (currentEmbedding) {
+    function downloadEmbedding(imageNum) {
+      if (embeddings[imageNum]) {
         const data = {
-          embedding: currentEmbedding,
-          dimensions: currentEmbedding.length,
+          embedding: embeddings[imageNum],
+          dimensions: embeddings[imageNum].length,
           model: 'fashionclip-2.0',
+          imageNumber: imageNum,
           timestamp: new Date().toISOString()
         };
         
@@ -473,17 +712,31 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'fashionclip-embedding.json';
+        link.download = `fashionclip-embedding-${imageNum}.json`;
         link.click();
         URL.revokeObjectURL(url);
       }
     }
     
-    function clearImage() {
-      currentEmbedding = null;
-      document.getElementById('preview').classList.add('hidden');
-      document.getElementById('results').classList.add('hidden');
-      document.getElementById('imageInput').value = '';
+    function clearImage(imageNum) {
+      images[imageNum] = null;
+      embeddings[imageNum] = null;
+      document.getElementById(`preview${imageNum}`).classList.add('hidden');
+      document.getElementById(`uploadArea${imageNum}`).classList.remove('hidden');
+      document.getElementById(`imageInput${imageNum}`).value = '';
+      document.getElementById(`results${imageNum}`).classList.add('hidden');
+      
+      // Disable process button if no images
+      if (!images[1] && !images[2]) {
+        document.getElementById('processBtn').disabled = true;
+        document.getElementById('results').classList.add('hidden');
+        document.getElementById('comparisonSection').classList.add('hidden');
+      }
+    }
+    
+    function clearAll() {
+      clearImage(1);
+      clearImage(2);
       hideStatus();
     }
     
