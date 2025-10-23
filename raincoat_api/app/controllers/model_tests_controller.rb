@@ -9,10 +9,6 @@ class ModelTestsController < ApplicationController
 
   end
 
-  def fashionclip2
-
-  end
-
   def u2net
 
   end
