@@ -135,13 +135,13 @@ class YOLOHandler {
   postprocessOutput(output, metadata) {
     const detections = [];
     const numDetections = 8400; // YOLOv8 outputs 8400 predictions
-    const numClasses = 4;
+    const numClasses = 5;
 
-    // YOLOv8 output format: [1, 8, 8400]
-    // 8 = 4 (bbox coordinates) + 4 (class scores for clothing, shoes, bags, accessories)
+    // YOLOv8 output format: [1, 84, 8400]
+    // 84 = 4 (bbox) + 80 (COCO classes, but we only use first 5)
 
     for (let i = 0; i < numDetections; i++) {
-      // Get class scores for our 4 categories
+      // Get class scores for our 5 categories
       const classScores = [];
       for (let c = 0; c < numClasses; c++) {
         const scoreIndex = (4 + c) * numDetections + i;
@@ -355,9 +355,10 @@ class YOLOHandler {
     const ctx = canvas.getContext("2d");
 
     const colors = {
-      clothing: "#FF6464",
+      top: "#FF6464",
+      bottom: "#6464FF",
+      outerwear: "#FFC864",
       shoes: "#64FF64",
-      bags: "#FFC864",
       accessories: "#FF64FF",
     };
 
