@@ -80,7 +80,13 @@
       max-width: 100%;
       border-radius: 5px;
     }
-    
+
+    .preview-box canvas {
+      max-width: 100%;
+      border-radius: 5px;
+      border: 2px solid #ddd;
+    }
+
     #detectionResults {
       margin: 20px 0;
       padding: 15px;
@@ -236,6 +242,7 @@
           <h3>Image Preview</h3>
           <div id="preview" class="hidden">
             <img id="previewImage" alt="Preview">
+            <canvas id="detectionCanvas" style="display: none;"></canvas>
           </div>
         </div>
       </div>
@@ -246,21 +253,9 @@
           Process Image (Remove Background & Auto-Tag)
         </button>
       </div>
-      
-      <!-- Basic Info -->
-      <div class="form-group">
-        <%= f.label :category, "Category" %>
-        <%= f.select :category, 
-            options_for_select([
-              ['Tops', 'tops'],
-              ['Bottoms', 'bottoms'],
-              ['Outerwear', 'outerwear'],
-              ['Shoes', 'shoes'],
-              ['Accessories', 'accessories']
-            ]), 
-            { prompt: 'Select category' },
-            { id: 'clothing_piece_category' } %>
-      </div>
+
+      <!-- Hidden Category Field (will be set automatically from YOLO detection) -->
+      <%= f.hidden_field :category, id: 'clothing_piece_category' %>
       
       <div class="form-group">
         <%= f.label :name, "Name (optional)" %>
