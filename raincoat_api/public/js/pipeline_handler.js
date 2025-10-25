@@ -289,6 +289,9 @@ class PipelineHandler {
       const tags = await this.autoTag(embedding);
       this.displayTags(tags);
 
+      // Store processed image data for form submission
+      document.getElementById("processedImageData").value = cleanedImage;
+
       this.showStatus("Processing complete!", "success");
       document.getElementById("submitBtn").disabled = false;
     } catch (error) {
