@@ -50,20 +50,16 @@ class Api::V1::EmbeddingsController < Api::V1::BaseController
   # GET /api/v1/embeddings/stats
   def stats
     embeddings = current_user.clothing_pieces.joins(:clothing_embedding)
-    
+
     stats = {
       total_pieces: current_user.clothing_pieces.count,
       pieces_with_embeddings: embeddings.count,
       embeddings_by_category: embeddings.group('clothing_pieces.category').count,
       model_versions: ClothingEmbedding.joins(:clothing_piece)
                                       .where(clothing_pieces: { user_id: current_user.id })
-                                      .group(:model_version).count,
-      average_confidence: ClothingEmbedding.joins(:clothing_piece)
-                                          .where(clothing_pieces: { user_id: current_user.id })
-                                          .where.not(confidence_score: nil)
-                                          .average(:confidence_score)&.round(3)
+                                      .group(:model_version).count
     }
-    
+
     render json: {
       success: true,
       data: stats
@@ -120,7 +116,7 @@ class Api::V1::EmbeddingsController < Api::V1::BaseController
     {
       id: embedding.id,
       model_version: embedding.model_version,
-      confidence_score: embedding.confidence_score,
+      preprocessing_metadata: embedding.preprocessing_metadata,
       vector_dimensions: embedding.vector_data&.length || 0,
       created_at: embedding.created_at
     }

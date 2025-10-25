@@ -266,6 +266,132 @@
       text-align: center;
       margin: 20px 0;
     }
+
+    .closet-button {
+      background: #4CAF50;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .closet-button:hover {
+      background: #45a049;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 900px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .close {
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #000;
+    }
+
+    .closet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .closet-item {
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .closet-item:hover {
+      border-color: #007cba;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .closet-item.has-embedding {
+      border-color: #4CAF50;
+    }
+
+    .closet-item-image {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .closet-item-name {
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .closet-item-category {
+      font-size: 10px;
+      color: #666;
+    }
+
+    .closet-item-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 9px;
+      margin-top: 4px;
+      font-weight: bold;
+    }
+
+    .badge-has-embedding {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .badge-no-embedding {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .loading-closet {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -273,7 +399,7 @@
     <h1>FashionCLIP Embedding Test</h1>
     <p class="description">
       Test the FashionCLIP model's ability to generate semantic embeddings for clothing images.
-      Upload one or two images to see embeddings and similarity comparison.
+      Upload new images or load existing items from your closet (with saved embeddings) to compare similarity.
     </p>
 
     <div id="status" class="status hidden"></div>
@@ -285,12 +411,15 @@
           <p>Click to attach image</p>
           <input type="file" id="imageInput1" accept="image/*" style="display: none;">
         </div>
-        
+
         <div id="preview1" class="preview hidden">
           <img id="previewImage1" alt="Preview 1">
+          <div id="embeddingStatus1" style="font-size: 12px; color: #666; margin-top: 5px;"></div>
           <br>
           <button onclick="clearImage(1)" class="secondary">Clear</button>
         </div>
+
+        <button onclick="openClosetModal(1)" class="closet-button">Load from Closet</button>
       </div>
 
       <!-- Image 2 -->
@@ -300,12 +429,15 @@
           <p>Click to attach image</p>
           <input type="file" id="imageInput2" accept="image/*" style="display: none;">
         </div>
-        
+
         <div id="preview2" class="preview hidden">
           <img id="previewImage2" alt="Preview 2">
+          <div id="embeddingStatus2" style="font-size: 12px; color: #666; margin-top: 5px;"></div>
           <br>
           <button onclick="clearImage(2)" class="secondary">Clear</button>
         </div>
+
+        <button onclick="openClosetModal(2)" class="closet-button">Load from Closet</button>
       </div>
     </div>
 
@@ -374,6 +506,19 @@
     </div>
   </div>
 
+  <!-- Closet Modal -->
+  <div id="closetModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Select from Closet</h2>
+        <span class="close" onclick="closeClosetModal()">&times;</span>
+      </div>
+      <div id="closetItems" class="closet-grid">
+        <div class="loading-closet">Loading closet items...</div>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/onnx/ort.min.js"></script>
   <script src="/js/model_cache.js"></script>
   
@@ -386,6 +531,12 @@
     };
     let images = {
       1: null,
+      2: null
+    };
+    let closetItems = [];
+    let currentImageSlot = null; // Track which image slot is being loaded from closet
+    let itemSources = {
+      1: null, // null, 'upload', or closet item object
       2: null
     };
     
@@ -483,48 +634,66 @@
         showStatus('Model not loaded yet', 'error');
         return;
       }
-      
+
       const hasImage1 = images[1] !== null;
       const hasImage2 = images[2] !== null;
-      
+
       if (!hasImage1) {
         showStatus('Please upload at least one image', 'error');
         return;
       }
-      
+
       showStatus('Generating embeddings...', 'loading');
-      
+
       try {
         const startTime = performance.now();
-        
-        const result1 = await processImage(images[1]);
-        embeddings[1] = result1.embedding;
-        
+
+        // Process image 1 (generate if no saved embedding)
+        let result1;
+        if (embeddings[1]) {
+          // Already have embedding from closet
+          showStatus('Using saved embedding for Image 1...', 'loading');
+          const tags = labelEmbeddings ? await autoTag(embeddings[1]) : [];
+          result1 = { embedding: embeddings[1], tags: tags };
+        } else {
+          // Generate new embedding
+          result1 = await processImage(images[1]);
+          embeddings[1] = result1.embedding;
+        }
+
         // Process image 2 if present
         let result2 = null;
         if (hasImage2) {
-          result2 = await processImage(images[2]);
-          embeddings[2] = result2.embedding;
+          if (embeddings[2]) {
+            // Already have embedding from closet
+            showStatus('Using saved embedding for Image 2...', 'loading');
+            const tags = labelEmbeddings ? await autoTag(embeddings[2]) : [];
+            result2 = { embedding: embeddings[2], tags: tags };
+          } else {
+            // Generate new embedding
+            result2 = await processImage(images[2]);
+            embeddings[2] = result2.embedding;
+          }
         }
-        
+
         const elapsed = performance.now() - startTime;
-        
+
         //results
         showResults(1, result1.embedding, result1.tags, elapsed);
-        
+
         if (hasImage2) {
           showResults(2, result2.embedding, result2.tags, elapsed);
-          
+
           // similarity
           const similarity = calculateCosineSimilarity(embeddings[1], embeddings[2]);
           showSimilarityComparison(similarity);
         } else {
           document.getElementById('comparisonSection').classList.add('hidden');
         }
-        
+
         document.getElementById('results').classList.remove('hidden');
         showStatus('Processing complete', 'success');
-        
+
       } catch (error) {
         showStatus('Failed to process images: ' + error.message, 'error');
         console.error(error);
@@ -721,11 +890,13 @@
     function clearImage(imageNum) {
       images[imageNum] = null;
       embeddings[imageNum] = null;
+      itemSources[imageNum] = null;
       document.getElementById(`preview${imageNum}`).classList.add('hidden');
       document.getElementById(`uploadArea${imageNum}`).classList.remove('hidden');
       document.getElementById(`imageInput${imageNum}`).value = '';
       document.getElementById(`results${imageNum}`).classList.add('hidden');
-      
+      document.getElementById(`embeddingStatus${imageNum}`).textContent = '';
+
       // Disable process button if no images
       if (!images[1] && !images[2]) {
         document.getElementById('processBtn').disabled = true;
@@ -749,6 +920,169 @@
     
     function hideStatus() {
       document.getElementById('status').classList.add('hidden');
+    }
+
+    // Closet Modal Functions
+    async function openClosetModal(imageNum) {
+      currentImageSlot = imageNum;
+      const modal = document.getElementById('closetModal');
+      modal.style.display = 'block';
+
+      // Load closet items if not already loaded
+      if (closetItems.length === 0) {
+        await fetchClosetItems();
+      } else {
+        displayClosetItems();
+      }
+    }
+
+    function closeClosetModal() {
+      document.getElementById('closetModal').style.display = 'none';
+      currentImageSlot = null;
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('closetModal');
+      if (event.target === modal) {
+        closeClosetModal();
+      }
+    }
+
+    async function fetchClosetItems() {
+      const closetItemsDiv = document.getElementById('closetItems');
+      closetItemsDiv.innerHTML = '<div class="loading-closet">Loading closet items...</div>';
+
+      try {
+        const response = await fetch('/api/v1/clothing_pieces');
+        const data = await response.json();
+
+        if (data.success) {
+          closetItems = data.data;
+          displayClosetItems();
+        } else {
+          closetItemsDiv.innerHTML = '<div class="loading-closet">Failed to load closet items</div>';
+        }
+      } catch (error) {
+        console.error('Error fetching closet items:', error);
+        closetItemsDiv.innerHTML = '<div class="loading-closet">Error loading closet items: ' + error.message + '</div>';
+      }
+    }
+
+    function displayClosetItems() {
+      const closetItemsDiv = document.getElementById('closetItems');
+
+      if (closetItems.length === 0) {
+        closetItemsDiv.innerHTML = '<div class="loading-closet">No items in closet. Add items first!</div>';
+        return;
+      }
+
+      closetItemsDiv.innerHTML = '';
+      closetItems.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'closet-item' + (item.has_embedding ? ' has-embedding' : '');
+        itemDiv.onclick = () => loadClosetItem(item);
+
+        const imageUrl = item.images && item.images.length > 0 ? item.images[0].url : '';
+        const hasEmbedding = item.has_embedding;
+
+        itemDiv.innerHTML = `
+          ${imageUrl ? `<img src="${imageUrl}" class="closet-item-image" alt="${item.name}">` : '<div class="closet-item-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center;">No Image</div>'}
+          <div class="closet-item-name">${item.name}</div>
+          <div class="closet-item-category">${item.category || 'Unknown'}</div>
+          <span class="closet-item-badge ${hasEmbedding ? 'badge-has-embedding' : 'badge-no-embedding'}">
+            ${hasEmbedding ? 'Has Embedding' : 'No Embedding'}
+          </span>
+        `;
+
+        closetItemsDiv.appendChild(itemDiv);
+      });
+    }
+
+    async function loadClosetItem(item) {
+      if (!currentImageSlot) return;
+
+      const imageNum = currentImageSlot;
+      closeClosetModal();
+
+      showStatus('Loading item from closet...', 'loading');
+
+      try {
+        // Fetch full item details including embedding if available
+        const response = await fetch(`/api/v1/clothing_pieces/${item.id}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          showStatus('Failed to load item details', 'error');
+          return;
+        }
+
+        const fullItem = data.data;
+
+        // Load the image
+        if (fullItem.images && fullItem.images.length > 0) {
+          const imageUrl = fullItem.images[0].url;
+          const img = new Image();
+
+          img.onload = async () => {
+            images[imageNum] = img;
+            document.getElementById(`previewImage${imageNum}`).src = imageUrl;
+            document.getElementById(`preview${imageNum}`).classList.remove('hidden');
+            document.getElementById(`uploadArea${imageNum}`).classList.add('hidden');
+
+            // Store the source
+            itemSources[imageNum] = fullItem;
+
+            // If item has embedding, fetch and use it
+            if (fullItem.has_embedding) {
+              try {
+                // Fetch the embedding vector
+                const embeddingResponse = await fetch(`/api/v1/clothing_pieces/${item.id}/embedding`);
+                const embeddingData = await embeddingResponse.json();
+
+                if (embeddingData.success && embeddingData.data.embedding && embeddingData.data.embedding.vector_data) {
+                  // Store the embedding so we don't need to regenerate
+                  embeddings[imageNum] = embeddingData.data.embedding.vector_data;
+                  document.getElementById(`embeddingStatus${imageNum}`).textContent = '(Using saved embedding)';
+                  document.getElementById(`embeddingStatus${imageNum}`).style.color = '#4CAF50';
+                  document.getElementById(`embeddingStatus${imageNum}`).style.fontWeight = 'bold';
+                } else {
+                  document.getElementById(`embeddingStatus${imageNum}`).textContent = '(Will generate new embedding)';
+                  document.getElementById(`embeddingStatus${imageNum}`).style.color = '#666';
+                }
+              } catch (e) {
+                console.log('Could not fetch embedding, will generate new one:', e);
+                document.getElementById(`embeddingStatus${imageNum}`).textContent = '(Will generate new embedding)';
+                document.getElementById(`embeddingStatus${imageNum}`).style.color = '#666';
+              }
+            } else {
+              document.getElementById(`embeddingStatus${imageNum}`).textContent = '(Will generate new embedding)';
+              document.getElementById(`embeddingStatus${imageNum}`).style.color = '#666';
+            }
+
+            // Enable process button
+            document.getElementById('processBtn').disabled = false;
+
+            // Hide previous results
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('comparisonSection').classList.add('hidden');
+
+            showStatus('Item loaded from closet', 'success');
+            setTimeout(() => hideStatus(), 2000);
+          };
+
+          img.onerror = () => {
+            showStatus('Failed to load image', 'error');
+          };
+
+          img.src = imageUrl;
+        } else {
+          showStatus('Item has no images', 'error');
+        }
+      } catch (error) {
+        console.error('Error loading closet item:', error);
+        showStatus('Error loading item: ' + error.message, 'error');
+      }
     }
   </script>
 </body>

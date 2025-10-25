@@ -35,7 +35,8 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :clothing_pieces, only: [:show, :create, :index] do
         member do
-          post 'embedding'      # POST /api/v1/clothing_pieces/:id/embedding
+          get 'embedding', to: 'clothing_pieces#get_embedding'      # GET /api/v1/clothing_pieces/:id/embedding
+          post 'embedding', to: 'clothing_pieces#save_embedding'    # POST /api/v1/clothing_pieces/:id/embedding
           get 'similar'         # GET /api/v1/clothing_pieces/:id/similar
         end
       end
