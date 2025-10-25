@@ -1,4 +1,5 @@
 """
+DEPRECATED, here for reference only.
 Export YOLO model and create deployment package for Raincoat
 Prepares model files and configuration for browser integration
 """
