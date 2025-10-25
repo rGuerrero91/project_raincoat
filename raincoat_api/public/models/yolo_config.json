@@ -1,6 +1,6 @@
 {
   "model_info": {
-    "name": "Raincoat YOLO Detector",
+    "name": "YOLOv8n Clothing Detection",
     "version": "1.0",
     "architecture": "YOLOv8n",
     "input_shape": [
@@ -12,14 +12,14 @@
     "input_name": "images",
     "output_names": [
       "output0"
-    ]
+    ],
+    "source": "kesimeg/yolov8n-clothing-detection"
   },
   "categories": {
-    "0": "top",
-    "1": "bottom",
-    "2": "outerwear",
-    "3": "shoes",
-    "4": "accessories"
+    "0": "clothing",
+    "1": "shoes",
+    "2": "bags",
+    "3": "accessories"
   },
   "preprocessing": {
     "resize": [

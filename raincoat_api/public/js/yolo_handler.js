@@ -64,6 +64,11 @@ class YOLOHandler {
       return true;
     } catch (error) {
       console.error("[YOLO] Initialization failed:", error);
+      console.error("[YOLO] Error details:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
       throw error;
     }
   }
@@ -130,13 +135,13 @@ class YOLOHandler {
   postprocessOutput(output, metadata) {
     const detections = [];
     const numDetections = 8400; // YOLOv8 outputs 8400 predictions
-    const numClasses = 5;
+    const numClasses = 4;
 
-    // YOLOv8 output format: [1, 84, 8400]
-    // 84 = 4 (bbox) + 80 (COCO classes, but we only use first 5)
+    // YOLOv8 output format: [1, 8, 8400]
+    // 8 = 4 (bbox coordinates) + 4 (class scores for clothing, shoes, bags, accessories)
 
     for (let i = 0; i < numDetections; i++) {
-      // Get class scores for our 5 categories
+      // Get class scores for our 4 categories
       const classScores = [];
       for (let c = 0; c < numClasses; c++) {
         const scoreIndex = (4 + c) * numDetections + i;
@@ -149,11 +154,17 @@ class YOLOHandler {
 
       // Filter by confidence threshold
       if (maxScore >= this.config.postprocessing.confidence_threshold) {
-        // Get bbox coordinates (xyxy format)
-        const x1 = output[i];
-        const y1 = output[numDetections + i];
-        const x2 = output[2 * numDetections + i];
-        const y2 = output[3 * numDetections + i];
+        // Get bbox coordinates (center_x, center_y, width, height format)
+        const centerX = output[i];
+        const centerY = output[numDetections + i];
+        const width = output[2 * numDetections + i];
+        const height = output[3 * numDetections + i];
+
+        // Convert from center format to corner format (x1, y1, x2, y2)
+        const x1 = centerX - width / 2;
+        const y1 = centerY - height / 2;
+        const x2 = centerX + width / 2;
+        const y2 = centerY + height / 2;
 
         // Convert from 640x640 model space back to original image space
         const bbox = this.convertBboxToOriginal({ x1, y1, x2, y2 }, metadata);
@@ -344,10 +355,9 @@ class YOLOHandler {
     const ctx = canvas.getContext("2d");
 
     const colors = {
-      top: "#FF6464",
-      bottom: "#6464FF",
-      outerwear: "#FFC864",
+      clothing: "#FF6464",
       shoes: "#64FF64",
+      bags: "#FFC864",
       accessories: "#FF64FF",
     };
 
