@@ -64,6 +64,11 @@ class YOLOHandler {
       return true;
     } catch (error) {
       console.error("[YOLO] Initialization failed:", error);
+      console.error("[YOLO] Error details:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
       throw error;
     }
   }
@@ -149,11 +154,17 @@ class YOLOHandler {
 
       // Filter by confidence threshold
       if (maxScore >= this.config.postprocessing.confidence_threshold) {
-        // Get bbox coordinates (xyxy format)
-        const x1 = output[i];
-        const y1 = output[numDetections + i];
-        const x2 = output[2 * numDetections + i];
-        const y2 = output[3 * numDetections + i];
+        // Get bbox coordinates (center_x, center_y, width, height format)
+        const centerX = output[i];
+        const centerY = output[numDetections + i];
+        const width = output[2 * numDetections + i];
+        const height = output[3 * numDetections + i];
+
+        // Convert from center format to corner format (x1, y1, x2, y2)
+        const x1 = centerX - width / 2;
+        const y1 = centerY - height / 2;
+        const x2 = centerX + width / 2;
+        const y2 = centerY + height / 2;
 
         // Convert from 640x640 model space back to original image space
         const bbox = this.convertBboxToOriginal({ x1, y1, x2, y2 }, metadata);

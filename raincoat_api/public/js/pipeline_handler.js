@@ -92,59 +92,126 @@ class PipelineHandler {
       document.getElementById("previewImage").src = image.src;
       document.getElementById("preview").classList.remove("hidden");
 
-      // Get selected category
-      const categorySelect = document.getElementById("clothing_piece_category");
-      const selectedCategory = categorySelect ? categorySelect.value : null;
-
-      if (this.yoloHandler && selectedCategory) {
-        // Run YOLO detection
-        this.showStatus("Detecting and cropping clothing...", "loading");
+      // Always run YOLO detection if available
+      if (this.yoloHandler) {
+        this.showStatus("Detecting clothing items...", "loading");
 
         try {
           this.detections = await this.yoloHandler.detect(image);
 
           if (this.detections.length > 0) {
-            // Map form category to YOLO category
-            const categoryMap = {
-              tops: "top",
-              bottoms: "bottom",
-              outerwear: "outerwear",
-              shoes: "shoes",
-              accessories: "accessories",
-            };
-            const targetCategory = categoryMap[selectedCategory];
+            // Visualize detections on canvas
+            await this.visualizeDetections(image, this.detections);
 
-            // Find best matching detection for selected category
-            const matchingDetection = this.detections.find(
-              (det) => det.category === targetCategory
+            // Show detection results
+            this.showDetectionResults(this.detections);
+
+            this.showStatus(
+              `Found ${this.detections.length} item(s). Select one to continue.`,
+              "success"
             );
-
-            if (matchingDetection) {
-              // Auto-crop to matching detection
-              await this.autoCropToDetection(matchingDetection);
-            } else {
-              // No match - use largest detection
-              console.log(
-                `[Upload] No ${targetCategory} detected, using largest item`
-              );
-              await this.autoCropToDetection(this.detections[0]);
-            }
           } else {
             // No detections - enable manual processing
+            this.showStatus("No clothing items detected. You can still process the image manually.", "error");
             this.enableManualProcessing();
           }
         } catch (error) {
           console.error("[Upload] Detection failed:", error);
+          this.showStatus("Detection failed. You can still process the image manually.", "error");
           this.enableManualProcessing();
         }
       } else {
-        // No YOLO or no category selected - enable manual processing
+        // No YOLO - enable manual processing
         this.enableManualProcessing();
       }
     } catch (error) {
       console.error("[Upload] File processing failed:", error);
       this.showStatus("Failed to load image", "error");
     }
+  }
+
+  /**
+   * Visualize YOLO detections on canvas
+   */
+  async visualizeDetections(image, detections) {
+    console.log("[Upload] Visualizing detections:", detections.length);
+
+    const canvas = document.getElementById("detectionCanvas");
+    if (!canvas) {
+      console.warn("[Upload] Detection canvas not found");
+      return;
+    }
+
+    // Set canvas size to match image
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    // Draw image
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(image, 0, 0);
+
+    // Draw bounding boxes
+    this.yoloHandler.visualizeDetections(canvas, detections);
+
+    // Show canvas, hide image
+    canvas.style.display = "block";
+    document.getElementById("previewImage").style.display = "none";
+  }
+
+  /**
+   * Display detection results as selectable items
+   */
+  showDetectionResults(detections) {
+    const resultsDiv = document.getElementById("detectionResults");
+    if (!resultsDiv) return;
+
+    let html = '<h3>Detected Items - Click to select:</h3>';
+
+    detections.forEach((det, idx) => {
+      html += `
+        <div class="detection-option" onclick="clothingUpload.selectDetection(${idx})">
+          <strong>${det.category}</strong> - ${(det.confidence * 100).toFixed(1)}% confidence
+        </div>
+      `;
+    });
+
+    resultsDiv.innerHTML = html;
+    resultsDiv.classList.remove("hidden");
+  }
+
+  /**
+   * Handle detection selection
+   */
+  async selectDetection(index) {
+    if (index < 0 || index >= this.detections.length) {
+      console.error("[Upload] Invalid detection index:", index);
+      return;
+    }
+
+    const detection = this.detections[index];
+    console.log("[Upload] User selected detection:", detection.category);
+
+    // Map YOLO category to form category
+    const categoryMap = {
+      top: "tops",
+      bottom: "bottoms",
+      outerwear: "outerwear",
+      shoes: "shoes",
+      accessories: "accessories",
+    };
+
+    // Set the category field automatically
+    const categoryField = document.getElementById("clothing_piece_category");
+    if (categoryField) {
+      categoryField.value = categoryMap[detection.category] || detection.category;
+      console.log("[Upload] Auto-set category to:", categoryField.value);
+    }
+
+    // Crop to selected detection
+    await this.autoCropToDetection(detection);
+
+    // Hide detection results
+    document.getElementById("detectionResults").classList.add("hidden");
   }
 
   /**
@@ -162,6 +229,8 @@ class PipelineHandler {
 
     // Update preview with cropped image
     document.getElementById("previewImage").src = croppedCanvas.toDataURL();
+    document.getElementById("previewImage").style.display = "block";
+    document.getElementById("detectionCanvas").style.display = "none";
 
     // Enable process button
     document.getElementById("processBtn").disabled = false;
@@ -219,6 +288,9 @@ class PipelineHandler {
       // Step 3: Auto-tag using embeddings
       const tags = await this.autoTag(embedding);
       this.displayTags(tags);
+
+      // Store processed image data for form submission
+      document.getElementById("processedImageData").value = cleanedImage;
 
       this.showStatus("Processing complete!", "success");
       document.getElementById("submitBtn").disabled = false;

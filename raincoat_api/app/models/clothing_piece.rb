@@ -2,12 +2,12 @@ class ClothingPiece < ApplicationRecord
   belongs_to :user
   has_one :clothing_embedding, dependent: :destroy
   has_many_attached :images
- 
-  validates :name, presence: true
+
   validates :category, presence: true, inclusion: {
     in: %w[tops bottoms outerwear shoes accessories],
     message: "must be one of: tops, bottoms, outerwear, shoes, accessories"
   }
+  validates :images, presence: true
  
   enum :processing_status, [
     :pending,

@@ -1,5 +1,5 @@
 class Api::V1::ClothingPiecesController < Api::V1::BaseController
-  before_action :set_clothing_piece, only: [:show, :embedding, :similar]
+  before_action :set_clothing_piece, only: [:show, :get_embedding, :save_embedding, :similar]
   
   def index
     pieces = current_user.clothing_pieces.includes(:clothing_embedding)
@@ -39,8 +39,30 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
     end
   end
   
+  # GET /api/v1/clothing_pieces/:id/embedding
+  def get_embedding
+    unless @clothing_piece.clothing_embedding
+      return render_error('No embedding available for this clothing piece')
+    end
+
+    render json: {
+      success: true,
+      data: {
+        clothing_piece_id: @clothing_piece.id,
+        embedding: {
+          id: @clothing_piece.clothing_embedding.id,
+          vector_data: @clothing_piece.clothing_embedding.vector_data,
+          model_version: @clothing_piece.clothing_embedding.model_version,
+          preprocessing_metadata: @clothing_piece.clothing_embedding.preprocessing_metadata,
+          vector_dimensions: @clothing_piece.clothing_embedding.vector_data&.length || 0,
+          created_at: @clothing_piece.clothing_embedding.created_at
+        }
+      }
+    }
+  end
+
   # POST /api/v1/clothing_pieces/:id/embedding
-  def embedding
+  def save_embedding
     vector_data = parse_vector_data(params[:vector_data])
     
     if vector_data.nil?
@@ -51,8 +73,7 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
     
     embedding.assign_attributes(
       vector_data: vector_data,
-      model_version: params[:model_version] || 'clip-vit-base-patch32',
-      confidence_score: params[:confidence_score]&.to_f,
+      model_version: params[:model_version] || 'fashionclip-2.0',
       preprocessing_metadata: params[:preprocessing_metadata]
     )
     
@@ -172,7 +193,6 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
     {
       id: embedding.id,
       model_version: embedding.model_version,
-      confidence_score: embedding.confidence_score,
       preprocessing_metadata: embedding.preprocessing_metadata,
       vector_dimensions: embedding.vector_data&.length || 0,
       created_at: embedding.created_at,
