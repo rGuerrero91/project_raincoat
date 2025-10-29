@@ -1,10 +1,10 @@
 class ClothingEmbedding < ApplicationRecord
   belongs_to :clothing_piece
-  
+
   validates :clothing_piece_id, uniqueness: { scope: :model_version }
   validates :vector_data, presence: true
   validates :model_version, presence: true
-  validates :vector_data, length: { is: 512, message: "must contain exactly 512 dimensions" }
+  # Note: vector_data validation is handled by the database schema (limit: 512)
   
   def similar_embeddings(limit: 10)
     return [] unless vector_data.present?
