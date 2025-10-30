@@ -1,68 +1,68 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import WelcomeScreen from './demo/WelcomeScreen';
-import PrivacyScreen from './demo/PrivacyScreen';
-import AddItemScreen from './demo/AddItemScreen';
-import ObjectDetectionScreen from './demo/ObjectDetectionScreen';
-import CategoryScreen from './demo/CategoryScreen';
-import ProcessingScreen from './demo/ProcessingScreen';
-import TagsScreen from './demo/TagsScreen';
-import ClosetScreen from './demo/ClosetScreen';
-import LocationScreen from './demo/LocationScreen';
-import WeatherScreen from './demo/WeatherScreen';
-import RecommendationsScreen from './demo/RecommendationsScreen';
-import CompleteScreen from './demo/CompleteScreen';
-import apiClient from '@/lib/api';
+import { useState } from "react";
+import WelcomeScreen from "./demo/WelcomeScreen";
+import PrivacyScreen from "./demo/PrivacyScreen";
+import AddItemScreen from "./demo/AddItemScreen";
+import ObjectDetectionScreen from "./demo/ObjectDetectionScreen";
+import CategoryScreen from "./demo/CategoryScreen";
+import ProcessingScreen from "./demo/ProcessingScreen";
+import TagsScreen from "./demo/TagsScreen";
+import ClosetScreen from "./demo/ClosetScreen";
+import LocationScreen from "./demo/LocationScreen";
+import WeatherScreen from "./demo/WeatherScreen";
+import RecommendationsScreen from "./demo/RecommendationsScreen";
+import CompleteScreen from "./demo/CompleteScreen";
+import apiClient from "@/lib/api";
 
 export type DemoStep =
-  | 'welcome'
-  | 'privacy'
-  | 'add-item'
-  | 'object-detection'
-  | 'category'
-  | 'processing'
-  | 'tags'
-  | 'closet'
-  | 'location'
-  | 'weather'
-  | 'recommendations'
-  | 'complete';
+  | "welcome"
+  | "privacy"
+  | "add-item"
+  | "object-detection"
+  | "category"
+  | "processing"
+  | "tags"
+  | "closet"
+  | "location"
+  | "weather"
+  | "recommendations"
+  | "complete";
 
 export interface ClothingItem {
   id?: number;
   image: string;
-  fileObject?: File;  // Store original File for ONNX processing
-  croppedImage?: string;  // YOLO-cropped image URL (before processing)
-  processedImage?: string;  // Background-removed image URL
-  detectedCategory?: string;  // YOLO-detected category
+  fileObject?: File; // Store original File for ONNX processing
+  croppedImage?: string; // YOLO-cropped image URL (before processing)
+  processedImage?: string; // Background-removed image URL
+  detectedCategory?: string; // YOLO-detected category
   category: string;
   tags: string[];
   embedding?: number[];
-  originalImageElement?: HTMLImageElement;  // Original image element for re-cropping
-  allDetections?: any[];  // All YOLO detections for re-cropping
+  originalImageElement?: HTMLImageElement; // Original image element for re-cropping
+  allDetections?: any[]; // All YOLO detections for re-cropping
 }
 
 export default function Home() {
-  const [currentStep, setCurrentStep] = useState<DemoStep>('welcome');
+  const [currentStep, setCurrentStep] = useState<DemoStep>("welcome");
   const [closetItems, setClosetItems] = useState<ClothingItem[]>([]);
   const [currentItem, setCurrentItem] = useState<ClothingItem | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
 
   const nextStep = () => {
     const steps: DemoStep[] = [
-      'welcome',
-      'privacy',
-      'add-item',
-      'object-detection',
-      'category',
-      'processing',
-      'tags',
-      'closet',
-      'location',
-      'weather',
-      'recommendations',
-      'complete',
+      "welcome",
+      "privacy",
+      "add-item",
+      "object-detection",
+      "category",
+      "processing",
+      "tags",
+      "closet",
+      "location",
+      "weather",
+      "recommendations",
+      "complete",
     ];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
@@ -76,7 +76,7 @@ export default function Home() {
 
   const addItemToCloset = async (item: ClothingItem) => {
     try {
-      console.log('Saving item to backend...', item);
+      console.log("Saving item to backend...", item);
 
       // Create clothing item in backend
       const response = await apiClient.createClothingItem({
@@ -87,11 +87,11 @@ export default function Home() {
 
       if (response.success && response.data) {
         const savedItem = response.data as any;
-        console.log('Item saved with ID:', savedItem.id);
+        console.log("Item saved with ID:", savedItem.id);
 
         // Upload embedding if available
         if (item.embedding && savedItem.id) {
-          console.log('Uploading embedding...');
+          console.log("Uploading embedding...");
           await apiClient.uploadEmbedding(savedItem.id, item.embedding);
         }
 
@@ -99,11 +99,11 @@ export default function Home() {
         const itemWithId = { ...item, id: savedItem.id as number };
         setClosetItems([...closetItems, itemWithId]);
       } else {
-        console.warn('Failed to save to backend, adding to local closet only');
+        console.warn("Failed to save to backend, adding to local closet only");
         setClosetItems([...closetItems, item]);
       }
     } catch (error) {
-      console.error('Error saving item:', error);
+      console.error("Error saving item:", error);
       // Still add to local closet even if backend save fails
       setClosetItems([...closetItems, item]);
     }
@@ -113,37 +113,42 @@ export default function Home() {
 
   const renderStep = () => {
     switch (currentStep) {
-      case 'welcome':
+      case "welcome":
         return <WelcomeScreen onNext={nextStep} />;
 
-      case 'privacy':
+      case "privacy":
         return <PrivacyScreen onNext={nextStep} />;
 
-      case 'add-item':
+      case "add-item":
         return (
           <AddItemScreen
             onNext={(file) => {
               setCurrentItem({
                 image: URL.createObjectURL(file),
-                fileObject: file,  // Store File for ONNX processing
-                category: '',
-                tags: []
+                fileObject: file, // Store File for ONNX processing
+                category: "",
+                tags: [],
               });
               nextStep();
             }}
           />
         );
 
-      case 'object-detection':
+      case "object-detection":
         return (
           <ObjectDetectionScreen
             imageFile={currentItem?.fileObject!}
-            onDetectionSelected={(detection, croppedImageUrl, originalImage, allDetections) => {
+            onDetectionSelected={(
+              detection,
+              croppedImageUrl,
+              originalImage,
+              allDetections
+            ) => {
               if (currentItem) {
                 setCurrentItem({
                   ...currentItem,
                   croppedImage: croppedImageUrl,
-                  detectedCategory: detection?.category || null,
+                  detectedCategory: detection?.category || "Unknown",
                   originalImageElement: originalImage,
                   allDetections: allDetections,
                 });
@@ -153,7 +158,7 @@ export default function Home() {
           />
         );
 
-      case 'category':
+      case "category":
         return (
           <CategoryScreen
             detectedCategory={currentItem?.detectedCategory}
@@ -173,7 +178,7 @@ export default function Home() {
           />
         );
 
-      case 'processing':
+      case "processing":
         return (
           <ProcessingScreen
             imageFile={currentItem?.fileObject!}
@@ -184,7 +189,7 @@ export default function Home() {
                   ...currentItem,
                   tags: result.tags,
                   embedding: result.embedding,
-                  processedImage: result.processedImageUrl,  // Store processed image
+                  processedImage: result.processedImageUrl, // Store processed image
                 });
               }
               nextStep();
@@ -192,7 +197,7 @@ export default function Home() {
           />
         );
 
-      case 'tags':
+      case "tags":
         return (
           <TagsScreen
             item={currentItem!}
@@ -206,16 +211,16 @@ export default function Home() {
           />
         );
 
-      case 'closet':
+      case "closet":
         return (
           <ClosetScreen
             items={closetItems}
             onNext={nextStep}
-            onAddMore={() => goToStep('add-item')}
+            onAddMore={() => goToStep("add-item")}
           />
         );
 
-      case 'location':
+      case "location":
         return (
           <LocationScreen
             onNext={(location) => {
@@ -225,15 +230,10 @@ export default function Home() {
           />
         );
 
-      case 'weather':
-        return (
-          <WeatherScreen
-            location={selectedLocation}
-            onNext={nextStep}
-          />
-        );
+      case "weather":
+        return <WeatherScreen location={selectedLocation} onNext={nextStep} />;
 
-      case 'recommendations':
+      case "recommendations":
         return (
           <RecommendationsScreen
             items={closetItems}
@@ -242,11 +242,11 @@ export default function Home() {
           />
         );
 
-      case 'complete':
+      case "complete":
         return (
           <CompleteScreen
             onRestart={() => {
-              setCurrentStep('welcome');
+              setCurrentStep("welcome");
               setClosetItems([]);
               setCurrentItem(null);
               setSelectedLocation(null);
