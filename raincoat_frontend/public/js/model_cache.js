@@ -15,6 +15,7 @@ class ModelCache {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
       request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
         this.db = request.result;
         resolve();
       };
