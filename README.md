@@ -15,13 +15,13 @@ Raincoat is a privacy first, Machine learning powered, weather based outfit reco
 
 ## Architecture
 
-**Frontend**: Next.js 14 with TypeScript and Tailwind CSS (planned)  
-**Backend**: Ruby on Rails 8 (API-only)  
-**Database**: PostgreSQL 15 with pgvector for AI embeddings  
-**Image Storage**: Active Storage with direct uploads  
-**Authentication**: JWT with Devise  
-**Caching**: Redis  
-**AI Processing**: Client-side ONNX models (U2-Net, YOLO(not yet integrated), FashionCLIP)  
+**Frontend**: Next.js 15 with TypeScript and Tailwind CSS
+**Backend**: Ruby on Rails 8 (API-only)
+**Database**: PostgreSQL 15 with pgvector for AI embeddings
+**Image Storage**: Active Storage with direct uploads
+**Authentication**: JWT with Devise
+**Caching**: Redis
+**AI Processing**: Client-side ONNX models (U2-Net, FashionCLIP)
 **Weather Data**: WeatherAPI.com
 
 ### Privacy-First Design
@@ -127,7 +127,16 @@ rvm use 3.4.5
    bundle exec rails server
    ```
 
-6. **Access the application**
+6. **Start the frontend** (optional)
+
+   ```bash
+   cd raincoat_frontend
+   npm install
+   npm run dev
+   ```
+
+7. **Access the application**
+   - **Demo Frontend**: http://localhost:3001 **NEW**
    - Rails API: http://localhost:3000
    - Test upload: http://localhost:3000/closet/new
    - PostgreSQL: localhost:5432
@@ -186,7 +195,16 @@ project_raincoat/
 │   │       └── weather_rules.json  # Transitional mappings (~2 KB)
 │   ├── Gemfile            # Ruby dependencies
 │   └── Dockerfile.dev      # Development Docker image
-├── raincoat_frontend/      # Next.js frontend (planned)
+├── raincoat_frontend/      # Next.js frontend  NEW
+│   ├── app/
+│   │   ├── demo/           # Demo flow screens (11 screens)
+│   │   ├── layout.tsx      # Root layout
+│   │   ├── page.tsx        # Main demo orchestrator
+│   │   └── globals.css     # Design system + Tailwind
+│   ├── components/         # Reusable UI components
+│   ├── lib/                # API client & ONNX processor
+│   ├── package.json
+│   └── README.md
 ├── scripts/                # Utility scripts
 │   ├── model_extractions/  # AI model preparation
 │   │   ├── extract_u2net_onnx.py
