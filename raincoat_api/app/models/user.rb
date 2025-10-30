@@ -1,13 +1,19 @@
 class User < ApplicationRecord
   has_many :clothing_pieces, dependent: :destroy
-  
+  has_many :locations, dependent: :destroy
+  has_many :weather_snapshots, through: :locations
+
   validates :email, presence: true, uniqueness: { case_sensitive: false }
   validates :name, presence: true
-  
+
   before_save :normalize_email
-  
+
+  def default_location
+    locations.find_by(is_default: true) || locations.first
+  end
+
   private
-  
+
   def normalize_email
     self.email = email.downcase.strip if email.present?
   end

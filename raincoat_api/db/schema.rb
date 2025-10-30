@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_03_022012) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_30_032143) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -74,6 +74,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_03_022012) do
     t.index ["user_id"], name: "index_clothing_pieces_on_user_id"
   end
 
+  create_table "locations", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "name", null: false
+    t.string "city", null: false
+    t.string "state"
+    t.string "country", null: false
+    t.decimal "latitude", precision: 10, scale: 6, null: false
+    t.decimal "longitude", precision: 10, scale: 6, null: false
+    t.string "timezone"
+    t.boolean "is_default", default: false
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["latitude", "longitude"], name: "index_locations_on_latitude_and_longitude"
+    t.index ["user_id", "is_default"], name: "index_locations_on_user_id_and_is_default"
+    t.index ["user_id"], name: "index_locations_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "name"
@@ -82,8 +100,36 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_03_022012) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "weather_snapshots", force: :cascade do |t|
+    t.bigint "location_id", null: false
+    t.decimal "temperature_c", precision: 4, scale: 1, null: false
+    t.decimal "temperature_f", precision: 4, scale: 1
+    t.decimal "feels_like_c", precision: 4, scale: 1
+    t.decimal "feels_like_f", precision: 4, scale: 1
+    t.string "condition_text", null: false
+    t.string "condition_code"
+    t.string "condition_icon_url"
+    t.integer "humidity"
+    t.decimal "wind_kph", precision: 5, scale: 2
+    t.decimal "wind_mph", precision: 5, scale: 2
+    t.string "wind_direction"
+    t.decimal "precipitation_mm", precision: 5, scale: 2
+    t.decimal "uv_index", precision: 3, scale: 1
+    t.integer "cloud_coverage"
+    t.datetime "recorded_at", null: false
+    t.datetime "fetched_at"
+    t.json "raw_response"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["condition_text"], name: "index_weather_snapshots_on_condition_text"
+    t.index ["location_id", "recorded_at"], name: "index_weather_snapshots_on_location_id_and_recorded_at"
+    t.index ["location_id"], name: "index_weather_snapshots_on_location_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "clothing_embeddings", "clothing_pieces"
   add_foreign_key "clothing_pieces", "users"
+  add_foreign_key "locations", "users"
+  add_foreign_key "weather_snapshots", "locations"
 end
