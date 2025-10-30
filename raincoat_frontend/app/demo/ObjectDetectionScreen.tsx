@@ -8,7 +8,12 @@ import yoloDetector, { type YOLODetection } from '@/lib/yolo-detector';
 
 interface ObjectDetectionScreenProps {
   imageFile: File;
-  onDetectionSelected: (detection: YOLODetection | null, croppedImageUrl: string) => void;
+  onDetectionSelected: (
+    detection: YOLODetection | null,
+    croppedImageUrl: string,
+    originalImage: HTMLImageElement,
+    allDetections: YOLODetection[]
+  ) => void;
 }
 
 const categoryDisplayNames: { [key: string]: string } = {
@@ -94,16 +99,20 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
     // Crop to selected detection
     const croppedUrl = yoloDetector.cropToBbox(imageElement, detection.bbox, 0.05);
 
-    onDetectionSelected(detection, croppedUrl);
+    // Pass all data including original image and all detections for re-cropping
+    onDetectionSelected(detection, croppedUrl, imageElement, detections);
   };
 
   const handleSkipDetection = () => {
     console.log('[ObjectDetectionScreen] User skipped detection');
 
+    if (!imageElement) return;
+
     // Use full image
     const fullImageUrl = URL.createObjectURL(imageFile);
 
-    onDetectionSelected(null, fullImageUrl);
+    // Pass image element and empty detections array even when skipping
+    onDetectionSelected(null, fullImageUrl, imageElement, detections);
   };
 
   if (isDetecting) {

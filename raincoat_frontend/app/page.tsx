@@ -39,6 +39,8 @@ export interface ClothingItem {
   category: string;
   tags: string[];
   embedding?: number[];
+  originalImageElement?: HTMLImageElement;  // Original image element for re-cropping
+  allDetections?: any[];  // All YOLO detections for re-cropping
 }
 
 export default function Home() {
@@ -136,12 +138,14 @@ export default function Home() {
         return (
           <ObjectDetectionScreen
             imageFile={currentItem?.fileObject!}
-            onDetectionSelected={(detection, croppedImageUrl) => {
+            onDetectionSelected={(detection, croppedImageUrl, originalImage, allDetections) => {
               if (currentItem) {
                 setCurrentItem({
                   ...currentItem,
                   croppedImage: croppedImageUrl,
                   detectedCategory: detection?.category || null,
+                  originalImageElement: originalImage,
+                  allDetections: allDetections,
                 });
               }
               nextStep();
@@ -153,9 +157,16 @@ export default function Home() {
         return (
           <CategoryScreen
             detectedCategory={currentItem?.detectedCategory}
-            onNext={(category) => {
+            croppedImageUrl={currentItem?.croppedImage}
+            originalImage={currentItem?.originalImageElement}
+            allDetections={currentItem?.allDetections}
+            onNext={(category, updatedCroppedUrl) => {
               if (currentItem) {
-                setCurrentItem({ ...currentItem, category });
+                setCurrentItem({
+                  ...currentItem,
+                  category,
+                  croppedImage: updatedCroppedUrl || currentItem.croppedImage,
+                });
               }
               nextStep();
             }}
