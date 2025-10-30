@@ -1,22 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 
 interface CategoryScreenProps {
+  detectedCategory?: string | null;  // YOLO-detected category
   onNext: (category: string) => void;
 }
 
 const categories = [
   { id: 'top', label: 'TOP', icon: '👕', enabled: true },
   { id: 'bottom', label: 'BOTTOM', icon: '👖', enabled: true },
-  { id: 'accessory', label: 'ACCESSORY', icon: '👜', enabled: true },
+  { id: 'accessories', label: 'ACCESSORIES', icon: '👜', enabled: true },
   { id: 'shoes', label: 'SHOES', icon: '👟', enabled: true },
   { id: 'outerwear', label: 'OUTERWEAR', icon: '🧥', enabled: true },
 ];
 
-export default function CategoryScreen({ onNext }: CategoryScreenProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+export default function CategoryScreen({ detectedCategory, onNext }: CategoryScreenProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(detectedCategory || null);
+
+  // Auto-select detected category
+  useEffect(() => {
+    if (detectedCategory) {
+      console.log('[CategoryScreen] Auto-selected detected category:', detectedCategory);
+      setSelectedCategory(detectedCategory);
+    }
+  }, [detectedCategory]);
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -33,12 +42,14 @@ export default function CategoryScreen({ onNext }: CategoryScreenProps) {
       <Card padding="lg" className="text-center max-w-xl">
         {/* Headline */}
         <h2 className="text-3xl font-medium text-neutral-dark mb-3">
-          Category
+          {detectedCategory ? 'Confirm Category' : 'Select Category'}
         </h2>
 
         {/* Subheading */}
         <p className="text-base text-neutral-medium mb-8">
-          If more than one item is present, this will focus in on the closest match.
+          {detectedCategory
+            ? `We detected this as a ${selectedCategory}. You can change it if needed.`
+            : 'What type of clothing item is this?'}
         </p>
 
         {/* Category Buttons Grid */}

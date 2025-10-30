@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import Container from '@/components/Container';
 import Card from '@/components/Card';
+import { onnxProcessor } from '@/lib/onnx-processor';
 
 interface ProcessingScreenProps {
-  imageFile: string;
-  onComplete: (result: { embedding: number[]; tags: string[] }) => void;
+  imageFile: File;
+  croppedImageUrl?: string;  // YOLO-cropped image URL (if available)
+  onComplete: (result: { embedding: number[]; tags: string[]; processedImageUrl: string }) => void;
 }
 
 const processingSteps = [
@@ -15,58 +17,114 @@ const processingSteps = [
   'Generating tags...',
 ];
 
-export default function ProcessingScreen({ imageFile, onComplete }: ProcessingScreenProps) {
+export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplete }: ProcessingScreenProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Simulate processing steps
-    const stepDuration = 1200; // 1.2 seconds per step
+    // Prevent duplicate processing attempts
+    if (isProcessing) {
+      console.log('[ProcessingScreen] Already processing, skipping...');
+      return;
+    }
 
-    const interval = setInterval(() => {
-      setCurrentStep((prev) => {
-        if (prev < processingSteps.length - 1) {
-          return prev + 1;
+    let isCancelled = false;
+    setIsProcessing(true);
+
+    const processImage = async () => {
+      try {
+        console.log('[ProcessingScreen] Starting ONNX processing');
+
+        // Convert cropped image URL to File if available
+        let fileToProcess = imageFile;
+
+        if (croppedImageUrl) {
+          console.log('[ProcessingScreen] Using YOLO-cropped image');
+          // Convert data URL to File
+          const response = await fetch(croppedImageUrl);
+          const blob = await response.blob();
+          fileToProcess = new File([blob], imageFile.name, { type: imageFile.type });
         }
-        return prev;
-      });
-    }, stepDuration);
 
-    // Complete after all steps
-    const timeout = setTimeout(() => {
-      // Mock result - in production this would come from ONNX processor
-      onComplete({
-        embedding: Array(512).fill(0).map(() => Math.random()),
-        tags: ['casual', 'cotton', 'blue', 'comfortable', 'summer', 'lightweight'],
-      });
-    }, stepDuration * processingSteps.length + 500);
+        const result = await onnxProcessor.processImage(
+          fileToProcess,
+          (step) => {
+            if (isCancelled) return;
 
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
+            // Map progress messages to step indices
+            if (step.includes('background')) {
+              setCurrentStep(0);
+            } else if (step.includes('Analyzing')) {
+              setCurrentStep(1);
+            } else if (step.includes('tags')) {
+              setCurrentStep(2);
+            }
+          }
+        );
+
+        if (isCancelled) {
+          console.log('[ProcessingScreen] Processing cancelled');
+          return;
+        }
+
+        console.log('[ProcessingScreen] Processing complete:', {
+          embeddingLength: result.embedding.length,
+          tagCount: result.tags.length,
+          tags: result.tags.map(t => t.label)
+        });
+
+        // Complete with real results
+        onComplete({
+          embedding: result.embedding,
+          tags: result.tags.map(t => t.label),
+          processedImageUrl: result.processedImageUrl,
+        });
+      } catch (err) {
+        if (isCancelled) return;
+        console.error('[ProcessingScreen] Processing failed:', err);
+        setError(err instanceof Error ? err.message : 'Processing failed');
+      }
     };
-  }, [onComplete]);
+
+    processImage();
+
+    // Cleanup function to cancel processing if component unmounts
+    return () => {
+      console.log('[ProcessingScreen] Cleanup - cancelling processing');
+      isCancelled = true;
+    };
+  }, [imageFile]); // Removed onComplete from dependencies to prevent re-runs
 
   return (
     <Container className="flex items-center justify-center">
       <Card padding="lg" className="text-center max-w-xl">
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 border-2 border-red-300 rounded-lg">
+            <p className="text-red-700 font-semibold">❌ {error}</p>
+            <p className="text-sm text-red-600 mt-2">
+              Make sure the Rails API is running on port 3000
+            </p>
+          </div>
+        )}
+
         {/* Headline */}
         <h2 className="text-3xl font-medium text-neutral-dark mb-6">
           Processing Locally...
         </h2>
 
         {/* Image Thumbnail */}
-        {imageFile && (
-          <div className="mb-8 flex justify-center">
-            <div className="relative w-32 h-32 rounded-lg overflow-hidden shadow-md">
-              <img
-                src={imageFile}
-                alt="Processing"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-accent-info/10 animate-pulse-subtle" />
-            </div>
+        <div className="mb-8 flex justify-center">
+          <div className="relative w-32 h-32 rounded-lg overflow-hidden shadow-md">
+            <img
+              src={URL.createObjectURL(imageFile)}
+              alt="Processing"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-accent-info/10 animate-pulse-subtle" />
           </div>
-        )}
+        </div>
 
         {/* Processing Steps */}
         <div className="space-y-4 mb-8">

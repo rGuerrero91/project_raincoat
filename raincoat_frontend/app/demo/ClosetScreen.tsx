@@ -33,7 +33,7 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
           >
             <div className="aspect-square rounded-lg overflow-hidden bg-neutral-light mb-3">
               <img
-                src={item.image}
+                src={item.processedImage || item.image}
                 alt={`Item ${index + 1}`}
                 className="w-full h-full object-cover"
               />

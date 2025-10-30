@@ -42,12 +42,12 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
           How does this look?
         </h2>
 
-        {/* Processed Image */}
-        {item.image && (
+        {/* Processed Image - Show background-removed version if available */}
+        {(item.processedImage || item.image) && (
           <div className="mb-6 flex justify-center">
             <div className="relative w-48 h-48 rounded-lg overflow-hidden shadow-lg bg-neutral-light">
               <img
-                src={item.image}
+                src={item.processedImage || item.image}
                 alt="Processed item"
                 className="w-full h-full object-cover"
               />

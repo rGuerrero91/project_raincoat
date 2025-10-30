@@ -4,6 +4,7 @@ import { useState } from 'react';
 import WelcomeScreen from './demo/WelcomeScreen';
 import PrivacyScreen from './demo/PrivacyScreen';
 import AddItemScreen from './demo/AddItemScreen';
+import ObjectDetectionScreen from './demo/ObjectDetectionScreen';
 import CategoryScreen from './demo/CategoryScreen';
 import ProcessingScreen from './demo/ProcessingScreen';
 import TagsScreen from './demo/TagsScreen';
@@ -12,11 +13,13 @@ import LocationScreen from './demo/LocationScreen';
 import WeatherScreen from './demo/WeatherScreen';
 import RecommendationsScreen from './demo/RecommendationsScreen';
 import CompleteScreen from './demo/CompleteScreen';
+import apiClient from '@/lib/api';
 
 export type DemoStep =
   | 'welcome'
   | 'privacy'
   | 'add-item'
+  | 'object-detection'
   | 'category'
   | 'processing'
   | 'tags'
@@ -29,6 +32,10 @@ export type DemoStep =
 export interface ClothingItem {
   id?: number;
   image: string;
+  fileObject?: File;  // Store original File for ONNX processing
+  croppedImage?: string;  // YOLO-cropped image URL (before processing)
+  processedImage?: string;  // Background-removed image URL
+  detectedCategory?: string;  // YOLO-detected category
   category: string;
   tags: string[];
   embedding?: number[];
@@ -45,6 +52,7 @@ export default function Home() {
       'welcome',
       'privacy',
       'add-item',
+      'object-detection',
       'category',
       'processing',
       'tags',
@@ -64,8 +72,40 @@ export default function Home() {
     setCurrentStep(step);
   };
 
-  const addItemToCloset = (item: ClothingItem) => {
-    setClosetItems([...closetItems, item]);
+  const addItemToCloset = async (item: ClothingItem) => {
+    try {
+      console.log('Saving item to backend...', item);
+
+      // Create clothing item in backend
+      const response = await apiClient.createClothingItem({
+        category: item.category,
+        ai_tags: item.tags,
+        user_tags: item.tags,
+      });
+
+      if (response.success && response.data) {
+        const savedItem = response.data as any;
+        console.log('Item saved with ID:', savedItem.id);
+
+        // Upload embedding if available
+        if (item.embedding && savedItem.id) {
+          console.log('Uploading embedding...');
+          await apiClient.uploadEmbedding(savedItem.id, item.embedding);
+        }
+
+        // Update item with backend ID
+        const itemWithId = { ...item, id: savedItem.id as number };
+        setClosetItems([...closetItems, itemWithId]);
+      } else {
+        console.warn('Failed to save to backend, adding to local closet only');
+        setClosetItems([...closetItems, item]);
+      }
+    } catch (error) {
+      console.error('Error saving item:', error);
+      // Still add to local closet even if backend save fails
+      setClosetItems([...closetItems, item]);
+    }
+
     setCurrentItem(null);
   };
 
@@ -81,7 +121,29 @@ export default function Home() {
         return (
           <AddItemScreen
             onNext={(file) => {
-              setCurrentItem({ image: URL.createObjectURL(file), category: '', tags: [] });
+              setCurrentItem({
+                image: URL.createObjectURL(file),
+                fileObject: file,  // Store File for ONNX processing
+                category: '',
+                tags: []
+              });
+              nextStep();
+            }}
+          />
+        );
+
+      case 'object-detection':
+        return (
+          <ObjectDetectionScreen
+            imageFile={currentItem?.fileObject!}
+            onDetectionSelected={(detection, croppedImageUrl) => {
+              if (currentItem) {
+                setCurrentItem({
+                  ...currentItem,
+                  croppedImage: croppedImageUrl,
+                  detectedCategory: detection?.category || null,
+                });
+              }
               nextStep();
             }}
           />
@@ -90,6 +152,7 @@ export default function Home() {
       case 'category':
         return (
           <CategoryScreen
+            detectedCategory={currentItem?.detectedCategory}
             onNext={(category) => {
               if (currentItem) {
                 setCurrentItem({ ...currentItem, category });
@@ -102,13 +165,15 @@ export default function Home() {
       case 'processing':
         return (
           <ProcessingScreen
-            imageFile={currentItem?.image || ''}
+            imageFile={currentItem?.fileObject!}
+            croppedImageUrl={currentItem?.croppedImage}
             onComplete={(result) => {
               if (currentItem) {
                 setCurrentItem({
                   ...currentItem,
                   tags: result.tags,
                   embedding: result.embedding,
+                  processedImage: result.processedImageUrl,  // Store processed image
                 });
               }
               nextStep();
