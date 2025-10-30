@@ -11,6 +11,8 @@
 
 # Clear existing data
 puts "Clearing existing data..."
+WeatherSnapshot.destroy_all
+Location.destroy_all
 ClothingEmbedding.destroy_all
 ClothingPiece.destroy_all
 User.destroy_all
@@ -383,14 +385,84 @@ end
 
 puts "Created #{ClothingEmbedding.count} embeddings"
 
+# Create locations for users
+puts "Creating locations..."
+
+test_user.locations.create!([
+  {
+    name: "Home",
+    city: "New York",
+    state: "NY",
+    country: "United States",
+    latitude: 40.7128,
+    longitude: -74.0060,
+    timezone: "America/New_York",
+    is_default: true
+  },
+  {
+    name: "Office",
+    city: "Brooklyn",
+    state: "NY",
+    country: "United States",
+    latitude: 40.6782,
+    longitude: -73.9442,
+    timezone: "America/New_York",
+    is_default: false
+  }
+])
+
+demo_user.locations.create!({
+  name: "Home",
+  city: "San Francisco",
+  state: "CA",
+  country: "United States",
+  latitude: 37.7749,
+  longitude: -122.4194,
+  timezone: "America/Los_Angeles",
+  is_default: true
+})
+
+rudy_user.locations.create!({
+  name: "Home",
+  city: "London",
+  country: "United Kingdom",
+  latitude: 51.5074,
+  longitude: -0.1278,
+  timezone: "Europe/London",
+  is_default: true
+})
+
+puts "Created #{Location.count} locations"
+
+# Fetch initial weather data (if API key is configured)
+if ENV['WEATHER_API_KEY'].present?
+  puts "Fetching initial weather data..."
+  weather_service = WeatherService.new
+
+  Location.find_each do |location|
+    begin
+      snapshot = weather_service.fetch_current_weather(location)
+      puts "  Fetched weather for: #{location.display_name}" if snapshot
+    rescue => e
+      puts "  Failed to fetch weather for #{location.display_name}: #{e.message}"
+    end
+  end
+
+  puts "Created #{WeatherSnapshot.count} weather snapshots"
+else
+  puts "Skipping weather fetch (WEATHER_API_KEY not set)"
+end
+
 puts "\n=== Seed Data Summary ==="
 puts "Users: #{User.count}"
 puts "Clothing Pieces: #{ClothingPiece.count}"
 puts "Embeddings: #{ClothingEmbedding.count}"
+puts "Locations: #{Location.count}"
+puts "Weather Snapshots: #{WeatherSnapshot.count}"
 
 puts "\n=== Test Accounts ==="
-puts "Email: test@example.com (#{test_user.clothing_pieces.count} items)"
-puts "Email: demo@example.com (#{demo_user.clothing_pieces.count} items)"
-puts "Email: rudy@email.com (#{rudy_user.clothing_pieces.count} items)"
+puts "Email: test@example.com (#{test_user.clothing_pieces.count} items, #{test_user.locations.count} locations)"
+puts "Email: demo@example.com (#{demo_user.clothing_pieces.count} items, #{demo_user.locations.count} locations)"
+puts "Email: rudy@email.com (#{rudy_user.clothing_pieces.count} items, #{rudy_user.locations.count} locations)"
 
 puts "\nSeed data complete! "
