@@ -45,6 +45,24 @@ Rails.application.routes.draw do
         post :search          # POST /api/v1/embeddings/search
         get :stats           # GET /api/v1/embeddings/stats
       end
+
+      # Location management
+      resources :locations do
+        member do
+          post :set_default      # POST /api/v1/locations/:id/set_default
+          get :current_weather   # GET /api/v1/locations/:id/current_weather
+        end
+        collection do
+          get :search            # GET /api/v1/locations/search?q=London
+        end
+      end
+
+      # Weather endpoints
+      namespace :weather do
+        get :current           # GET /api/v1/weather/current
+        get :recommendations   # GET /api/v1/weather/recommendations
+        post :refresh          # POST /api/v1/weather/refresh
+      end
     end
   end
   
