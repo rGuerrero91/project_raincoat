@@ -12,6 +12,3 @@ scripts/model_extractions/datasets
 scripts/model_extractions/runs
 scripts/model_extractions/models
 scripts/model_extractions/user_corrections
-
-# Ignore frontend build files while in development
-raincoat_frontend/
