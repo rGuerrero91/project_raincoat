@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Container from '@/components/Container';
 import Card from '@/components/Card';
+import { Palette, Search, Tag as TagIcon, Clock, Lock } from 'lucide-react';
 import { onnxProcessor } from '@/lib/onnx-processor';
 
 interface ProcessingScreenProps {
@@ -12,9 +13,9 @@ interface ProcessingScreenProps {
 }
 
 const processingSteps = [
-  { label: 'Removing background...', icon: '🎨' },
-  { label: 'Analyzing item...', icon: '🔍' },
-  { label: 'Generating tags...', icon: '🏷️' },
+  { label: 'Removing background...', icon: Palette },
+  { label: 'Analyzing item...', icon: Search },
+  { label: 'Generating tags...', icon: TagIcon },
 ];
 
 export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplete }: ProcessingScreenProps) {
@@ -96,7 +97,7 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
         {/* Error Display */}
         {error && (
           <div className="mb-6 p-5 bg-red-50 border-2 border-red-200 rounded-2xl">
-            <p className="text-red-700 font-semibold text-lg mb-2">❌ {error}</p>
+            <p className="text-red-700 font-semibold text-lg mb-2">Error: {error}</p>
             <p className="text-sm text-red-600">
               Make sure the Rails API is running on port 3000
             </p>
@@ -129,6 +130,7 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
           {processingSteps.map((step, index) => {
             const isActive = index === currentStep;
             const isComplete = index < currentStep;
+            const IconComponent = step.icon;
             
             return (
               <div
@@ -144,8 +146,8 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
                   }
                 `}
               >
-                <div className="flex-shrink-0 text-2xl">
-                  {step.icon}
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center">
+                  <IconComponent className="w-5 h-5 text-primary" strokeWidth={2} />
                 </div>
                 <div className="flex-shrink-0">
                   {isComplete ? (
@@ -169,14 +171,16 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
         </div>
 
         {/* Time Estimate */}
-        <div className="badge mb-6">
-          ⏱️ About 3-4 seconds
+        <div className="badge mb-6 flex items-center justify-center gap-2">
+          <Clock className="w-4 h-4" />
+          <span>About 3-4 seconds</span>
         </div>
 
         {/* Privacy Reminder */}
         <div className="bg-primary-light rounded-2xl p-5">
           <p className="text-sm text-primary font-semibold flex items-center justify-center gap-2">
-            🔒 Processing on your device • Photos never uploaded
+            <Lock className="w-4 h-4" />
+            <span>Processing on your device • Photos never uploaded</span>
           </p>
         </div>
       </Card>

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
+import { Globe } from 'lucide-react';
+import { WiDaySunnyOvercast } from 'weather-icons-react';
 
 interface LocationScreenProps {
   onNext: (location: { city: string; country: string; latitude: number; longitude: number }) => void;
@@ -26,18 +28,20 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
   };
 
   return (
-    <Container className="flex items-center justify-center">
-      <Card padding="lg" className="text-center max-w-xl">
+    <Container className="flex items-center justify-center min-h-screen">
+      <Card padding="xl" className="text-center max-w-2xl w-full">
         {/* Icon */}
-        <div className="text-6xl mb-6">🌍</div>
+        <div className="flex justify-center mb-8">
+          <Globe className="w-20 h-20 text-primary" strokeWidth={1.5} />
+        </div>
 
         {/* Headline */}
-        <h2 className="text-3xl font-medium text-neutral-dark mb-3">
-          What's the weather like?
+        <h2 className="text-headline font-bold mb-4">
+          What's the weather <strong className="text-primary">like?</strong>
         </h2>
 
         {/* Body Text */}
-        <p className="text-base text-neutral-medium mb-2">
+        <p className="text-lg text-neutral-medium mb-2 leading-relaxed">
           Select your city so we can give you outfit ideas depending on the weather.
         </p>
 
@@ -52,15 +56,15 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
               key={index}
               onClick={() => setSelectedLocation(location)}
               className={`
-                w-full p-4 rounded-lg border-2 transition-all text-left
+                w-full p-4 rounded-2xl border-2 transition-all text-left
                 ${
                   selectedLocation === location
-                    ? 'border-accent-info bg-primary-blue shadow-md'
-                    : 'border-neutral-medium/30 bg-white hover:border-accent-info'
+                    ? 'border-primary bg-primary-light shadow-soft'
+                    : 'border-neutral-medium/30 bg-white hover:border-primary/50'
                 }
               `}
             >
-              <p className="font-semibold text-neutral-dark">
+              <p className="font-semibold text-ink">
                 {location.city}
               </p>
               <p className="text-sm text-neutral-medium">{location.country}</p>
@@ -76,7 +80,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
             value={customCity}
             onChange={(e) => setCustomCity(e.target.value)}
             placeholder="e.g., Paris, France"
-            className="w-full px-4 py-3 border-2 border-neutral-medium/30 rounded-lg focus:border-accent-info focus:outline-none"
+            className="w-full px-5 py-3 border-2 border-neutral-medium/30 rounded-full focus:border-primary focus:outline-none transition-colors"
           />
         </div>
 
@@ -86,16 +90,19 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
             Set City
           </Button>
 
-          <button className="btn-tertiary w-full">
+          <Button variant="tertiary" fullWidth>
             Skip for now
-          </button>
+          </Button>
         </div>
 
         {/* Weather Icon Example */}
-        <div className="mt-6 p-4 bg-primary-blue rounded-lg">
-          <p className="text-sm text-neutral-dark">
-            🌤️ Example: San Francisco, 68°F
-          </p>
+        <div className="mt-8 p-5 bg-primary-light rounded-2xl">
+          <div className="flex items-center justify-center gap-3">
+            <WiDaySunnyOvercast size={32} color="#8bb8e8" />
+            <p className="text-sm text-ink">
+              Example: San Francisco, 68°F
+            </p>
+          </div>
         </div>
       </Card>
     </Container>

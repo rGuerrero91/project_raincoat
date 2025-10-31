@@ -2,22 +2,23 @@ import { useState, useEffect, useRef } from 'react';
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
+import { Shirt, RectangleHorizontal, Backpack, Footprints, Coat } from 'lucide-react';
 import { yoloDetector, YOLODetection } from '@/lib/yolo-detector';
 
 interface CategoryScreenProps {
-  detectedCategory?: string | null;  // YOLO-detected category
-  croppedImageUrl?: string;  // Initial cropped image from YOLO
-  originalImage?: HTMLImageElement;  // Original image for re-cropping
-  allDetections?: YOLODetection[];  // All YOLO detections
+  detectedCategory?: string | null;
+  croppedImageUrl?: string;
+  originalImage?: HTMLImageElement;
+  allDetections?: YOLODetection[];
   onNext: (category: string, croppedImageUrl?: string) => void;
 }
 
 const categories = [
-  { id: 'top', label: 'TOP', icon: '👕', enabled: true },
-  { id: 'bottom', label: 'BOTTOM', icon: '👖', enabled: true },
-  { id: 'accessories', label: 'ACCESSORIES', icon: '👜', enabled: true },
-  { id: 'shoes', label: 'SHOES', icon: '👟', enabled: true },
-  { id: 'outerwear', label: 'OUTERWEAR', icon: '🧥', enabled: true },
+  { id: 'top', label: 'TOP', icon: Shirt, enabled: true },
+  { id: 'bottom', label: 'BOTTOM', icon: RectangleHorizontal, enabled: true },
+  { id: 'accessories', label: 'ACCESSORIES', icon: Backpack, enabled: true },
+  { id: 'shoes', label: 'SHOES', icon: Footprints, enabled: true },
+  { id: 'outerwear', label: 'OUTERWEAR', icon: Coat, enabled: true },
 ];
 
 export default function CategoryScreen({
@@ -31,7 +32,6 @@ export default function CategoryScreen({
   const [currentCroppedUrl, setCurrentCroppedUrl] = useState<string | undefined>(croppedImageUrl);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Auto-select detected category
   useEffect(() => {
     if (detectedCategory) {
       console.log('[CategoryScreen] Auto-selected detected category:', detectedCategory);
@@ -39,22 +39,18 @@ export default function CategoryScreen({
     }
   }, [detectedCategory]);
 
-  // Update crop preview when category changes
   useEffect(() => {
     if (!selectedCategory || !originalImage || !allDetections || allDetections.length === 0) {
       return;
     }
 
-    // Find detection matching selected category
     const matchingDetection = allDetections.find(det => det.category === selectedCategory);
 
     if (matchingDetection) {
-      // Re-crop to the selected category's bounding box
       const newCroppedUrl = yoloDetector.cropToBbox(originalImage, matchingDetection.bbox, 0.05);
       setCurrentCroppedUrl(newCroppedUrl);
       console.log('[CategoryScreen] Updated crop preview for category:', selectedCategory);
     } else if (croppedImageUrl) {
-      // No matching detection, use original cropped image
       setCurrentCroppedUrl(croppedImageUrl);
     }
   }, [selectedCategory, originalImage, allDetections, croppedImageUrl]);
@@ -70,15 +66,15 @@ export default function CategoryScreen({
   };
 
   return (
-    <Container className="flex items-center justify-center">
-      <Card padding="lg" className="text-center max-w-4xl">
+    <Container className="flex items-center justify-center min-h-screen">
+      <Card padding="xl" className="text-center max-w-4xl w-full">
         {/* Headline */}
-        <h2 className="text-3xl font-medium text-neutral-dark mb-3">
-          {detectedCategory ? 'Confirm Category' : 'Select Category'}
+        <h2 className="text-headline font-bold mb-4">
+          {detectedCategory ? 'Confirm' : 'Select'} <strong className="text-primary">Category</strong>
         </h2>
 
         {/* Subheading */}
-        <p className="text-base text-neutral-medium mb-8">
+        <p className="text-lg text-neutral-medium mb-8 leading-relaxed">
           {detectedCategory
             ? `We detected this as a ${selectedCategory}. You can change it if needed.`
             : 'What type of clothing item is this?'}
@@ -89,12 +85,12 @@ export default function CategoryScreen({
           {/* Crop Preview */}
           {currentCroppedUrl && (
             <div className="flex flex-col items-center">
-              <h3 className="text-lg font-semibold text-neutral-dark mb-4">Preview</h3>
-              <div className="border-2 border-neutral-medium/30 rounded-2xl p-4 bg-white">
+              <h3 className="text-lg font-semibold text-ink mb-4">Preview</h3>
+              <div className="border-2 border-neutral-medium/30 rounded-3xl p-4 bg-white shadow-soft">
                 <img
                   src={currentCroppedUrl}
                   alt="Cropped preview"
-                  className="max-w-full max-h-80 object-contain rounded-lg"
+                  className="max-w-full max-h-80 object-contain rounded-2xl"
                 />
               </div>
               {selectedCategory && (
@@ -107,29 +103,44 @@ export default function CategoryScreen({
 
           {/* Category Buttons Grid */}
           <div className="flex flex-col">
-            <h3 className="text-lg font-semibold text-neutral-dark mb-4">
+            <h3 className="text-lg font-semibold text-ink mb-4">
               {currentCroppedUrl ? 'Change Category' : 'Select Category'}
             </h3>
             <div className="grid grid-cols-2 gap-4">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategorySelect(category.id)}
-                  disabled={!category.enabled}
-                  className={`
-                    p-6 rounded-2xl border-2 transition-all
-                    ${
-                      selectedCategory === category.id
-                        ? 'border-accent-info bg-primary-blue shadow-lg scale-105'
-                        : 'border-neutral-medium/30 bg-white hover:border-accent-info hover:shadow-md'
-                    }
-                    ${!category.enabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
-                  `}
-                >
-                  <div className="text-4xl mb-2">{category.icon}</div>
-                  <p className="font-semibold text-neutral-dark">{category.label}</p>
-                </button>
-              ))}
+              {categories.map((category) => {
+                const IconComponent = category.icon;
+                if (!IconComponent) {
+                  console.error(`Icon component is undefined for category: ${category.id}`);
+                  return null;
+                }
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategorySelect(category.id)}
+                    disabled={!category.enabled}
+                    className={`
+                      p-6 rounded-2xl border-2 transition-all
+                      ${
+                        selectedCategory === category.id
+                          ? 'border-primary bg-primary-light shadow-medium scale-105'
+                          : 'border-neutral-medium/30 bg-white hover:border-primary/50 hover:shadow-soft'
+                      }
+                      ${!category.enabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
+                    `}
+                  >
+                    <div className="flex justify-center mb-2">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        selectedCategory === category.id ? 'bg-primary' : 'bg-primary-light'
+                      }`}>
+                        <IconComponent className={`w-6 h-6 ${
+                          selectedCategory === category.id ? 'text-white' : 'text-primary'
+                        }`} strokeWidth={2} />
+                      </div>
+                    </div>
+                    <p className="font-semibold text-ink">{category.label}</p>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -140,6 +151,7 @@ export default function CategoryScreen({
           fullWidth
           onClick={handleConfirm}
           disabled={!selectedCategory}
+          className="text-lg py-4"
         >
           Confirm & Continue
         </Button>

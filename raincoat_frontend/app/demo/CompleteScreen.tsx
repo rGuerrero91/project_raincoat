@@ -1,6 +1,7 @@
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
+import { Umbrella, Sparkles, Lock } from 'lucide-react';
 
 interface CompleteScreenProps {
   onRestart: () => void;
@@ -19,7 +20,10 @@ export default function CompleteScreen({ onRestart }: CompleteScreenProps) {
     <Container className="flex items-center justify-center min-h-screen">
       <Card padding="xl" className="text-center max-w-2xl w-full">
         {/* Success Icon with Animation */}
-        <div className="text-8xl mb-8 animate-float">☂️✨</div>
+        <div className="flex justify-center mb-8 gap-4">
+          <Umbrella className="w-24 h-24 text-primary animate-float" strokeWidth={1.5} />
+          <Sparkles className="w-20 h-20 text-primary animate-float" style={{ animationDelay: '0.3s' }} strokeWidth={1.5} />
+        </div>
 
         {/* Headline */}
         <h2 className="text-headline font-bold mb-4">
@@ -72,7 +76,8 @@ export default function CompleteScreen({ onRestart }: CompleteScreenProps) {
         {/* Footer Message */}
         <div className="mt-10 p-6 bg-primary-light rounded-2xl">
           <p className="text-sm text-primary font-semibold flex items-center justify-center gap-2">
-            🔒 Remember: Your photos never leave your device
+            <Lock className="w-4 h-4" />
+            <span>Remember: Your photos never leave your device</span>
           </p>
         </div>
 

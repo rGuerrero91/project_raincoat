@@ -9,35 +9,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Modern Apple/Cladwell inspired color palette
+        // Muted pastel color palette
         primary: {
-          DEFAULT: "#0071e3", // Apple blue
-          dark: "#0077ed",
-          light: "#0071e31a",
-          bg: "#f5f5f7", // Apple light gray
+          DEFAULT: "#8bb8e8", // Muted pastel blue
+          dark: "#6ba3d6",
+          light: "#e8f0f8", // Very light pastel blue
+          bg: "#f8f9fa", // Soft off-white
         },
         accent: {
-          DEFAULT: "#0071e3",
-          hover: "#0077ed",
-          muted: "#6e6e73",
+          DEFAULT: "#8bb8e8",
+          hover: "#6ba3d6",
+          muted: "#9ca3af", // Muted gray
         },
         ink: {
-          DEFAULT: "#1d1d1f",
-          light: "#424245",
+          DEFAULT: "#374151", // Softer dark gray instead of pure black
+          light: "#6b7280",
         },
         neutral: {
-          dark: "#1d1d1f",
-          medium: "#6e6e73",
-          light: "#f5f5f7",
+          dark: "#374151",
+          medium: "#9ca3af",
+          light: "#f3f4f6", // Soft gray
           bg: "#ffffff",
         },
-        // Legacy colors for backward compatibility
-        "primary-blue": "#e3f2fd",
-        "primary-green": "#e1f5e1",
-        "primary-amber": "#fff3e0",
-        "accent-info": "#0071e3",
+        // Legacy colors for backward compatibility (muted versions)
+        "primary-blue": "#e8f0f8",
+        "primary-green": "#e8f4e8",
+        "primary-amber": "#fef3e8",
+        "accent-info": "#8bb8e8",
         "accent-success": "#c8e6c9",
-        "accent-warning": "#f57c00",
+        "accent-warning": "#f9b896", // Muted orange
       },
       fontFamily: {
         sans: [
@@ -65,10 +65,10 @@ const config: Config = {
         "full": "9999px",
       },
       boxShadow: {
-        "soft": "0 2px 20px rgba(0, 0, 0, 0.08)",
-        "medium": "0 4px 30px rgba(0, 0, 0, 0.12)",
-        "large": "0 8px 40px rgba(0, 0, 0, 0.16)",
-        "accent": "0 4px 12px rgba(0, 113, 227, 0.3)",
+        "soft": "0 2px 20px rgba(0, 0, 0, 0.06)",
+        "medium": "0 4px 30px rgba(0, 0, 0, 0.08)",
+        "large": "0 8px 40px rgba(0, 0, 0, 0.12)",
+        "accent": "0 4px 12px rgba(139, 184, 232, 0.25)", // Muted blue shadow
       },
       backdropBlur: {
         xs: "2px",

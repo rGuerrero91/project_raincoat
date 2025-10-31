@@ -1,6 +1,7 @@
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
+import { Umbrella } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onNext: () => void;
@@ -12,7 +13,9 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
       <Card padding="xl" className="text-center max-w-2xl w-full">
         {/* Logo */}
         <div className="mb-8">
-          <div className="text-7xl mb-6 animate-float">☂️</div>
+          <div className="flex justify-center mb-6">
+            <Umbrella className="w-24 h-24 text-primary animate-float" strokeWidth={1.5} />
+          </div>
           <h1 className="text-hero font-bold mb-4">
             Raincoat
           </h1>

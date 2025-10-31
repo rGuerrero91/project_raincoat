@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
+import { Shirt, Lightbulb, Check } from 'lucide-react';
 import { ClothingItem } from '../page';
 import apiClient from '@/lib/api';
 
@@ -61,13 +62,11 @@ export default function RecommendationsScreen({
         if (response.success && response.data) {
           console.log('Recommendations received:', response.data);
 
-          // Update weather info if available
           if (response.data.weather) {
             const w = response.data.weather;
             setWeatherInfo(`${w.temperature}°F, ${w.condition}`);
           }
 
-          // Map API recommendations to our format if available
           if (response.data.recommendations && response.data.recommendations.length > 0) {
             const mappedOutfits = response.data.recommendations.map((rec: any, index: number) => ({
               name: rec.name || `Outfit ${index + 1}`,
@@ -94,10 +93,12 @@ export default function RecommendationsScreen({
 
   if (isLoading) {
     return (
-      <Container className="flex items-center justify-center">
-        <Card padding="lg" className="text-center max-w-xl">
-          <div className="text-6xl mb-6 animate-float">👔</div>
-          <h2 className="text-2xl font-medium text-neutral-dark mb-2">
+      <Container className="flex items-center justify-center min-h-screen">
+        <Card padding="xl" className="text-center max-w-2xl w-full">
+          <div className="flex justify-center mb-6 animate-float">
+            <Shirt className="w-24 h-24 text-primary" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-headline font-bold mb-2">
             Creating outfit ideas...
           </h2>
           <p className="text-neutral-medium">
@@ -107,38 +108,41 @@ export default function RecommendationsScreen({
       </Container>
     );
   }
+
   return (
-    <Container className="py-8">
+    <Container className="py-8 min-h-screen">
       {/* Header */}
-      <div className="mb-6 text-center">
+      <div className="mb-8 text-center">
         {error && (
-          <div className="mb-2 text-xs text-white/70 italic">
+          <div className="mb-2 text-xs text-neutral-medium italic">
             {error}
           </div>
         )}
-        <h2 className="text-3xl font-medium text-white mb-2">
-          Perfect for Today
+        <h2 className="text-headline font-bold mb-3">
+          Perfect for <strong className="text-primary">today</strong>
         </h2>
-        <p className="text-white/80">
+        <p className="text-lg text-neutral-medium">
           {weatherInfo} in {location.city}
         </p>
       </div>
 
       {/* Outfit Cards */}
-      <div className="space-y-4 mb-6">
+      <div className="space-y-4 mb-8">
         {outfits.map((outfit, index) => (
           <Card key={index} padding="md" hover className="cursor-pointer">
             {/* Outfit Header */}
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="text-xl font-semibold text-neutral-dark mb-1">
+                <h3 className="text-xl font-semibold text-ink mb-1">
                   {outfit.name}
                 </h3>
                 <p className="text-sm text-neutral-medium">
                   {outfit.itemCount} items
                 </p>
               </div>
-              <div className="text-2xl">👔</div>
+              <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center">
+                <Shirt className="w-6 h-6 text-primary" strokeWidth={2} />
+              </div>
             </div>
 
             {/* Item Thumbnails */}
@@ -148,7 +152,7 @@ export default function RecommendationsScreen({
                 return item ? (
                   <div
                     key={itemIndex}
-                    className="w-20 h-20 rounded-lg overflow-hidden bg-neutral-light flex-shrink-0"
+                    className="w-20 h-20 rounded-xl overflow-hidden bg-neutral-light flex-shrink-0"
                   >
                     <img
                       src={item.processedImage || item.image}
@@ -164,21 +168,21 @@ export default function RecommendationsScreen({
                 .map((_, i) => (
                   <div
                     key={`placeholder-${i}`}
-                    className="w-20 h-20 rounded-lg bg-neutral-light flex-shrink-0 flex items-center justify-center"
+                    className="w-20 h-20 rounded-xl bg-neutral-light flex-shrink-0 flex items-center justify-center"
                   >
-                    <span className="text-3xl">👕</span>
+                    <Shirt className="w-8 h-8 text-neutral-medium" strokeWidth={1.5} />
                   </div>
                 ))}
             </div>
 
             {/* Reason */}
-            <p className="text-sm text-neutral-medium italic">
+            <p className="text-sm text-neutral-medium italic mb-3">
               "{outfit.reason}"
             </p>
 
             {/* Match Badge */}
-            <div className="mt-3 inline-flex items-center gap-2 bg-accent-success/20 text-accent-success px-3 py-1 rounded-full text-sm font-medium">
-              <span>✓</span>
+            <div className="inline-flex items-center gap-2 bg-primary-light text-primary px-3 py-1.5 rounded-full text-sm font-semibold">
+              <Check className="w-4 h-4" />
               <span>Great match for weather</span>
             </div>
           </Card>
@@ -191,15 +195,16 @@ export default function RecommendationsScreen({
           Complete Demo
         </Button>
 
-        <button className="btn-secondary w-full">
+        <Button variant="secondary" fullWidth>
           See Similar Items
-        </button>
+        </Button>
       </div>
 
       {/* Info Box */}
-      <div className="mt-6 p-4 bg-white/90 backdrop-blur-sm rounded-lg">
-        <p className="text-sm text-neutral-dark text-center">
-          💡 Based on AI analysis of your closet and current weather
+      <div className="mt-6 p-5 bg-primary-light rounded-2xl">
+        <p className="text-sm text-ink text-center flex items-center justify-center gap-2">
+          <Lightbulb className="w-4 h-4 text-primary" />
+          <span>Based on AI analysis of your closet and current weather</span>
         </p>
       </div>
     </Container>

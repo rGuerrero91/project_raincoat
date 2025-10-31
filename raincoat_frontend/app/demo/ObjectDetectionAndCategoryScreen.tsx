@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Container from "@/components/Container";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
+import { Search, Shirt, RectangleHorizontal, Coat, Footprints, Backpack } from "lucide-react";
 import yoloDetector, { type YOLODetection } from "@/lib/yolo-detector";
 
 interface ObjectDetectionAndCategoryScreenProps {
@@ -11,12 +12,12 @@ interface ObjectDetectionAndCategoryScreenProps {
   onNext: (category: string, croppedImageUrl: string) => void;
 }
 
-const CATEGORY_MAP: Record<string, { icon: string; label: string }> = {
-  top: { icon: "👕", label: "Top" },
-  bottom: { icon: "👖", label: "Bottom" },
-  outerwear: { icon: "🧥", label: "Outerwear" },
-  shoes: { icon: "👟", label: "Shoes" },
-  accessories: { icon: "🎒", label: "Accessories" },
+const CATEGORY_MAP: Record<string, { icon: React.ComponentType<{ className?: string }>; label: string }> = {
+  top: { icon: Shirt, label: "Top" },
+  bottom: { icon: RectangleHorizontal, label: "Bottom" },
+  outerwear: { icon: Coat, label: "Outerwear" },
+  shoes: { icon: Footprints, label: "Shoes" },
+  accessories: { icon: Backpack, label: "Accessories" },
 };
 
 export default function ObjectDetectionAndCategoryScreen({
@@ -48,161 +49,118 @@ export default function ObjectDetectionAndCategoryScreen({
   // load image once
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
-      setIsDetecting(true);
-      setError(null);
-      try {
-        const img = new Image();
-        const objectUrl = URL.createObjectURL(imageFile);
-        objectUrlRef.current = objectUrl;
+    const img = new Image();
+    objectUrlRef.current = URL.createObjectURL(imageFile);
 
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
-          img.onerror = (e) => reject(e);
-          img.src = objectUrl;
-        });
-
-        if (cancelled) {
-          if (objectUrlRef.current) {
-            URL.revokeObjectURL(objectUrlRef.current);
-            objectUrlRef.current = null;
-          }
-          return;
-        }
-
+    img.onload = () => {
+      if (!cancelled) {
         setImageElement(img);
-      } catch (err) {
-        console.error("load image error", err);
-        setError("Failed to load image");
-      } finally {
-        // don't flip detecting here — detection effect will manage it
       }
     };
-
-    load();
+    img.onerror = () => {
+      if (!cancelled) {
+        setError("Failed to load image");
+        setIsDetecting(false);
+      }
+    };
+    img.src = objectUrlRef.current;
 
     return () => {
       cancelled = true;
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current);
-        objectUrlRef.current = null;
       }
     };
   }, [imageFile]);
 
-  // run detection when imageElement is ready and canvas present
+  // run YOLO detection
   useEffect(() => {
     if (!imageElement) return;
 
     let cancelled = false;
-    const canvas = canvasRef.current ?? null;
 
-    const run = async () => {
-      setIsDetecting(true);
-      setError(null);
+    const detect = async () => {
       try {
-        await yoloDetector.initialize(); // assume idempotent
-      } catch (err) {
-        console.error("yolo init error", err);
-        if (!cancelled) setError("Model initialization failed.");
-        setIsDetecting(false);
-        return;
-      }
+        await yoloDetector.initialize();
+        if (cancelled) return;
 
-      try {
         const results = await yoloDetector.detect(imageElement);
         if (cancelled) return;
 
-        setDetections(results || []);
-
-        // defensive drawing
-        if (canvas) {
-          try {
-            // ensure drawDetections guards against null canvas internally, but we protect here too
-            yoloDetector.drawDetections(canvas, imageElement, results || []);
-          } catch (drawErr) {
-            console.warn("drawDetections failed:", drawErr);
-          }
-        }
-
-        // compute best by category
+        // find best detection per category
         const best: Record<string, YOLODetection | null> = {};
-        for (const cat of Object.keys(CATEGORY_MAP)) {
-          const dets = (results || []).filter((d) => d.category === cat);
-          best[cat] = dets.length
-            ? dets.reduce((a, b) => (a.confidence > b.confidence ? a : b))
-            : null;
-        }
-        setBestByCategory(best);
+        Object.keys(CATEGORY_MAP).forEach((cat) => {
+          const matches = results.filter((r) => r.category === cat);
+          best[cat] =
+            matches.length > 0
+              ? matches.reduce((prev, curr) =>
+                  prev.confidence > curr.confidence ? prev : curr
+                )
+              : null;
+        });
 
-        // auto-select first available category (optional)
-        const firstAvailable = Object.keys(best).find((k) => !!best[k]);
-        if (firstAvailable && !selectedCategory) {
-          // don't automatically set selectedCategory if user already chose
-          // instead set cropped preview so UI shows something
-          const det = best[firstAvailable]!;
-          const preview = yoloDetector.cropToBbox(imageElement, det.bbox, 0.05);
-          setCroppedUrl(preview);
+        setDetections(results);
+        setBestByCategory(best);
+        setIsDetecting(false);
+
+        if (canvasRef.current) {
+          yoloDetector.drawDetections(canvasRef.current, imageElement, results);
+        }
+
+        // auto-select if only one category has detections
+        const detectedCategories = Object.keys(best).filter((k) => best[k]);
+        if (detectedCategories.length === 1) {
+          setTimeout(() => {
+            handleCategorySelect(detectedCategories[0]);
+          }, 500);
         }
       } catch (err) {
-        console.error("detection error", err);
-        if (!cancelled)
-          setError("Detection failed. You can continue manually.");
-      } finally {
-        if (!cancelled) setIsDetecting(false);
+        if (!cancelled) {
+          console.error("Detection error:", err);
+          setError(err instanceof Error ? err.message : "Detection failed");
+          setIsDetecting(false);
+        }
       }
     };
 
-    // tiny delay to ensure DOM painted (rare race)
-    const t = window.setTimeout(run, 10);
+    detect();
 
     return () => {
       cancelled = true;
-      clearTimeout(t);
     };
-    // intentionally depend only on imageElement; canvasRef is stable
   }, [imageElement]);
 
-  const handleSelectCategory = (category: string) => {
+  const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
-    const det = bestByCategory[category];
-    if (!det || !imageElement) {
-      setCroppedUrl(null);
-      return;
-    }
-    try {
-      const preview = yoloDetector.cropToBbox(imageElement, det.bbox, 0.05);
-      setCroppedUrl(preview);
-    } catch (err) {
-      console.warn("cropToBbox error", err);
-      setCroppedUrl(null);
+    const detection = bestByCategory[category];
+    if (detection && imageElement) {
+      const cropped = yoloDetector.cropToBbox(
+        imageElement,
+        detection.bbox,
+        0.05
+      );
+      setCroppedUrl(cropped);
     }
   };
 
-  const handleContinue = () => {
-    try {
-      const finalImage =
-        croppedUrl || objectUrlRef.current || URL.createObjectURL(imageFile);
-      const category = selectedCategory || "Unknown";
-      onNext(category, finalImage);
-    } catch (err) {
-      console.error("continue error", err);
-      onNext("Unknown", URL.createObjectURL(imageFile));
+  const handleConfirm = () => {
+    if (selectedCategory && croppedUrl) {
+      onNext(selectedCategory, croppedUrl);
     }
   };
-
-  // UI
 
   if (isDetecting) {
     return (
-      <Container className="flex items-center justify-center min-h-[60vh]">
-        <Card padding="lg" className="text-center">
-          <div className="text-5xl mb-4 animate-float">🔍</div>
-          <h2 className="text-xl font-semibold text-neutral-dark">
-            Detecting clothing...
+      <Container className="flex items-center justify-center min-h-screen">
+        <Card padding="xl" className="text-center max-w-2xl w-full">
+          <div className="flex justify-center mb-6 animate-float">
+            <Search className="w-24 h-24 text-primary" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-headline font-bold mb-2">
+            Detecting clothing items...
           </h2>
           <p className="text-neutral-medium">
-            This usually takes 2–5 seconds. Found {detections.length} items.
+            Using AI to find items in your photo
           </p>
         </Card>
       </Container>
@@ -211,125 +169,101 @@ export default function ObjectDetectionAndCategoryScreen({
 
   if (error) {
     return (
-      <Container className="flex flex-col items-center justify-center min-h-[60vh]">
-        <Card padding="lg" className="text-center">
-          <h2 className="text-xl mb-3">Detection Unavailable</h2>
-          <p className="text-neutral-medium mb-4">{error}</p>
-          <div className="flex gap-3">
-            <Button
-              variant="primary"
-              onClick={() =>
-                onNext(
-                  "Unknown",
-                  objectUrlRef.current || URL.createObjectURL(imageFile)
-                )
-              }
-            >
-              Continue without detection
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                // allow retry: re-run detection by clearing imageElement so effect reloads
-                setError(null);
-                setIsDetecting(true);
-                setImageElement(null);
-                // reload image to retrigger detection effect
-                const reload = async () => {
-                  const img = new Image();
-                  const url = URL.createObjectURL(imageFile);
-                  objectUrlRef.current = url;
-                  await new Promise<void>((resolve, reject) => {
-                    img.onload = () => resolve();
-                    img.onerror = (e) => reject(e);
-                    img.src = url;
-                  });
-                  setImageElement(img);
-                };
-                reload().catch((e) => {
-                  console.error("reload image failed", e);
-                  setError("Retry failed");
-                  setIsDetecting(false);
-                });
-              }}
-            >
-              Retry
-            </Button>
-          </div>
+      <Container className="flex items-center justify-center min-h-screen">
+        <Card padding="xl" className="text-center max-w-2xl w-full">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button variant="primary" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
         </Card>
       </Container>
     );
   }
 
   return (
-    <Container className="py-8 space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl text-white mb-2">Select Clothing Category</h2>
-        <p className="text-white/70">
-          Tap a category to preview the detected item.
+    <Container className="py-8 min-h-screen">
+      <div className="mb-8 text-center">
+        <h2 className="text-headline font-bold mb-3">
+          Select <strong className="text-primary">Category</strong>
+        </h2>
+        <p className="text-lg text-neutral-medium">
+          Found items in your photo
         </p>
       </div>
 
-      <Card>
-        {/* canvas: we let drawDetections handle sizing; defensive in yolo-detector */}
-        <canvas
-          ref={canvasRef}
-          className="max-w-full h-auto rounded-md mx-auto"
-          style={{ maxHeight: "400px" }}
-        />
-      </Card>
+      {imageElement && canvasRef.current && (
+        <Card padding="md" className="mb-6">
+          <canvas
+            ref={canvasRef}
+            className="max-w-full h-auto rounded-2xl"
+            style={{ maxHeight: "400px" }}
+          />
+        </Card>
+      )}
 
-      {/* Category selection buttons */}
-      <div className="grid grid-cols-5 gap-2 text-center">
-        {Object.entries(CATEGORY_MAP).map(([key, { icon, label }]) => {
-          const hasDetection = !!bestByCategory[key];
-          const det = bestByCategory[key];
-          const confidence = det ? Math.round(det.confidence * 100) : null;
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {Object.entries(CATEGORY_MAP).map(([key, { icon: IconComponent, label }]) => {
+          const detection = bestByCategory[key];
+          const isSelected = selectedCategory === key;
+          const hasDetection = detection !== null;
+
           return (
-            <button
+            <Card
               key={key}
-              disabled={!hasDetection}
-              onClick={() => handleSelectCategory(key)}
-              className={`p-3 rounded-lg transition ${
-                selectedCategory === key
-                  ? "bg-accent-info text-white"
+              padding="md"
+              hover
+              className={`cursor-pointer transition-all ${
+                isSelected
+                  ? "border-2 border-primary bg-primary-light"
                   : hasDetection
-                    ? "bg-neutral-dark text-white hover:bg-accent-info/60"
-                    : "bg-neutral-light text-neutral-medium opacity-50 cursor-not-allowed"
+                  ? "border border-neutral-medium/30"
+                  : "border border-neutral-medium/20 opacity-50"
               }`}
+              onClick={() => hasDetection && handleCategorySelect(key)}
             >
-              <div className="text-3xl mb-1">{icon}</div>
-              <div className="text-xs font-medium">{label}</div>
-              {confidence !== null && (
-                <div className="text-[10px] mt-1 opacity-80">{confidence}%</div>
-              )}
-            </button>
+              <div className="flex flex-col items-center text-center">
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 ${
+                  isSelected ? "bg-primary" : "bg-primary-light"
+                }`}>
+                  <IconComponent className={`w-8 h-8 ${
+                    isSelected ? "text-white" : "text-primary"
+                  }`} strokeWidth={2} />
+                </div>
+                <p className="font-semibold text-ink mb-1">{label}</p>
+                {hasDetection ? (
+                  <p className="text-xs text-neutral-medium">
+                    {(detection!.confidence * 100).toFixed(0)}% confidence
+                  </p>
+                ) : (
+                  <p className="text-xs text-neutral-medium">Not detected</p>
+                )}
+              </div>
+            </Card>
           );
         })}
       </div>
 
       {selectedCategory && croppedUrl && (
-        <div className="mt-6 text-center">
-          <p className="text-white mb-2">
-            Cropped preview for{" "}
-            <strong>{CATEGORY_MAP[selectedCategory].label}</strong>
-          </p>
-          <img
-            src={croppedUrl}
-            alt="Cropped preview"
-            className="mx-auto rounded-md max-h-[300px] border border-neutral-medium"
-          />
+        <div className="mb-6">
+          <Card padding="md">
+            <h3 className="font-semibold text-ink mb-3">Preview:</h3>
+            <img
+              src={croppedUrl}
+              alt="Cropped preview"
+              className="max-w-full max-h-64 object-contain rounded-xl"
+            />
+          </Card>
         </div>
       )}
 
       <Button
         variant="primary"
         fullWidth
-        className="mt-6"
-        disabled={!selectedCategory}
-        onClick={handleContinue}
+        onClick={handleConfirm}
+        disabled={!selectedCategory || !croppedUrl}
+        className="text-lg py-4"
       >
-        Continue
+        Confirm & Continue
       </Button>
     </Container>
   );

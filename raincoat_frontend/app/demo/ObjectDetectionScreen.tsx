@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
+import { Search, AlertTriangle, Info, Shirt as ShirtIcon, Shirt as BottomIcon, Coat, Footprints, Backpack } from 'lucide-react';
 import yoloDetector, { type YOLODetection } from '@/lib/yolo-detector';
 
 interface ObjectDetectionScreenProps {
@@ -24,6 +25,14 @@ const categoryDisplayNames: { [key: string]: string } = {
   accessories: 'Accessories'
 };
 
+const categoryIcons: { [key: string]: React.ComponentType<{ className?: string }> } = {
+  top: ShirtIcon,
+  bottom: BottomIcon,
+  outerwear: Coat,
+  shoes: Footprints,
+  accessories: Backpack,
+};
+
 export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }: ObjectDetectionScreenProps) {
   const [isDetecting, setIsDetecting] = useState(true);
   const [detections, setDetections] = useState<YOLODetection[]>([]);
@@ -38,7 +47,6 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
       try {
         console.log('[ObjectDetectionScreen] Starting YOLO detection');
 
-        // Load image
         const img = new Image();
         const imageUrl = URL.createObjectURL(imageFile);
 
@@ -52,7 +60,6 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
 
         setImageElement(img);
 
-        // Initialize and run YOLO detection
         await yoloDetector.initialize();
 
         if (isCancelled) return;
@@ -64,14 +71,12 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
         console.log('[ObjectDetectionScreen] Detections:', results);
         setDetections(results);
 
-        // Draw detections on canvas
         if (canvasRef.current && results.length > 0) {
           yoloDetector.drawDetections(canvasRef.current, img, results);
         }
 
         setIsDetecting(false);
 
-        // Auto-select if only one detection
         if (results.length === 1) {
           console.log('[ObjectDetectionScreen] Auto-selecting single detection');
           setTimeout(() => handleSelectDetection(results[0]), 1000);
@@ -96,10 +101,8 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
 
     console.log('[ObjectDetectionScreen] User selected:', detection.category);
 
-    // Crop to selected detection
     const croppedUrl = yoloDetector.cropToBbox(imageElement, detection.bbox, 0.05);
 
-    // Pass all data including original image and all detections for re-cropping
     onDetectionSelected(detection, croppedUrl, imageElement, detections);
   };
 
@@ -108,30 +111,30 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
 
     if (!imageElement) return;
 
-    // Use full image
     const fullImageUrl = URL.createObjectURL(imageFile);
 
-    // Pass image element and empty detections array even when skipping
     onDetectionSelected(null, fullImageUrl, imageElement, detections);
   };
 
   if (isDetecting) {
     return (
-      <Container className="flex items-center justify-center">
-        <Card padding="lg" className="text-center max-w-xl">
-          <div className="text-6xl mb-6 animate-float">🔍</div>
-          <h2 className="text-2xl font-medium text-neutral-dark mb-2">
+      <Container className="flex items-center justify-center min-h-screen">
+        <Card padding="xl" className="text-center max-w-2xl w-full">
+          <div className="flex justify-center mb-6 animate-float">
+            <Search className="w-24 h-24 text-primary" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-headline font-bold mb-2">
             Detecting clothing items...
           </h2>
-          <p className="text-neutral-medium">
+          <p className="text-neutral-medium mb-6">
             Using AI to find items in your photo
           </p>
 
           {/* Loading animation */}
-          <div className="mt-6 flex justify-center gap-2">
-            <div className="w-3 h-3 bg-accent-info rounded-full animate-pulse" />
-            <div className="w-3 h-3 bg-accent-info rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-            <div className="w-3 h-3 bg-accent-info rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+          <div className="flex justify-center gap-2">
+            <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
+            <div className="w-3 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+            <div className="w-3 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
           </div>
         </Card>
       </Container>
@@ -140,14 +143,17 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
 
   if (error) {
     return (
-      <Container className="flex items-center justify-center">
-        <Card padding="lg" className="text-center max-w-xl">
-          <div className="mb-6 p-4 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
-            <p className="text-yellow-700 font-semibold">⚠️ Detection unavailable</p>
-            <p className="text-sm text-yellow-600 mt-2">{error}</p>
+      <Container className="flex items-center justify-center min-h-screen">
+        <Card padding="xl" className="text-center max-w-2xl w-full">
+          <div className="mb-6 p-5 bg-yellow-50 border-2 border-yellow-200 rounded-2xl">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-700" />
+              <p className="text-yellow-700 font-semibold">Detection unavailable</p>
+            </div>
+            <p className="text-sm text-yellow-600">{error}</p>
           </div>
 
-          <h2 className="text-2xl font-medium text-neutral-dark mb-4">
+          <h2 className="text-headline font-bold mb-4">
             Continue without detection?
           </h2>
 
@@ -161,16 +167,19 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
 
   if (detections.length === 0) {
     return (
-      <Container className="flex items-center justify-center">
-        <Card padding="lg" className="text-center max-w-xl">
-          <div className="mb-6 p-4 bg-blue-100 border-2 border-blue-300 rounded-lg">
-            <p className="text-blue-700 font-semibold">ℹ️ No items detected</p>
-            <p className="text-sm text-blue-600 mt-2">
+      <Container className="flex items-center justify-center min-h-screen">
+        <Card padding="xl" className="text-center max-w-2xl w-full">
+          <div className="mb-6 p-5 bg-primary-light border-2 border-primary/30 rounded-2xl">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Info className="w-5 h-5 text-primary" />
+              <p className="text-primary font-semibold">No items detected</p>
+            </div>
+            <p className="text-sm text-primary">
               We couldn't find any clothing items in this photo
             </p>
           </div>
 
-          <h2 className="text-2xl font-medium text-neutral-dark mb-4">
+          <h2 className="text-headline font-bold mb-4">
             Continue with full image?
           </h2>
 
@@ -183,12 +192,12 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
   }
 
   return (
-    <Container className="py-8">
-      <div className="mb-6 text-center">
-        <h2 className="text-3xl font-medium text-white mb-2">
-          Select an Item
+    <Container className="py-8 min-h-screen">
+      <div className="mb-8 text-center">
+        <h2 className="text-headline font-bold mb-3">
+          Select an <strong className="text-primary">item</strong>
         </h2>
-        <p className="text-white/80">
+        <p className="text-lg text-neutral-medium">
           Found {detections.length} {detections.length === 1 ? 'item' : 'items'} in your photo
         </p>
       </div>
@@ -199,7 +208,7 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
           <div className="relative w-full flex justify-center">
             <canvas
               ref={canvasRef}
-              className="max-w-full h-auto rounded-lg"
+              className="max-w-full h-auto rounded-2xl"
               style={{ maxHeight: '400px' }}
             />
           </div>
@@ -208,33 +217,32 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
 
       {/* Detection options */}
       <div className="space-y-3 mb-6">
-        {detections.map((detection, index) => (
-          <Card
-            key={index}
-            padding="md"
-            hover
-            className="cursor-pointer"
-            onClick={() => handleSelectDetection(detection)}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-neutral-dark">
-                  {categoryDisplayNames[detection.category] || detection.category}
-                </h3>
-                <p className="text-sm text-neutral-medium">
-                  Confidence: {(detection.confidence * 100).toFixed(1)}%
-                </p>
+        {detections.map((detection, index) => {
+          const CategoryIcon = categoryIcons[detection.category] || ShirtIcon;
+          return (
+            <Card
+              key={index}
+              padding="md"
+              hover
+              className="cursor-pointer"
+              onClick={() => handleSelectDetection(detection)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-ink">
+                    {categoryDisplayNames[detection.category] || detection.category}
+                  </h3>
+                  <p className="text-sm text-neutral-medium">
+                    Confidence: {(detection.confidence * 100).toFixed(1)}%
+                  </p>
+                </div>
+                <div className="w-14 h-14 rounded-xl bg-primary-light flex items-center justify-center">
+                  <CategoryIcon className="w-7 h-7 text-primary" strokeWidth={2} />
+                </div>
               </div>
-              <div className="text-3xl">
-                {detection.category === 'top' && '👕'}
-                {detection.category === 'bottom' && '👖'}
-                {detection.category === 'outerwear' && '🧥'}
-                {detection.category === 'shoes' && '👟'}
-                {detection.category === 'accessories' && '🎒'}
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       {/* Skip button */}

@@ -1,6 +1,7 @@
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
+import { Plus } from 'lucide-react';
 import { ClothingItem } from '../page';
 
 interface ClosetScreenProps {
@@ -65,7 +66,9 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
           onClick={onAddMore}
         >
           <div className="text-center">
-            <div className="text-5xl mb-2">➕</div>
+            <div className="flex justify-center mb-2">
+              <Plus className="w-12 h-12 text-primary" strokeWidth={2} />
+            </div>
             <p className="text-sm font-semibold text-neutral-medium">
               Add Item
             </p>
