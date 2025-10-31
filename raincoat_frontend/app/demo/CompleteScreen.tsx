@@ -16,33 +16,34 @@ const featuresExperienced = [
 
 export default function CompleteScreen({ onRestart }: CompleteScreenProps) {
   return (
-    <Container className="flex items-center justify-center">
-      <Card padding="lg" className="text-center max-w-xl">
+    <Container className="flex items-center justify-center min-h-screen">
+      <Card padding="xl" className="text-center max-w-2xl w-full">
         {/* Success Icon with Animation */}
-        <div className="text-8xl mb-6">☂️✨</div>
+        <div className="text-8xl mb-8 animate-float">☂️✨</div>
 
         {/* Headline */}
-        <h2 className="text-4xl font-bold text-neutral-dark mb-4">
-          That's a Raincoat!
+        <h2 className="text-headline font-bold mb-4">
+          That's a <strong className="text-primary">Raincoat!</strong>
         </h2>
 
-        <p className="text-lg text-neutral-medium mb-8">
+        <p className="text-lg text-neutral-medium mb-10 leading-relaxed">
           You've experienced the future of weather-smart outfit planning
         </p>
 
         {/* Features Checklist */}
-        <div className="bg-neutral-light rounded-lg p-6 mb-8 text-left">
-          <p className="font-semibold text-neutral-dark mb-4">
+        <div className="bg-neutral-light rounded-3xl p-8 mb-10 text-left">
+          <p className="font-semibold text-ink text-lg mb-6">
             What you experienced:
           </p>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {featuresExperienced.map((feature, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-accent-success rounded-full flex items-center justify-center mt-0.5">
+              <div key={index} className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-7 h-7 bg-primary rounded-full flex items-center justify-center mt-0.5">
                   <svg
                     className="w-4 h-4 text-white"
                     fill="currentColor"
                     viewBox="0 0 20 20"
+                    aria-hidden="true"
                   >
                     <path
                       fillRule="evenodd"
@@ -51,32 +52,32 @@ export default function CompleteScreen({ onRestart }: CompleteScreenProps) {
                     />
                   </svg>
                 </div>
-                <p className="text-neutral-dark">{feature}</p>
+                <p className="text-ink leading-relaxed">{feature}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button variant="primary" fullWidth onClick={onRestart}>
+        <div className="space-y-4">
+          <Button variant="primary" fullWidth onClick={onRestart} className="text-lg py-4">
             Restart Demo
           </Button>
 
-          <button className="btn-tertiary w-full">
+          <Button variant="tertiary" fullWidth>
             Learn More
-          </button>
+          </Button>
         </div>
 
         {/* Footer Message */}
-        <div className="mt-8 p-4 bg-gradient-to-r from-primary-blue to-primary-green rounded-lg">
-          <p className="text-sm text-neutral-dark font-medium">
+        <div className="mt-10 p-6 bg-primary-light rounded-2xl">
+          <p className="text-sm text-primary font-semibold flex items-center justify-center gap-2">
             🔒 Remember: Your photos never leave your device
           </p>
         </div>
 
         {/* Optional Confetti Effect Placeholder */}
-        <p className="text-xs text-neutral-medium mt-6">
+        <p className="text-xs text-neutral-medium mt-8 opacity-70">
           Built for weather-conscious fashion lovers who value privacy
         </p>
       </Card>

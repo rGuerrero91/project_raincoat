@@ -7,7 +7,7 @@ interface ContainerProps {
 
 export default function Container({ children, className = '' }: ContainerProps) {
   return (
-    <div className={`container-app min-h-screen ${className}`}>
+    <div className={`container-app ${className}`}>
       {children}
     </div>
   );

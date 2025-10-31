@@ -7,14 +7,14 @@ import { onnxProcessor } from '@/lib/onnx-processor';
 
 interface ProcessingScreenProps {
   imageFile: File;
-  croppedImageUrl?: string;  // YOLO-cropped image URL (if available)
+  croppedImageUrl?: string;
   onComplete: (result: { embedding: number[]; tags: string[]; processedImageUrl: string }) => void;
 }
 
 const processingSteps = [
-  'Removing background...',
-  'Analyzing item...',
-  'Generating tags...',
+  { label: 'Removing background...', icon: '🎨' },
+  { label: 'Analyzing item...', icon: '🔍' },
+  { label: 'Generating tags...', icon: '🏷️' },
 ];
 
 export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplete }: ProcessingScreenProps) {
@@ -23,7 +23,6 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Prevent duplicate processing attempts
     if (isProcessing) {
       console.log('[ProcessingScreen] Already processing, skipping...');
       return;
@@ -36,12 +35,10 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
       try {
         console.log('[ProcessingScreen] Starting ONNX processing');
 
-        // Convert cropped image URL to File if available
         let fileToProcess = imageFile;
 
         if (croppedImageUrl) {
           console.log('[ProcessingScreen] Using YOLO-cropped image');
-          // Convert data URL to File
           const response = await fetch(croppedImageUrl);
           const blob = await response.blob();
           fileToProcess = new File([blob], imageFile.name, { type: imageFile.type });
@@ -52,7 +49,6 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
           (step) => {
             if (isCancelled) return;
 
-            // Map progress messages to step indices
             if (step.includes('background')) {
               setCurrentStep(0);
             } else if (step.includes('Analyzing')) {
@@ -74,7 +70,6 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
           tags: result.tags.map(t => t.label)
         });
 
-        // Complete with real results
         onComplete({
           embedding: result.embedding,
           tags: result.tags.map(t => t.label),
@@ -89,88 +84,99 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
 
     processImage();
 
-    // Cleanup function to cancel processing if component unmounts
     return () => {
       console.log('[ProcessingScreen] Cleanup - cancelling processing');
       isCancelled = true;
     };
-  }, [imageFile]); // Removed onComplete from dependencies to prevent re-runs
+  }, [imageFile]);
 
   return (
-    <Container className="flex items-center justify-center">
-      <Card padding="lg" className="text-center max-w-xl">
+    <Container className="flex items-center justify-center min-h-screen">
+      <Card padding="xl" className="text-center max-w-2xl w-full">
         {/* Error Display */}
         {error && (
-          <div className="mb-6 p-4 bg-red-100 border-2 border-red-300 rounded-lg">
-            <p className="text-red-700 font-semibold">❌ {error}</p>
-            <p className="text-sm text-red-600 mt-2">
+          <div className="mb-6 p-5 bg-red-50 border-2 border-red-200 rounded-2xl">
+            <p className="text-red-700 font-semibold text-lg mb-2">❌ {error}</p>
+            <p className="text-sm text-red-600">
               Make sure the Rails API is running on port 3000
             </p>
           </div>
         )}
 
         {/* Headline */}
-        <h2 className="text-3xl font-medium text-neutral-dark mb-6">
-          Processing Locally...
+        <h2 className="text-headline font-bold mb-4">
+          Processing <strong className="text-primary">locally</strong>
         </h2>
 
+        <p className="text-lg text-neutral-medium mb-8">
+          Everything happens on your device
+        </p>
+
         {/* Image Thumbnail */}
-        <div className="mb-8 flex justify-center">
-          <div className="relative w-32 h-32 rounded-lg overflow-hidden shadow-md">
+        <div className="mb-10 flex justify-center">
+          <div className="relative w-40 h-40 rounded-3xl overflow-hidden shadow-medium">
             <img
               src={URL.createObjectURL(imageFile)}
               alt="Processing"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-accent-info/10 animate-pulse-subtle" />
+            <div className="absolute inset-0 bg-primary/10 animate-pulse-subtle" />
           </div>
         </div>
 
         {/* Processing Steps */}
-        <div className="space-y-4 mb-8">
-          {processingSteps.map((step, index) => (
-            <div
-              key={index}
-              className={`
-                flex items-center gap-4 p-4 rounded-lg transition-all
-                ${
-                  index === currentStep
-                    ? 'bg-primary-amber text-accent-warning'
-                    : index < currentStep
-                    ? 'bg-accent-success text-white'
-                    : 'bg-neutral-light text-neutral-medium'
-                }
-              `}
-            >
-              <div className="flex-shrink-0">
-                {index < currentStep ? (
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : index === currentStep ? (
-                  <div className="w-6 h-6 border-3 border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <div className="w-6 h-6 rounded-full border-2 border-current" />
-                )}
+        <div className="space-y-3 mb-8">
+          {processingSteps.map((step, index) => {
+            const isActive = index === currentStep;
+            const isComplete = index < currentStep;
+            
+            return (
+              <div
+                key={index}
+                className={`
+                  flex items-center gap-4 p-5 rounded-2xl transition-all duration-300
+                  ${
+                    isActive
+                      ? 'bg-primary-light border-2 border-primary'
+                      : isComplete
+                      ? 'bg-primary-light/50 border border-primary/30'
+                      : 'bg-neutral-light border border-neutral-medium/20'
+                  }
+                `}
+              >
+                <div className="flex-shrink-0 text-2xl">
+                  {step.icon}
+                </div>
+                <div className="flex-shrink-0">
+                  {isComplete ? (
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  ) : isActive ? (
+                    <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full border-2 border-neutral-medium" />
+                  )}
+                </div>
+                <p className={`font-medium text-left flex-1 ${isActive ? 'text-primary' : 'text-neutral-medium'}`}>
+                  {step.label}
+                </p>
               </div>
-              <p className="font-medium text-left flex-1">{step}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Time Estimate */}
-        <p className="text-sm text-neutral-medium">
-          About 3-4 seconds
-        </p>
+        <div className="badge mb-6">
+          ⏱️ About 3-4 seconds
+        </div>
 
         {/* Privacy Reminder */}
-        <div className="mt-6 p-4 bg-primary-green rounded-lg">
-          <p className="text-sm text-neutral-dark">
-            🔒 Processing on your device
+        <div className="bg-primary-light rounded-2xl p-5">
+          <p className="text-sm text-primary font-semibold flex items-center justify-center gap-2">
+            🔒 Processing on your device • Photos never uploaded
           </p>
         </div>
       </Card>

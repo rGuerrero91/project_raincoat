@@ -8,34 +8,36 @@ interface WelcomeScreenProps {
 
 export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
   return (
-    <Container className="flex items-center justify-center">
-      <Card padding="lg" className="text-center max-w-xl">
+    <Container className="flex items-center justify-center min-h-screen">
+      <Card padding="xl" className="text-center max-w-2xl w-full">
         {/* Logo */}
-        <div className="mb-6">
-          <h1 className="text-5xl font-bold text-accent-info mb-2">
+        <div className="mb-8">
+          <div className="text-7xl mb-6 animate-float">☂️</div>
+          <h1 className="text-hero font-bold mb-4">
             Raincoat
           </h1>
-          <div className="text-6xl mb-4">☂️</div>
+          <p className="text-eyebrow mb-2">Weather-Smart Wardrobe</p>
         </div>
 
         {/* Hero Content */}
-        <h2 className="text-3xl font-medium text-neutral-dark mb-4 leading-tight">
-          Your Weather-Smart Wardrobe
+        <h2 className="text-headline font-bold mb-6 leading-tight">
+          Smart outfits.<br />
+          <strong className="text-primary">Zero privacy compromise.</strong>
         </h2>
 
-        <p className="text-lg text-neutral-medium mb-8 leading-relaxed">
-          AI-powered outfit recommendations that respect your privacy
+        <p className="text-lg text-neutral-medium mb-10 leading-relaxed max-w-xl mx-auto">
+          AI-powered outfit recommendations that respect your privacy. All processing happens on your device—your photos never leave your phone.
         </p>
 
         {/* CTA Button */}
-        <Button variant="primary" fullWidth onClick={onNext}>
-          Start Demo
-        </Button>
-
-        {/* Subtle Description */}
-        <p className="text-sm text-neutral-medium mt-6 opacity-75">
-          Experience a 3-minute demo of smart outfit planning
-        </p>
+        <div className="space-y-4">
+          <Button variant="primary" fullWidth onClick={onNext} className="text-lg py-4">
+            Start Demo
+          </Button>
+          <p className="text-sm text-neutral-medium opacity-70">
+            Experience a 3-minute demo of smart outfit planning
+          </p>
+        </div>
       </Card>
     </Container>
   );

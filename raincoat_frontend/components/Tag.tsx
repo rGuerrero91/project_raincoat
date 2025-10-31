@@ -17,14 +17,23 @@ export default function Tag({
     <span
       className={`tag ${removable ? 'tag-removable' : ''} ${className}`}
       onClick={removable ? onRemove : undefined}
+      role={removable ? 'button' : undefined}
+      tabIndex={removable ? 0 : undefined}
+      onKeyDown={removable && onRemove ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onRemove();
+        }
+      } : undefined}
     >
       {label}
       {removable && (
         <svg
-          className="ml-1 h-4 w-4 inline-block"
+          className="ml-1.5 h-4 w-4 inline-block"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"

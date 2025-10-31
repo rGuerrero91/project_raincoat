@@ -35,17 +35,17 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
   const suggestedTags = ['formal', 'spring', 'breathable', 'warm'];
 
   return (
-    <Container className="flex items-center justify-center">
-      <Card padding="lg" className="text-center max-w-xl">
+    <Container className="flex items-center justify-center min-h-screen py-8">
+      <Card padding="xl" className="text-center max-w-2xl w-full">
         {/* Headline */}
-        <h2 className="text-3xl font-medium text-neutral-dark mb-3">
-          How does this look?
+        <h2 className="text-headline font-bold mb-4">
+          How does this <strong className="text-primary">look?</strong>
         </h2>
 
-        {/* Processed Image - Show background-removed version if available */}
+        {/* Processed Image */}
         {(item.processedImage || item.image) && (
-          <div className="mb-6 flex justify-center">
-            <div className="relative w-48 h-48 rounded-lg overflow-hidden shadow-lg bg-neutral-light">
+          <div className="mb-8 flex justify-center">
+            <div className="relative w-56 h-56 rounded-3xl overflow-hidden shadow-medium bg-neutral-light">
               <img
                 src={item.processedImage || item.image}
                 alt="Processed item"
@@ -56,10 +56,10 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
         )}
 
         {/* Subheading */}
-        <p className="text-lg text-neutral-medium mb-4">Suggested tags:</p>
+        <p className="text-lg text-neutral-medium mb-6">Suggested tags:</p>
 
         {/* Tags Display */}
-        <div className="flex flex-wrap gap-2 justify-center mb-6 min-h-[60px]">
+        <div className="flex flex-wrap gap-2 justify-center mb-8 min-h-[60px]">
           {tags.map((tag, index) => (
             <Tag
               key={index}
@@ -72,8 +72,8 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
 
         {/* Edit Mode */}
         {isEditing && (
-          <div className="mb-6 p-4 bg-neutral-light rounded-lg">
-            <p className="text-sm font-semibold text-neutral-dark mb-3">
+          <div className="mb-8 p-6 bg-neutral-light rounded-2xl">
+            <p className="text-base font-semibold text-ink mb-4">
               Add More Tags
             </p>
 
@@ -85,7 +85,7 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
                   <button
                     key={index}
                     onClick={() => setTags([...tags, tag])}
-                    className="tag hover:bg-accent-info hover:text-white cursor-pointer"
+                    className="tag hover:bg-primary hover:text-white cursor-pointer transition-all"
                   >
                     + {tag}
                   </button>
@@ -100,7 +100,7 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
                 placeholder="Custom tag..."
-                className="flex-1 px-4 py-2 border-2 border-neutral-medium/30 rounded-lg focus:border-accent-info focus:outline-none"
+                className="flex-1 px-5 py-3 border-2 border-neutral-medium/30 rounded-full focus:border-primary focus:outline-none transition-colors"
               />
               <Button variant="secondary" onClick={handleAddTag}>
                 Add
@@ -123,7 +123,10 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
               <Button
                 variant="primary"
                 fullWidth
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setIsEditing(false);
+                  handleNext();
+                }}
               >
                 Save Changes
               </Button>

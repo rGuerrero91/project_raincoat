@@ -24,35 +24,37 @@ export default function AddItemScreen({ onNext }: AddItemScreenProps) {
   };
 
   return (
-    <Container className="flex items-center justify-center">
-      <Card padding="lg" className="text-center max-w-xl">
+    <Container className="flex items-center justify-center min-h-screen py-8">
+      <Card padding="xl" className="text-center max-w-2xl w-full">
         {/* Empty State Illustration */}
-        <div className="text-8xl mb-6">👔</div>
+        <div className="text-8xl mb-8">👔</div>
 
         {/* Headline */}
-        <h2 className="text-3xl font-medium text-neutral-dark mb-3">
-          Add Your First Item
+        <h2 className="text-headline font-bold mb-4">
+          Add your first <strong className="text-primary">item</strong>
         </h2>
 
         {/* Subheading */}
-        <p className="text-lg text-neutral-medium mb-2">
-          Add a photo of a clothing item, it can be the piece by itself or a selfie
+        <p className="text-lg text-neutral-medium mb-3 leading-relaxed max-w-xl mx-auto">
+          Add a photo of a clothing item. It can be the piece by itself or a selfie.
         </p>
 
-        <p className="text-sm text-neutral-medium mb-8 opacity-75">
-          (photos don't get uploaded anywhere)
-        </p>
+        <div className="badge mb-10">
+          ✓ Photos don't get uploaded anywhere
+        </div>
 
         {/* Upload Area */}
         <div
           onClick={handleUploadClick}
-          className="border-2 border-dashed border-neutral-medium/30 rounded-2xl p-12 mb-6 cursor-pointer hover:border-accent-info hover:bg-primary-blue/30 transition-all"
+          className="border-2 border-dashed border-neutral-medium/30 rounded-4xl p-16 mb-8 cursor-pointer transition-all duration-300 hover:border-primary hover:bg-primary-light/30 hover:shadow-soft group"
         >
-          <div className="text-5xl mb-3">📸</div>
-          <p className="text-lg font-semibold text-neutral-dark">
+          <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
+            📸
+          </div>
+          <p className="text-xl font-semibold text-ink mb-2">
             Upload Photo
           </p>
-          <p className="text-sm text-neutral-medium mt-2">
+          <p className="text-sm text-neutral-medium">
             Click to select or drag and drop
           </p>
         </div>
@@ -67,16 +69,16 @@ export default function AddItemScreen({ onNext }: AddItemScreenProps) {
         />
 
         {/* Helper Text */}
-        <div className="bg-primary-amber/30 rounded-lg p-4 text-left">
-          <p className="text-sm text-neutral-dark">
-            <span className="font-semibold">Pro tip:</span> Use good lighting and a simple background
+        <div className="bg-primary-light rounded-2xl p-5 text-left mb-6">
+          <p className="text-sm text-ink leading-relaxed">
+            <span className="font-semibold">Pro tip:</span> Use good lighting and a simple background for best results.
           </p>
         </div>
 
         {/* Example Link */}
-        <button className="btn-tertiary mt-6 w-full">
+        <Button variant="tertiary" fullWidth>
           See Example Photos
-        </button>
+        </Button>
       </Card>
     </Container>
   );

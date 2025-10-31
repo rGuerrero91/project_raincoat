@@ -11,19 +11,19 @@ interface ClosetScreenProps {
 
 export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenProps) {
   return (
-    <Container className="py-8">
+    <Container className="py-8 min-h-screen">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-3xl font-medium text-white text-center mb-2">
-          Your Closet
+      <div className="mb-8 text-center">
+        <h2 className="text-headline font-bold mb-3">
+          Your <strong className="text-primary">closet</strong>
         </h2>
-        <p className="text-white/80 text-center">
-          {items.length} {items.length === 1 ? 'item' : 'items'}
+        <p className="text-lg text-neutral-medium">
+          {items.length} {items.length === 1 ? 'item' : 'items'} added
         </p>
       </div>
 
       {/* Items Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 mb-8">
         {items.map((item, index) => (
           <Card
             key={index}
@@ -31,7 +31,7 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
             hover
             className="cursor-pointer"
           >
-            <div className="aspect-square rounded-lg overflow-hidden bg-neutral-light mb-3">
+            <div className="aspect-square rounded-2xl overflow-hidden bg-neutral-light mb-3 shadow-soft">
               <img
                 src={item.processedImage || item.image}
                 alt={`Item ${index + 1}`}
@@ -39,17 +39,17 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
               />
             </div>
 
-            <div className="flex flex-wrap gap-1 min-h-[32px]">
+            <div className="flex flex-wrap gap-1.5 min-h-[32px]">
               {item.tags.slice(0, 3).map((tag, tagIndex) => (
                 <span
                   key={tagIndex}
-                  className="text-xs bg-primary-blue text-accent-info px-2 py-1 rounded-full"
+                  className="text-xs bg-primary-light text-primary px-2.5 py-1 rounded-full font-medium"
                 >
                   {tag}
                 </span>
               ))}
               {item.tags.length > 3 && (
-                <span className="text-xs text-neutral-medium px-2 py-1">
+                <span className="text-xs text-neutral-medium px-2.5 py-1">
                   +{item.tags.length - 3}
                 </span>
               )}
@@ -61,11 +61,11 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
         <Card
           padding="sm"
           hover
-          className="cursor-pointer border-2 border-dashed border-neutral-medium/30 flex items-center justify-center aspect-square"
+          className="cursor-pointer border-2 border-dashed border-neutral-medium/30 flex items-center justify-center aspect-square transition-all hover:border-primary hover:bg-primary-light/20"
           onClick={onAddMore}
         >
           <div className="text-center">
-            <div className="text-4xl mb-2">➕</div>
+            <div className="text-5xl mb-2">➕</div>
             <p className="text-sm font-semibold text-neutral-medium">
               Add Item
             </p>
@@ -74,13 +74,13 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
       </div>
 
       {/* Action Buttons */}
-      <div className="space-y-3">
-        <Button variant="primary" fullWidth onClick={onNext}>
+      <div className="space-y-4">
+        <Button variant="primary" fullWidth onClick={onNext} className="text-lg py-4">
           Get Outfit Ideas
         </Button>
 
         {items.length < 3 && (
-          <p className="text-center text-white/70 text-sm">
+          <p className="text-center text-neutral-medium text-sm">
             Add at least 3 items for better recommendations
           </p>
         )}

@@ -17,7 +17,6 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const baseStyles = fullWidth ? 'w-full' : '';
-
   const variantStyles = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
@@ -26,13 +25,18 @@ export default function Button({
 
   return (
     <button
-      className={`${variantStyles[variant]} ${baseStyles} ${className} disabled:opacity-50 disabled:cursor-not-allowed`}
+      className={`${variantStyles[variant]} ${baseStyles} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
       {loading ? (
         <span className="inline-flex items-center gap-2">
-          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+          <svg
+            className="animate-spin h-5 w-5"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
             <circle
               className="opacity-25"
               cx="12"
@@ -40,7 +44,6 @@ export default function Button({
               r="10"
               stroke="currentColor"
               strokeWidth="4"
-              fill="none"
             />
             <path
               className="opacity-75"

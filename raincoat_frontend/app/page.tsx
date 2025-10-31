@@ -280,7 +280,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-primary-blue via-primary-green to-primary-amber">
+    <main className="min-h-screen bg-neutral-bg">
       {renderStep()}
     </main>
   );
