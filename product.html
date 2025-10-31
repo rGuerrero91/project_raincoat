@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Raincoat — Smart & Private Weather Outfit Recommendations</title>
+  <meta name="description" content="Raincoat: privacy-first, on-device outfit recommendations. Upload your closet, get weather-aware outfits — photos never leave your device." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#fcfcfb;
+      --muted:#6b7280;
+      --ink:#071029;
+      --accent:#1f6feb;
+      --accent-2:#0f766e;
+      --card:#ffffff;
+      --radius:12px;
+      --container-padding:24px;
+      --max-width:980px;
+      --glass: rgba(255,255,255,0.65);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg,#fbfdff 0%, #f7fafc 100%);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.5;
+      padding:36px 0;
+    }
+
+    .wrap{max-width:var(--max-width);margin:0 auto;padding:0 var(--container-padding);}
+
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+    .logo{
+      width:44px;height:44px;border-radius:10px;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      display:flex;align-items:center;justify-content:center;color:white;font-weight:700;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+      font-size:14px;
+    }
+    .brand h1{font-size:15px;margin:0;letter-spacing:-0.01em}
+    .nav{display:flex;gap:14px;align-items:center}
+    .nav a{color:var(--muted);text-decoration:none;font-size:14px}
+
+    main{margin-top:8px}
+
+    .hero{
+      display:grid;
+      grid-template-columns:1fr 380px;
+      gap:28px;
+      align-items:center;
+      background:var(--card);
+      border-radius:16px;
+      padding:28px;
+      box-shadow:0 12px 36px rgba(9,30,66,0.06);
+    }
+    @media (max-width:940px){ .hero{grid-template-columns:1fr;margin:0 0 20px 0} .hero-right{order:2} }
+
+    .eyebrow{color:var(--accent-2);font-weight:600;font-size:13px}
+    .headline{font-size:26px;margin:8px 0 12px;color:var(--ink);line-height:1.05}
+    .lede{color:var(--muted);font-size:15px;margin-bottom:18px;max-width:60ch}
+
+    .cta-row{display:flex;gap:12px;align-items:center}
+    .btn{
+      display:inline-block;padding:11px 16px;border-radius:10px;background:var(--accent);color:white;text-decoration:none;font-weight:600;
+      box-shadow: 0 6px 18px rgba(31,111,235,0.10);font-size:14px;
+    }
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(31,111,235,0.10);box-shadow:none}
+
+    .hero-right{
+      background:linear-gradient(180deg,rgba(15,118,110,0.02),rgba(31,111,235,0.02));
+      padding:18px;border-radius:12px;
+    }
+    .mock{
+      height:320px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfeff);
+      display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;padding:18px;gap:10px;color:var(--muted);font-size:13px;
+      border:1px solid rgba(9,30,66,0.03);
+    }
+    .mock img{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block}
+
+    .status{display:inline-block;background:#f1f5f9;color:var(--muted);padding:8px 12px;border-radius:999px;font-weight:600;font-size:13px;border:1px solid rgba(9,30,66,0.03)}
+
+    /* privacy section */
+    .privacy{
+      margin-top:22px;padding:20px;border-radius:12px;background:linear-gradient(180deg,var(--glass),#fff);
+      border:1px solid rgba(9,30,66,0.03);
+    }
+    .privacy h2{margin:0;margin-bottom:8px;font-size:20px;color:var(--ink)}
+    .privacy p{margin:0;color:var(--muted)}
+
+    /* features */
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:32px 0}
+    @media (max-width:900px){ .features{grid-template-columns:1fr} }
+    .feature{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(9,30,66,0.04)}
+    .feature h3{margin:0 0 8px;font-size:16px}
+    .feature p{margin:0;color:var(--muted);font-size:14px}
+
+    /* tech stack */
+    .tech{background:var(--card);border-radius:12px;padding:18px;margin-bottom:28px;box-shadow:0 6px 18px rgba(9,30,66,0.04)}
+    .tech h3{margin:0 0 8px;font-size:16px;color:var(--ink)}
+    .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    .chip{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;padding:8px 12px;border-radius:999px;font-weight:600;font-size:13px}
+
+    footer{display:flex;justify-content:space-between;align-items:center;margin-top:34px;padding-top:20px;border-top:1px solid rgba(9,30,66,0.03);color:var(--muted);font-size:13px}
+    @media (max-width:760px){ footer{flex-direction:column;gap:12px;align-items:flex-start} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="/"><div class="logo">RC</div><div><h1>Raincoat</h1><div style="font-size:12px;color:var(--muted)">Smart, private outfit recommendations</div></div></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#privacy">Privacy</a>
+        <a href="#features">Features</a>
+        <a href="#tech">Tech</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" role="region" aria-labelledby="hero-heading">
+        <div class="hero-left">
+          <div class="eyebrow">Product Demo</div>
+          <h1 id="hero-heading" class="headline">Smart outfits without compromising on privacy</h1>
+          <p class="lede">Upload your closet once and get daily, weather-based outfit suggestions. All image processing runs locally — your photos never leave your device.</p>
+
+          <div class="cta-row" style="margin-bottom:12px">
+            <a class="btn" href="#features">See features</a>
+            <a class="btn ghost" href="https://raincoatlabs.nyc" target="_blank" rel="noopener">Back to Raincoat Labs</a>
+          </div>
+
+          <div style="color:var(--muted);font-size:13px">Early access available — request a demo if you are a retailer or developer.</div>
+
+          <div class="privacy" id="privacy" style="margin-top:18px">
+            <h2>Your photos stay private</h2>
+            <p>Raincoat runs background removal, detection, and embedding generation in-browser with ONNX Runtime Web and WebGPU where available. We only receive anonymized vectors and user-validated tags.</p>
+          </div>
+        </div>
+
+        <aside class="hero-right" aria-hidden="false">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-weight:700">Live prototype</div>
+            <div style="font-size:13px;color:var(--muted)">Embeddings only</div>
+          </div>
+
+          <div class="mock" aria-hidden="true">
+            <img id="mockup" src="./assets/preview_mockups/mockup0.png" alt="Raincoat app preview mockup" />
+            <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+              <div class="status">In development</div>
+              <div style="color:var(--muted);font-size:13px">Client-side ONNX pipeline</div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section id="features" style="margin-top:28px">
+        <div class="features">
+          <div class="feature">
+            <h3>Smart Auto-Tagging</h3>
+            <p>Automatic clothing classification and attribute detection to eliminate manual tagging and speed up closet organization.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Weather-Based Suggestions</h3>
+            <p>Personalized outfit recommendations matched to local weather and forecast data so you're always prepared.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Similarity Search</h3>
+            <p>Find visually similar items across your wardrobe and discover alternatives from partner catalogs using vector search.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Multi-Location Support</h3>
+            <p>Manage multiple closets for different cities, offices, or travel destinations with location-aware recommendations.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Instant Client Processing</h3>
+            <p>ONNX models running in the browser with progressive loading and WebGPU acceleration for near-instant results.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Travel Mode</h3>
+            <p>Pack smarter with suggested packing lists and outfits tailored to the forecast at your destination.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tech" class="tech" aria-labelledby="tech-heading">
+        <h3 id="tech-heading">Built with modern tech</h3>
+        <p style="color:var(--muted);margin:0">Privacy-first architecture powered by on-device inference and efficient vector search.</p>
+        <div class="chips" style="margin-top:14px">
+          <div class="chip">Next.js</div>
+          <div class="chip">Ruby on Rails</div>
+          <div class="chip">PostgreSQL + pgvector</div>
+          <div class="chip">ONNX Runtime Web</div>
+          <div class="chip">YOLOv8</div>
+          <div class="chip">FashionCLIP</div>
+          <div class="chip">U²-Net</div>
+          <div class="chip">WebGPU</div>
+          <div class="chip">TypeScript</div>
+        </div>
+      </section>
+
+      <footer>
+        <div>
+          <strong>Raincoat</strong><br/>
+          Private, weather-aware outfit recommendations
+        </div>
+        <div style="text-align:right">
+          <div style="margin-bottom:6px;color:var(--muted)">© 2025 Raincoat — Prototype</div>
+          <a href="https://www.linkedin.com/company/project-raincoat/" style="color:var(--muted);text-decoration:none" target="_blank" rel="noopener">LinkedIn</a>
+          <span style="margin-left:10px;color:var(--muted)">•</span>
+          <a href="mailto:hello@raincoatlabs.nyc" style="color:var(--muted);text-decoration:none;margin-left:10px">Contact</a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // lightweight mockup selector — replace paths with your images
+    (function(){
+      var mockupImg = document.getElementById('mockup');
+      if(!mockupImg) return;
+      var width = window.innerWidth;
+      var pool = width < 640 ? 2 : 5;
+      var idx = Math.floor(Math.random() * pool);
+      var path = './assets/preview_mockups/';
+      var file = width < 640 ? 'mobile' + (idx+1) + '.png' : 'mockup' + idx + '.png';
+      mockupImg.src = path + file;
+      // graceful fallback if image missing
+      mockupImg.onerror = function(){ mockupImg.style.background = 'linear-gradient(180deg,#fff,#f6fbff)'; mockupImg.alt='Raincoat app preview'; }
+    })();
+  </script>
+</body>
+</html>
