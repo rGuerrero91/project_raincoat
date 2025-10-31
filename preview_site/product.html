@@ -259,7 +259,7 @@
       var mockupImg = document.getElementById('mockup');
       if(!mockupImg) return;
       var width = window.innerWidth;
-      var pool = width < 640 ? 2 : 5;
+      var pool = width < 640 ? 2 : 4;
       var idx = Math.floor(Math.random() * pool);
       var path = './assets/preview_mockups/';
       var file = width < 640 ? 'mobile' + (idx+1) + '.png' : 'mockup' + idx + '.png';
