@@ -138,7 +138,7 @@
     <header>
       <a class="brand" href="/">
         <div class="logo">
-          <img src="assets/preview_mockups/raincoatLabsLogo.jpg" alt="Raincoat Labs Logo" />
+          <img src="../assets/preview_mockups/raincoatLabsLogo.jpg" alt="Raincoat Labs Logo" />
         </div>
         <div>
           <h1>Raincoat</h1>
@@ -179,7 +179,7 @@
           </div>
 
           <div class="mock" aria-hidden="true">
-            <img id="mockup" src="./assets/preview_mockups/mockup0.png" alt="Raincoat app preview mockup" />
+            <img id="mockup" src="../assets/preview_mockups/mockup0.png" alt="Raincoat app preview mockup" />
             <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-top:8px">
               <div class="status">In development</div>
               <div style="color:var(--muted);font-size:13px">Client-side ONNX pipeline</div>
@@ -261,7 +261,7 @@
       var width = window.innerWidth;
       var pool = width < 640 ? 2 : 5;
       var idx = Math.floor(Math.random() * pool);
-      var path = './assets/preview_mockups/';
+      var path = '../assets/preview_mockups/';
       var file = width < 640 ? 'mobile' + (idx+1) + '.png' : 'mockup' + idx + '.png';
       mockupImg.src = path + file;
       // graceful fallback if image missing

@@ -138,7 +138,7 @@
     <header>
       <a class="brand" href="/">
         <div class="logo">
-          <img src="assets/preview_mockups/raincoatLabsLogo.jpg" alt="Raincoat Labs Logo" />
+          <img src="../assets/preview_mockups/raincoatLabsLogo.jpg" alt="Raincoat Labs Logo" />
         </div>
         <div>
           <h1>Raincoat Labs</h1>
@@ -157,7 +157,7 @@
       <section class="hero" role="region" aria-labelledby="hero-heading">
         <div class="hero-left">
           <div class="eyebrow">Now building</div>
-          <h2 class="headline">On-device visual AI for privacy-first apps and retailers</h2>
+          <h2 class="headline">On-device visual pipeline for privacy-first apps and retailers</h2>
           <p class="lede">Raincoat Labs develops a modular client-side computer vision pipeline and similarity engine so brands and developers can add visual search, recommendations, and private personalization without uploading photos.</p>
 
           <div class="cta-row">
@@ -190,7 +190,7 @@
                 <div style="font-size:13px;font-weight:600">Raincoat Demo</div>
                 <div style="font-size:12px;color:var(--muted)">Embeddings only</div>
               </div>
-              <div style="margin-top:10px;color:var(--muted);font-size:13px">On-device detection, background removal, and embedding generation — zero image upload.</div>
+              <div style="margin-top:10px;color:var(--muted);font-size:13px">Client-side detection, background removal, embedding generation, zero image upload.</div>
             </div>
           </div>
         </aside>
@@ -232,7 +232,7 @@
         <div class="secondary" id="labs">
           <div style="max-width:65%">
             <h3 style="margin:0 0 6px">About Raincoat Labs</h3>
-            <p style="margin:0;color:var(--muted)">We build a modular visual intelligence layer that lets developers add image-powered features while keeping user data private. Our first production use case is Raincoat — a consumer app that demonstrates the tech and drives early adoption.</p>
+            <p style="margin:0;color:var(--muted)">We build modular visual intelligence edge-AI that lets developers add vision-powered features while keeping user data private. Our first production use case is Raincoat a consumer app that demonstrates the tech and drives early adoption.</p>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
@@ -272,8 +272,32 @@
         return;
       }
       msg.textContent = 'Thanks — we will reach out with early access details.';
-      // TODO: replace with real API call, e.g. fetch('/api/early-access', { method:'POST', body: JSON.stringify({email}) })
-      console.log('Early access request:', email);
+
+      // API call to submit early access request
+      // Use relative URL so it works in both development and production
+      const apiUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:3002/api/early-access'
+        : '/api/early-access';
+
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Early access request successful:', data);
+        if (data.duplicate) {
+          msg.textContent = 'You are already registered for early access.';
+        }
+      })
+      .catch(error => {
+        console.error('Early access request failed:', error);
+        msg.textContent = 'There was an error. Please try again later.';
+      });
+
       document.getElementById('email').value = '';
     });
   </script>
