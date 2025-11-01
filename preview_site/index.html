@@ -8,13 +8,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#ffffff;
-      --muted:#6e6e73;
-      --ink:#1d1d1f;
-      --accent:#0071e3;
-      --accent-2:#0077ed;
-      --accent-hover:#0077ed;
-      --card:#f5f5f7;
+      --bg:#fdfcfb;
+      --muted:#8b9199;
+      --ink:#4a5568;
+      --accent:#d4a89a;
+      --accent-2:#e5c4b8;
+      --accent-hover:#c29585;
+      --card:#f7f6f4;
+      --accent-light:#f5ebe8;
       --radius:18px;
       --container-padding:max(22px, env(safe-area-inset-left));
       --max-width:1280px;
@@ -101,6 +102,7 @@
       height:100%;
       object-fit:cover;
       display:block;
+      filter:grayscale(50%);
     }
 
     .brand h1{
@@ -231,17 +233,17 @@
     .btn:hover{
       background:var(--accent-hover);
       transform:translateY(-1px);
-      box-shadow:0 4px 12px rgba(0,113,227,0.3);
+      box-shadow:0 4px 12px rgba(212,168,154,0.25);
     }
 
     .btn.ghost{
       background:transparent;
-      color:var(--accent);
-      border:1px solid rgba(0,113,227,0.3);
+      color:var(--ink);
+      border:1px solid rgba(212,168,154,0.4);
     }
 
     .btn.ghost:hover{
-      background:rgba(0,113,227,0.08);
+      background:rgba(212,168,154,0.08);
       box-shadow:none;
       transform:none;
     }
@@ -280,13 +282,132 @@
       display:inline-flex;
       align-items:center;
       gap:var(--spacing-xs);
-      background:rgba(0,113,227,0.1);
-      color:var(--accent);
+      background:rgba(212,168,154,0.12);
+      color:var(--ink);
       padding:8px 16px;
       border-radius:20px;
       font-weight:600;
       font-size:14px;
       margin-top:var(--spacing-md);
+    }
+
+    /* Architecture Diagram */
+    .arch-diagram{
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      gap:var(--spacing-md);
+      align-items:center;
+      padding:var(--spacing-lg) var(--spacing-md);
+    }
+
+    @media (max-width:768px){
+      .arch-diagram{
+        grid-template-columns:1fr;
+        gap:var(--spacing-sm);
+      }
+      .arch-arrow{
+        transform:rotate(90deg);
+        margin:var(--spacing-xs) 0;
+      }
+    }
+
+    .arch-card{
+      background:white;
+      border-radius:12px;
+      padding:var(--spacing-md);
+      display:flex;
+      flex-direction:column;
+      gap:var(--spacing-sm);
+      box-shadow:0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .arch-card-title{
+      font-size:15px;
+      font-weight:600;
+      color:var(--ink);
+      margin-bottom:var(--spacing-xs);
+    }
+
+    .arch-icon{
+      width:48px;
+      height:48px;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:var(--spacing-xs);
+      background:linear-gradient(135deg, var(--accent-light), var(--card));
+    }
+
+    .arch-tech-badge{
+      display:inline-block;
+      background:rgba(212,168,154,0.1);
+      color:var(--ink);
+      padding:4px 10px;
+      border-radius:12px;
+      font-size:11px;
+      font-weight:600;
+      margin:2px;
+    }
+
+    .arch-feature{
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.4;
+    }
+
+    .arch-feature-icon{
+      width:16px;
+      height:16px;
+      flex-shrink:0;
+      margin-top:2px;
+    }
+
+    .arch-arrow{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:var(--spacing-xs);
+    }
+
+    .arch-arrow-line{
+      width:40px;
+      height:2px;
+      background:linear-gradient(90deg, var(--accent-2), var(--accent));
+      position:relative;
+    }
+
+    .arch-arrow-line::after{
+      content:'';
+      position:absolute;
+      right:-6px;
+      top:-4px;
+      width:0;
+      height:0;
+      border-left:6px solid var(--accent);
+      border-top:5px solid transparent;
+      border-bottom:5px solid transparent;
+    }
+
+    .arch-arrow-label{
+      font-size:11px;
+      font-weight:600;
+      color:var(--accent);
+      text-align:center;
+      line-height:1.3;
+    }
+
+    .arch-highlight{
+      background:rgba(212,168,154,0.08);
+      padding:var(--spacing-xs) var(--spacing-sm);
+      border-radius:8px;
+      border-left:3px solid var(--accent);
+      font-size:12px;
+      color:var(--ink);
+      font-weight:500;
     }
 
     /* Features Section */
@@ -340,7 +461,7 @@
       box-shadow:0 12px 40px rgba(0,0,0,0.08);
     }
 
-    .feature-icon{
+    /* .feature-icon{
       width:48px;
       height:48px;
       border-radius:12px;
@@ -350,7 +471,7 @@
       justify-content:center;
       margin-bottom:var(--spacing-sm);
       font-size:24px;
-    }
+    } */
 
     .feature h3{
       font-size:24px;
@@ -546,9 +667,9 @@
   <header>
     <div class="header-content">
       <a class="brand" href="/">
-        <div class="logo">
-          <img src="./assets/preview_mockups/raincoatLabsLogo.jpg" alt="Raincoat Labs Logo" />
-        </div>
+        <!-- <div class="logo">
+          <img src="./assets/raincoatLabsLogo1.jpg" alt="Raincoat Labs Logo" />
+        </div> -->
         <h1>Raincoat Labs</h1>
       </a>
 
@@ -576,15 +697,75 @@
             </div>
 
             <div class="badge">
-              ✓ Built for retailers, marketplaces, and app developers
+              Built for retailers, marketplaces, and app developers
             </div>
           </div>
 
           <div class="hero-visual">
             <div class="mock-container">
               <div class="mock">
-                <div style="width:100%;height:100%;background:linear-gradient(135deg, #e3f2fd 0%, #f5f5f7 100%);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;">
-                  Live prototype preview
+                <div class="arch-diagram">
+                  <!-- Client Side -->
+                  <div class="arch-card">
+                    <div class="arch-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                      </svg>
+                    </div>
+                    <div class="arch-card-title">Your Device</div>
+                    <!-- <div class="arch-highlight">Photos never leave</div> -->
+                    <div class="arch-feature">
+                      <svg class="arch-feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>AI processing in-browser</span>
+                    </div>
+                    <div class="arch-feature">
+                      <svg class="arch-feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Generate embeddings</span>
+                    </div>
+                    <div style="margin-top:4px;">
+                      <span class="arch-tech-badge">ONNX</span>
+                      <span class="arch-tech-badge">WebGPU</span>
+                    </div>
+                  </div>
+
+                  <!-- Arrow -->
+                  <div class="arch-arrow">
+                    <div class="arch-arrow-line"></div>
+                    <div class="arch-arrow-label">Only 2KB<br/>encrypted</div>
+                  </div>
+
+                  <!-- Server Side -->
+                  <div class="arch-card">
+                    <div class="arch-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                      </svg>
+                    </div>
+                    <div class="arch-card-title">Smart API</div>
+                    <div class="arch-feature">
+                      <svg class="arch-feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Vector similarity search</span>
+                    </div>
+                    <div class="arch-feature">
+                      <svg class="arch-feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Weather-aware matching</span>
+                    </div>
+                    <div style="margin-top:4px;">
+                      <span class="arch-tech-badge">pgvector</span>
+                      <span class="arch-tech-badge">Rails</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -602,37 +783,31 @@
 
         <div class="features">
           <div class="feature">
-            <div class="feature-icon">🔒</div>
             <h3>Client-side inference</h3>
             <p>Run optimized ONNX models in the browser with WebGPU/WASM for real-time detection and embedding generation. Zero server uploads.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">⚡</div>
             <h3>Vector similarity engine</h3>
             <p>512D embeddings and pgvector-compatible search for "find similar" and cross-catalog matching with low-latency results.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">🛡️</div>
             <h3>Privacy by design</h3>
             <p>Only embeddings and user-validated metadata are shared. Reduce data liability while preserving personalization and conversion uplift.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">🔌</div>
             <h3>Retail SDK & API</h3>
             <p>Lightweight SDKs and REST APIs for easy integration into e-commerce platforms, AR try-ons, and discovery features.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">⚙️</div>
             <h3>Model ops & export</h3>
             <p>Production-ready model export (PyTorch → ONNX), progressive loading, quantization, and cross-platform optimization.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">🔐</div>
             <h3>Encrypted compute roadmap</h3>
             <p>Research into obfuscated client-server compute and homomorphic encryption to enable encrypted inference workflows.</p>
           </div>
@@ -645,7 +820,7 @@
         <div class="about-content">
           <div class="about-text">
             <h3>About Raincoat Labs</h3>
-            <p>We build modular visual intelligence edge-AI that lets developers add vision-powered features while keeping user data private. Our first production use case is Raincoat—a consumer app that demonstrates the tech and drives early adoption.</p>
+            <p>We build modular visual intelligence edge-AI that lets developers add vision-powered features while keeping user data private. Our first production use case is Raincoat, a consumer app that demonstrates the tech and drives early adoption.</p>
           </div>
 
           <div class="signup-box">

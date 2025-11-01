@@ -4,17 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Raincoat — Smart & Private Weather Outfit Recommendations</title>
-  <meta name="description" content="Raincoat: privacy-first, on-device outfit recommendations. Upload your closet, get weather-aware outfits — photos never leave your device." />
+  <meta name="description" content="Raincoat: privacy-first, on-device outfit recommendations. Upload your closet, get weather-aware outfits. Photos never leave your device." />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#ffffff;
-      --muted:#6e6e73;
-      --ink:#1d1d1f;
-      --accent:#0071e3;
-      --accent-2:#0077ed;
-      --accent-hover:#0077ed;
-      --card:#f5f5f7;
+      --bg:#fdfcfb;
+      --muted:#8b9199;
+      --ink:#4a5568;
+      --accent:#c78c7a;
+      --accent-2:#e5c4b8;
+      --accent-hover:#c29585;
+      --card:#f7f6f4;
+      --accent-light:#f5ebe8;
       --radius:18px;
       --container-padding:max(22px, env(safe-area-inset-left));
       --max-width:1280px;
@@ -101,6 +102,7 @@
       height:100%;
       object-fit:cover;
       display:block;
+      filter:grayscale(100%);
     }
 
     .brand h1{
@@ -161,14 +163,14 @@
       width:100%;
     }
 
-    @media (max-width:1024px){
+    @media (max-width:768px){
       .hero{
         grid-template-columns:1fr;
         gap:var(--spacing-lg);
         text-align:center;
       }
       .hero-visual{
-        order:-1;
+        /* order:-1; */
       }
     }
 
@@ -231,62 +233,131 @@
     .btn:hover{
       background:var(--accent-hover);
       transform:translateY(-1px);
-      box-shadow:0 4px 12px rgba(0,113,227,0.3);
+      box-shadow:0 4px 12px rgba(212,168,154,0.25);
     }
 
     .btn.ghost{
       background:transparent;
-      color:var(--accent);
-      border:1px solid rgba(0,113,227,0.3);
+      color:var(--ink);
+      border:1px solid rgba(212,168,154,0.4);
     }
 
     .btn.ghost:hover{
-      background:rgba(0,113,227,0.08);
+      background:rgba(212,168,154,0.08);
       box-shadow:none;
       transform:none;
     }
 
     .hero-visual{
       position:relative;
+      max-height:100%;
+      display:flex;
+      align-items:center;
     }
 
     .mock-container{
-      background:linear-gradient(135deg, rgba(0,113,227,0.05) 0%, rgba(0,119,237,0.02) 100%);
+      background:linear-gradient(135deg, rgba(212,168,154,0.08) 0%, rgba(229,196,184,0.04) 100%);
       border-radius:var(--radius);
       padding:var(--spacing-md);
-      box-shadow:0 20px 60px rgba(0,0,0,0.08);
-    }
-
-    .mock{
-      width:100%;
-      border-radius:12px;
-      overflow:hidden;
-      background:white;
-      aspect-ratio:4/3;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      box-shadow:0 20px 60px rgba(0,0,0,0.06);
       position:relative;
+      width:100%;
     }
 
-    .mock img{
+    .carousel{
+      position:relative;
       width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
+      overflow:hidden;
+      border-radius:12px;
+      background:white;
+    }
+
+    .carousel-track{
+      display:flex;
       transition:transform 0.5s ease;
     }
 
-    .mock:hover img{
-      transform:scale(1.02);
+    .carousel-slide{
+      min-width:100%;
+      max-height:70vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:white;
+    }
+
+    .carousel-slide img{
+      width:100%;
+      height:100%;
+      max-height:70vh;
+      object-fit:contain;
+      display:block;
+    }
+
+    .carousel-btn{
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      background:rgba(255,255,255,0.95);
+      border:none;
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:20px;
+      color:var(--ink);
+      box-shadow:0 2px 12px rgba(0,0,0,0.15);
+      transition:all 0.2s ease;
+      z-index:10;
+    }
+
+    .carousel-btn:hover{
+      background:white;
+      box-shadow:0 4px 16px rgba(0,0,0,0.2);
+      transform:translateY(-50%) scale(1.1);
+    }
+
+    .carousel-btn.prev{
+      left:12px;
+    }
+
+    .carousel-btn.next{
+      right:12px;
+    }
+
+    .carousel-dots{
+      display:flex;
+      gap:8px;
+      justify-content:center;
+      margin-top:var(--spacing-sm);
+    }
+
+    .carousel-dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:rgba(212,168,154,0.3);
+      border:none;
+      cursor:pointer;
+      padding:0;
+      transition:all 0.3s ease;
+    }
+
+    .carousel-dot.active{
+      background:var(--accent);
+      width:24px;
+      border-radius:4px;
     }
 
     .status-badge{
       display:inline-flex;
       align-items:center;
       gap:var(--spacing-xs);
-      background:rgba(0,113,227,0.1);
-      color:var(--accent);
+      background:rgba(212,168,154,0.12);
+      color:var(--ink);
       padding:8px 16px;
       border-radius:20px;
       font-weight:600;
@@ -298,7 +369,7 @@
     .privacy-highlight{
       margin-top:var(--spacing-md);
       padding:var(--spacing-md);
-      background:rgba(0,113,227,0.05);
+      background:rgba(212,168,154,0.08);
       border-radius:var(--radius);
       border-left:4px solid var(--accent);
     }
@@ -367,7 +438,7 @@
       box-shadow:0 12px 40px rgba(0,0,0,0.08);
     }
 
-    .feature-icon{
+    /* .feature-icon{
       width:48px;
       height:48px;
       border-radius:12px;
@@ -377,7 +448,7 @@
       justify-content:center;
       margin-bottom:var(--spacing-sm);
       font-size:24px;
-    }
+    } */
 
     .feature h3{
       font-size:24px;
@@ -431,7 +502,7 @@
 
     .chip{
       background:linear-gradient(135deg, var(--accent), var(--accent-2));
-      color:white;
+      color:var(--ink);
       padding:10px 20px;
       border-radius:20px;
       font-weight:600;
@@ -441,7 +512,7 @@
 
     .chip:hover{
       transform:translateY(-2px);
-      box-shadow:0 4px 12px rgba(0,113,227,0.3);
+      box-shadow:0 4px 12px rgba(156,163,175,0.25);
     }
 
     /* Footer */
@@ -547,9 +618,9 @@
   <header>
     <div class="header-content">
       <a class="brand" href="/">
-        <div class="logo">
-          <img src="./assets/preview_mockups/raincoatLabsLogo.jpg" alt="Raincoat Logo" />
-        </div>
+        <!-- <div class="logo">
+          <img src="./assets/raincoatLabsLogo1.jpg" alt="Raincoat Logo" />
+        </div> -->
         <h1>Raincoat</h1>
       </a>
 
@@ -569,16 +640,16 @@
           <div class="hero-content">
             <div class="eyebrow">Product Demo</div>
             <h1 id="hero-heading" class="headline">Smart outfits.<br/><strong>Zero privacy compromise.</strong></h1>
-            <p class="lede">Upload your closet once and get daily, weather-based outfit suggestions. All image processing runs locally—your photos never leave your device.</p>
+            <p class="lede">Upload your closet once and get daily, weather-based outfit suggestions. All image processing runs locally. Your photos never leave your device.</p>
 
             <div class="cta-row">
               <a class="btn" href="#features">See features</a>
               <a class="btn ghost" href="./index.html">Back to Raincoat Labs</a>
             </div>
 
-            <div class="status-badge">
-              ✓ Early access available
-            </div>
+            <!-- <div class="status-badge">
+              Early access available
+            </div> -->
 
             <div class="privacy-highlight" id="privacy">
               <h3>Your photos stay private</h3>
@@ -588,9 +659,25 @@
 
           <div class="hero-visual">
             <div class="mock-container">
-              <div class="mock">
-                <img id="mockup" src="./assets/preview_mockups/mockup0.png" alt="Raincoat app preview mockup" />
+              <div class="carousel">
+                <div class="carousel-track" id="carouselTrack">
+                  <div class="carousel-slide">
+                    <img src="./assets/demo_screens/Screenshot_20251031-191142.png" alt="Raincoat app screenshot 1" />
+                  </div>
+                  <div class="carousel-slide">
+                    <img src="./assets/demo_screens/Screenshot_20251031-191151.png" alt="Raincoat app screenshot 2" />
+                  </div>
+                  <div class="carousel-slide">
+                    <img src="./assets/demo_screens/Screenshot_20251031-191233.png" alt="Raincoat app screenshot 3" />
+                  </div>
+                  <div class="carousel-slide">
+                    <img src="./assets/demo_screens/Screenshot_20251031-203116.png" alt="Raincoat app screenshot 4" />
+                  </div>
+                </div>
+                <button class="carousel-btn prev" id="prevBtn" aria-label="Previous slide">‹</button>
+                <button class="carousel-btn next" id="nextBtn" aria-label="Next slide">›</button>
               </div>
+              <div class="carousel-dots" id="carouselDots"></div>
               <div style="margin-top:var(--spacing-sm);text-align:center;">
                 <div class="status-badge">In development • Client-side ONNX pipeline</div>
               </div>
@@ -609,37 +696,31 @@
 
         <div class="features">
           <div class="feature">
-            <div class="feature-icon">🏷️</div>
             <h3>Smart Auto-Tagging</h3>
             <p>Automatic clothing classification and attribute detection to eliminate manual tagging and speed up closet organization.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">☀️</div>
             <h3>Weather-Based Suggestions</h3>
             <p>Personalized outfit recommendations matched to local weather and forecast data so you're always prepared.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">🔍</div>
             <h3>Similarity Search</h3>
             <p>Find visually similar items across your wardrobe and discover alternatives from partner catalogs using vector search.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">📍</div>
             <h3>Multi-Location Support</h3>
             <p>Manage multiple closets for different cities, offices, or travel destinations with location-aware recommendations.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">⚡</div>
             <h3>Instant Client Processing</h3>
             <p>ONNX models running in the browser with progressive loading and WebGPU acceleration for near-instant results.</p>
           </div>
 
           <div class="feature">
-            <div class="feature-icon">✈️</div>
             <h3>Travel Mode</h3>
             <p>Pack smarter with suggested packing lists and outfits tailored to the forecast at your destination.</p>
           </div>
@@ -686,21 +767,102 @@
   </main>
 
   <script>
-    // Mockup selector
+    // Carousel functionality
     (function(){
-      var mockupImg = document.getElementById('mockup');
-      if(!mockupImg) return;
-      var width = window.innerWidth;
-      var pool = width < 640 ? 2 : 4;
-      var idx = Math.floor(Math.random() * pool);
-      var path = './assets/preview_mockups/';
-      var file = width < 640 ? 'mobile' + idx + '.png' : 'mockup' + idx + '.png';
-      mockupImg.src = path + file;
-      mockupImg.onerror = function(){
-        mockupImg.style.background = 'linear-gradient(135deg, #e3f2fd 0%, #f5f5f7 100%)';
-        mockupImg.alt = 'Raincoat app preview';
-        mockupImg.src = '';
-      };
+      var track = document.getElementById('carouselTrack');
+      var prevBtn = document.getElementById('prevBtn');
+      var nextBtn = document.getElementById('nextBtn');
+      var dotsContainer = document.getElementById('carouselDots');
+
+      if(!track || !prevBtn || !nextBtn || !dotsContainer) return;
+
+      var slides = track.querySelectorAll('.carousel-slide');
+      var totalSlides = slides.length;
+      var currentIndex = 0;
+      var autoplayInterval;
+
+      // Create dots
+      for(var i = 0; i < totalSlides; i++){
+        var dot = document.createElement('button');
+        dot.className = 'carousel-dot';
+        dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+        dot.dataset.index = i;
+        if(i === 0) dot.classList.add('active');
+        dotsContainer.appendChild(dot);
+      }
+
+      var dots = dotsContainer.querySelectorAll('.carousel-dot');
+
+      function updateCarousel(){
+        track.style.transform = 'translateX(-' + (currentIndex * 100) + '%)';
+        dots.forEach(function(dot, idx){
+          dot.classList.toggle('active', idx === currentIndex);
+        });
+      }
+
+      function goToSlide(index){
+        currentIndex = (index + totalSlides) % totalSlides;
+        updateCarousel();
+        resetAutoplay();
+      }
+
+      function nextSlide(){
+        goToSlide(currentIndex + 1);
+      }
+
+      function prevSlide(){
+        goToSlide(currentIndex - 1);
+      }
+
+      function startAutoplay(){
+        autoplayInterval = setInterval(nextSlide, 4000);
+      }
+
+      function stopAutoplay(){
+        clearInterval(autoplayInterval);
+      }
+
+      function resetAutoplay(){
+        stopAutoplay();
+        startAutoplay();
+      }
+
+      // Event listeners
+      prevBtn.addEventListener('click', prevSlide);
+      nextBtn.addEventListener('click', nextSlide);
+
+      dots.forEach(function(dot){
+        dot.addEventListener('click', function(){
+          goToSlide(parseInt(this.dataset.index));
+        });
+      });
+
+      // Pause autoplay on hover
+      track.parentElement.addEventListener('mouseenter', stopAutoplay);
+      track.parentElement.addEventListener('mouseleave', startAutoplay);
+
+      // Touch swipe support
+      var touchStartX = 0;
+      var touchEndX = 0;
+
+      track.addEventListener('touchstart', function(e){
+        touchStartX = e.changedTouches[0].screenX;
+        stopAutoplay();
+      });
+
+      track.addEventListener('touchend', function(e){
+        touchEndX = e.changedTouches[0].screenX;
+        if(touchStartX - touchEndX > 50){
+          nextSlide();
+        } else if(touchEndX - touchStartX > 50){
+          prevSlide();
+        } else {
+          startAutoplay();
+        }
+      });
+
+      // Start autoplay
+      startAutoplay();
     })();
   </script>
 </body>
