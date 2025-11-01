@@ -4,191 +4,696 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Raincoat — Smart & Private Weather Outfit Recommendations</title>
-  <meta name="description" content="Raincoat: privacy-first, on-device outfit recommendations. Upload your closet, get weather-aware outfits — photos never leave your device." />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
- <style>
+  <meta name="description" content="Raincoat: privacy-first, on-device outfit recommendations. Upload your closet, get weather-aware outfits. Photos never leave your device." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
     :root{
-      --bg:#ffffff;
-      --muted:#78716c;
-      --ink:#292524;
-      --accent:#6fb4e9;
-      --accent-2:#4b5afd;
-      --card:#fffef9;
-      --radius:12px;
-      --container-padding:24px;
-      --max-width:1000px;
-      --glass: rgba(246, 245, 255, 0.65);
+      --bg:#fdfcfb;
+      --muted:#8b9199;
+      --ink:#4a5568;
+      --accent:#c78c7a;
+      --accent-2:#e5c4b8;
+      --accent-hover:#c29585;
+      --card:#f7f6f4;
+      --accent-light:#f5ebe8;
+      --radius:18px;
+      --container-padding:max(22px, env(safe-area-inset-left));
+      --max-width:1280px;
+      --spacing-xs:8px;
+      --spacing-sm:16px;
+      --spacing-md:24px;
+      --spacing-lg:48px;
+      --spacing-xl:80px;
     }
 
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
     body{
       margin:0;
-      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:linear-gradient(180deg,#ffffff 0%, #e0f4ff 100%);
-      background-attachment:fixed;
+      font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background:var(--bg);
       color:var(--ink);
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
-      line-height:1.5;
-      padding:36px 0;
+      line-height:1.6;
+      overflow-x:hidden;
     }
 
-    .wrap{max-width:var(--max-width);margin:0 auto;padding:0 var(--container-padding);}
+    .wrap{
+      max-width:var(--max-width);
+      margin:0 auto;
+      padding:0 var(--container-padding);
+    }
 
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+    /* Header */
+    header{
+      position:sticky;
+      top:0;
+      z-index:100;
+      background:rgba(255,255,255,0.8);
+      backdrop-filter:blur(20px);
+      -webkit-backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(0,0,0,0.05);
+      padding:var(--spacing-sm) 0;
+      margin-bottom:0;
+      transition:all 0.3s ease;
+    }
+
+    .header-content{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      max-width:var(--max-width);
+      margin:0 auto;
+      padding:0 var(--container-padding);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:var(--spacing-sm);
+      text-decoration:none;
+      color:inherit;
+      transition:opacity 0.2s;
+    }
+
+    .brand:hover{
+      opacity:0.8;
+    }
+
     .logo{
-      width:150px;height:150px;border-radius:90px;
-      display:flex;align-items:center;justify-content:center;color:white;font-weight:700;
-      font-size:14px;
+      width:40px;
+      height:40px;
+      border-radius:10px;
       overflow:hidden;
+      flex-shrink:0;
     }
-    .logo img{
-      width:100%;height:100%;object-fit:cover;display:block;
-    }
-    .brand h1{font-size:15px;margin:0;letter-spacing:-0.01em}
-    .nav{display:flex;gap:14px;align-items:center}
-    .nav a{color:var(--muted);text-decoration:none;}
 
-    main{margin-top:8px}
+    .logo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      filter:grayscale(100%);
+    }
+
+    .brand h1{
+      font-size:21px;
+      font-weight:600;
+      margin:0;
+      letter-spacing:-0.02em;
+      color:var(--ink);
+    }
+
+    .nav{
+      display:flex;
+      gap:var(--spacing-md);
+      align-items:center;
+    }
+
+    .nav a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:17px;
+      font-weight:400;
+      transition:color 0.2s;
+      position:relative;
+    }
+
+    .nav a:hover{
+      color:var(--ink);
+    }
+
+    .nav a::after{
+      content:'';
+      position:absolute;
+      bottom:-4px;
+      left:0;
+      width:0;
+      height:2px;
+      background:var(--accent);
+      transition:width 0.3s ease;
+    }
+
+    .nav a:hover::after{
+      width:100%;
+    }
+
+    /* Hero Section */
+    .hero-section{
+      padding:var(--spacing-xl) 0;
+      min-height:calc(100vh - 80px);
+      display:flex;
+      align-items:center;
+    }
 
     .hero{
       display:grid;
-      grid-template-columns:1fr 380px;
-      gap:28px;
-      align-items:start;
-      background:var(--card);
-      border-radius:16px;
-      padding:28px;
-      box-shadow:0 12px 36px rgba(9,30,66,0.06);
-    }
-    @media (max-width:940px){
-      .hero{grid-template-columns:1fr;margin:0 0 20px 0}
-      .hero-right{order:2}
-      .logo{width:120px;height:120px}
-      .brand h1{font-size:14px}
-      /* .brand > div > div{display:none} */
-      .headline{font-size:22px}
-      .lede{font-size:14px}
+      grid-template-columns:1fr 1fr;
+      gap:var(--spacing-xl);
+      align-items:center;
+      width:100%;
     }
 
-    .eyebrow{color:var(--accent-2);font-weight:600;font-size:13px}
-    .headline{font-size:26px;margin:8px 0 12px;color:var(--ink);line-height:1.05}
-    .lede{color:var(--muted);font-size:15px;margin-bottom:18px;max-width:60ch}
+    @media (max-width:768px){
+      .hero{
+        grid-template-columns:1fr;
+        gap:var(--spacing-lg);
+        text-align:center;
+      }
+      .hero-visual{
+        /* order:-1; */
+      }
+    }
 
-    .cta-row{display:flex;gap:12px;align-items:center}
+    .eyebrow{
+      color:var(--accent);
+      font-weight:600;
+      font-size:14px;
+      text-transform:uppercase;
+      letter-spacing:0.05em;
+      margin-bottom:var(--spacing-sm);
+    }
+
+    .headline{
+      font-size:clamp(42px, 8vw, 80px);
+      font-weight:700;
+      margin:0 0 var(--spacing-md) 0;
+      color:var(--ink);
+      line-height:1.1;
+      letter-spacing:-0.03em;
+    }
+
+    .headline strong{
+      color:var(--accent);
+      font-weight:700;
+    }
+
+    .lede{
+      color:var(--muted);
+      font-size:21px;
+      margin-bottom:var(--spacing-lg);
+      max-width:65ch;
+      line-height:1.6;
+      font-weight:400;
+    }
+
+    .cta-row{
+      display:flex;
+      gap:var(--spacing-sm);
+      align-items:center;
+      flex-wrap:wrap;
+      margin-bottom:var(--spacing-md);
+    }
+
     .btn{
-      display:inline-block;padding:11px 16px;border-radius:10px;background:var(--accent);color:white;text-decoration:none;font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px 28px;
+      border-radius:980px;
+      background:var(--accent);
+      color:white;
+      text-decoration:none;
+      font-weight:600;
+      font-size:17px;
+      transition:all 0.2s ease;
+      border:none;
+      cursor:pointer;
+    }
+
+    .btn:hover{
+      background:var(--accent-hover);
+      transform:translateY(-1px);
+      box-shadow:0 4px 12px rgba(212,168,154,0.25);
+    }
+
+    .btn.ghost{
+      background:transparent;
+      color:var(--ink);
+      border:1px solid rgba(212,168,154,0.4);
+    }
+
+    .btn.ghost:hover{
+      background:rgba(212,168,154,0.08);
+      box-shadow:none;
+      transform:none;
+    }
+
+    .hero-visual{
+      position:relative;
+      max-height:100%;
+      display:flex;
+      align-items:center;
+    }
+
+    .mock-container{
+      background:linear-gradient(135deg, rgba(212,168,154,0.08) 0%, rgba(229,196,184,0.04) 100%);
+      border-radius:var(--radius);
+      padding:var(--spacing-md);
+      box-shadow:0 20px 60px rgba(0,0,0,0.06);
+      position:relative;
+      width:100%;
+    }
+
+    .carousel{
+      position:relative;
+      width:100%;
+      overflow:hidden;
+      border-radius:12px;
+      background:white;
+    }
+
+    .carousel-track{
+      display:flex;
+      transition:transform 0.5s ease;
+    }
+
+    .carousel-slide{
+      min-width:100%;
+      max-height:70vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:white;
+    }
+
+    .carousel-slide img{
+      width:100%;
+      height:100%;
+      max-height:70vh;
+      object-fit:contain;
+      display:block;
+    }
+
+    .carousel-btn{
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      background:rgba(255,255,255,0.95);
+      border:none;
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:20px;
+      color:var(--ink);
+      box-shadow:0 2px 12px rgba(0,0,0,0.15);
+      transition:all 0.2s ease;
+      z-index:10;
+    }
+
+    .carousel-btn:hover{
+      background:white;
+      box-shadow:0 4px 16px rgba(0,0,0,0.2);
+      transform:translateY(-50%) scale(1.1);
+    }
+
+    .carousel-btn.prev{
+      left:12px;
+    }
+
+    .carousel-btn.next{
+      right:12px;
+    }
+
+    .carousel-dots{
+      display:flex;
+      gap:8px;
+      justify-content:center;
+      margin-top:var(--spacing-sm);
+    }
+
+    .carousel-dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:rgba(212,168,154,0.3);
+      border:none;
+      cursor:pointer;
+      padding:0;
+      transition:all 0.3s ease;
+    }
+
+    .carousel-dot.active{
+      background:var(--accent);
+      width:24px;
+      border-radius:4px;
+    }
+
+    .status-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:var(--spacing-xs);
+      background:rgba(212,168,154,0.12);
+      color:var(--ink);
+      padding:8px 16px;
+      border-radius:20px;
+      font-weight:600;
+      font-size:14px;
+      margin-top:var(--spacing-md);
+    }
+
+    /* Privacy Highlight */
+    .privacy-highlight{
+      margin-top:var(--spacing-md);
+      padding:var(--spacing-md);
+      background:rgba(212,168,154,0.08);
+      border-radius:var(--radius);
+      border-left:4px solid var(--accent);
+    }
+
+    .privacy-highlight h3{
+      font-size:21px;
+      font-weight:600;
+      margin-bottom:var(--spacing-xs);
+    }
+
+    .privacy-highlight p{
+      color:var(--muted);
+      font-size:17px;
+      margin:0;
+      line-height:1.6;
+    }
+
+    /* Features Section */
+    .features-section{
+      padding:var(--spacing-xl) 0;
+      background:var(--card);
+      margin-top:var(--spacing-xl);
+    }
+
+    .section-header{
+      text-align:center;
+      margin-bottom:var(--spacing-lg);
+    }
+
+    .section-header h2{
+      font-size:clamp(32px, 5vw, 56px);
+      font-weight:700;
+      margin-bottom:var(--spacing-sm);
+      letter-spacing:-0.02em;
+    }
+
+    .section-header p{
+      font-size:21px;
+      color:var(--muted);
+      max-width:65ch;
+      margin:0 auto;
+    }
+
+    .features{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+      gap:var(--spacing-md);
+      margin-top:var(--spacing-lg);
+    }
+
+    @media (max-width:768px){
+      .features{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .feature{
+      background:var(--bg);
+      padding:var(--spacing-md);
+      border-radius:var(--radius);
+      transition:transform 0.2s, box-shadow 0.2s;
+    }
+
+    .feature:hover{
+      transform:translateY(-4px);
+      box-shadow:0 12px 40px rgba(0,0,0,0.08);
+    }
+
+    /* .feature-icon{
+      width:48px;
+      height:48px;
+      border-radius:12px;
+      background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:var(--spacing-sm);
+      font-size:24px;
+    } */
+
+    .feature h3{
+      font-size:24px;
+      font-weight:600;
+      margin:0 0 var(--spacing-xs) 0;
+      letter-spacing:-0.01em;
+    }
+
+    .feature p{
+      color:var(--muted);
+      font-size:17px;
+      margin:0;
+      line-height:1.6;
+    }
+
+    /* Tech Stack Section */
+    .tech-section{
+      padding:var(--spacing-xl) 0;
+    }
+
+    .tech-box{
+      background:var(--card);
+      padding:var(--spacing-lg);
+      border-radius:var(--radius);
+      text-align:center;
+    }
+
+    .tech-box h3{
+      font-size:clamp(28px, 4vw, 42px);
+      font-weight:700;
+      margin-bottom:var(--spacing-sm);
+      letter-spacing:-0.02em;
+    }
+
+    .tech-box p{
+      font-size:19px;
+      color:var(--muted);
+      margin-bottom:var(--spacing-md);
+      max-width:65ch;
+      margin-left:auto;
+      margin-right:auto;
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:var(--spacing-sm);
+      justify-content:center;
+      margin-top:var(--spacing-md);
+    }
+
+    .chip{
+      background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      color:var(--ink);
+      padding:10px 20px;
+      border-radius:20px;
+      font-weight:600;
+      font-size:15px;
+      transition:transform 0.2s, box-shadow 0.2s;
+    }
+
+    .chip:hover{
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(156,163,175,0.25);
+    }
+
+    /* Footer */
+    footer{
+      padding:var(--spacing-lg) 0;
+      border-top:1px solid rgba(0,0,0,0.08);
+      margin-top:var(--spacing-xl);
+    }
+
+    .footer-content{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:var(--spacing-md);
+    }
+
+    @media (max-width:768px){
+      .footer-content{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+
+    .footer-info{
+      display:flex;
+      flex-direction:column;
+      gap:var(--spacing-xs);
+    }
+
+    .footer-info strong{
+      font-size:17px;
+      font-weight:600;
+    }
+
+    .footer-info a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:15px;
+    }
+
+    .footer-info a:hover{
+      color:var(--accent);
+    }
+
+    .social-links{
+      display:flex;
+      gap:var(--spacing-md);
+      align-items:center;
+    }
+
+    .social-links a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:15px;
+      transition:color 0.2s;
+    }
+
+    .social-links a:hover{
+      color:var(--accent);
+    }
+
+    footer small{
+      color:var(--muted);
       font-size:14px;
     }
-    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(12, 86, 234, 0.2);box-shadow:none}
 
-    .hero-right{
-      background:linear-gradient(180deg,rgba(11, 148, 245, 0.04),rgba(12, 134, 234, 0.04));
-      padding:18px;border-radius:12px;
+    /* Responsive adjustments */
+    @media (max-width:768px){
+      .hero-section{
+        padding:var(--spacing-lg) 0;
+        min-height:auto;
+      }
+
+      .headline{
+        font-size:clamp(36px, 10vw, 56px);
+      }
+
+      .lede{
+        font-size:19px;
+      }
+
+      .logo{
+        width:32px;
+        height:32px;
+      }
+
+      .brand h1{
+        font-size:18px;
+      }
+
+      .nav{
+        gap:var(--spacing-sm);
+      }
+
+      .nav a{
+        font-size:15px;
+      }
     }
-    .mock{
-      height:320px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#f6fafd);
-      display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;padding:18px;gap:10px;color:var(--muted);font-size:13px;
-      border:1px solid rgba(120,113,108,0.08);
-    }
-    .mock img{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block}
-
-    .status{display:inline-block;background:#f1f5f9;color:var(--muted);padding:8px 12px;border-radius:999px;font-weight:600;font-size:13px;border:1px solid rgba(9,30,66,0.03)}
-
-    /* privacy section */
-    .privacy{
-      margin-top:22px;padding:20px;border-radius:12px;background:linear-gradient(180deg,var(--glass),#fff);
-      border:1px solid rgba(9,30,66,0.03);
-    }
-    .privacy h2{margin:0;margin-bottom:8px;font-size:20px;color:var(--ink)}
-    .privacy p{margin:0;color:var(--muted)}
-
-    /* features */
-    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:32px 0}
-    @media (max-width:900px){ .features{grid-template-columns:1fr} }
-    .feature{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(9,30,66,0.04)}
-    .feature h3{margin:0 0 8px;font-size:16px}
-    .feature p{margin:0;color:var(--muted);font-size:14px}
-
-    /* tech stack */
-    .tech{background:var(--card);border-radius:12px;padding:18px;margin-bottom:28px;box-shadow:0 6px 18px rgba(9,30,66,0.04)}
-    .tech h3{margin:0 0 8px;font-size:16px;color:var(--ink)}
-    .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-    .chip{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;padding:8px 12px;border-radius:999px;font-weight:600;font-size:13px}
-
-    footer{display:flex;justify-content:space-between;align-items:center;margin-top:34px;padding-top:20px;border-top:1px solid rgba(9,30,66,0.03);color:var(--muted);font-size:13px}
-    @media (max-width:760px){
-      .logo{width:90px;height:90px}
-      .brand h1{font-size:14px}
-      .brand > div > div{display:none}
-      .headline{font-size:22px} 
-      footer{flex-direction:column;gap:12px;align-items:flex-start} }
-   @media (max-width:450px){
-      /* .logo{width:60px;height:60px} */
-      .brand h1{font-size:14px}
-      .brand > div > h1{display:none}
-      .headline{font-size:22px} 
-      footer{flex-direction:column;gap:12px;align-items:flex-start} }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
+  <header>
+    <div class="header-content">
       <a class="brand" href="/">
-        <div class="logo">
-          <img src="./assets/preview_mockups/raincoatLabsLogo.jpg" alt="Raincoat Labs Logo" />
-        </div>
-        <div>
-          <h1>Raincoat</h1>
-          <div style="color:var(--muted)">Smart, private outfit recommendations</div>
-        </div>
+        <!-- <div class="logo">
+          <img src="./assets/raincoatLabsLogo1.jpg" alt="Raincoat Logo" />
+        </div> -->
+        <h1>Raincoat</h1>
       </a>
+
       <nav class="nav" aria-label="Primary">
         <a href="#privacy">Privacy</a>
         <a href="#features">Features</a>
         <a href="#tech">Tech</a>
+        <a href="./index.html">Labs</a>
       </nav>
-    </header>
+    </div>
+  </header>
 
-    <main>
-      <section class="hero" role="region" aria-labelledby="hero-heading">
-        <div class="hero-left">
-          <div class="eyebrow">Product Demo</div>
-          <h1 id="hero-heading" class="headline">Smart outfits without compromising on privacy</h1>
-          <p class="lede">Upload your closet once and get daily, weather-based outfit suggestions. All image processing runs locally, your photos never leave your device.</p>
+  <main>
+    <section class="hero-section" role="region" aria-labelledby="hero-heading">
+      <div class="wrap">
+        <div class="hero">
+          <div class="hero-content">
+            <div class="eyebrow">Product Demo</div>
+            <h1 id="hero-heading" class="headline">Smart outfits.<br/><strong>Zero privacy compromise.</strong></h1>
+            <p class="lede">Upload your closet once and get daily, weather-based outfit suggestions. All image processing runs locally. Your photos never leave your device.</p>
 
-          <div class="cta-row" style="margin-bottom:12px">
-            <a class="btn" href="#features">See features</a>
-            <a class="btn ghost" href="https://raincoatlabs.nyc" target="_blank" rel="noopener">Back to Raincoat Labs</a>
-          </div>
+            <div class="cta-row">
+              <a class="btn" href="#features">See features</a>
+              <a class="btn ghost" href="./index.html">Back to Raincoat Labs</a>
+            </div>
 
-          <div style="color:var(--muted);font-size:13px">Early access available! Request a demo if you are a retailer or developer.</div>
+            <!-- <div class="status-badge">
+              Early access available
+            </div> -->
 
-          <div class="privacy" id="privacy" style="margin-top:18px">
-            <h2>Your photos stay private</h2>
-            <p>Raincoat runs background removal, detection, and embedding generation in-browser with ONNX Runtime Web and WebGPU where available. We only receive anonymized vectors and user-validated tags.</p>
-          </div>
-        </div>
-
-        <aside class="hero-right" aria-hidden="false">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <div style="font-weight:700">Live prototype</div>
-            <div style="font-size:13px;color:var(--muted)">Embeddings only</div>
-          </div>
-
-          <div class="mock" aria-hidden="true">
-            <img id="mockup" src="./assets/preview_mockups/mockup0.png" alt="Raincoat app preview mockup" />
-            <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-              <div class="status">In development</div>
-              <div style="color:var(--muted);font-size:13px">Client-side ONNX pipeline</div>
+            <div class="privacy-highlight" id="privacy">
+              <h3>Your photos stay private</h3>
+              <p>Raincoat runs background removal, detection, and embedding generation in-browser with ONNX Runtime Web and WebGPU. We only receive anonymized vectors and user-validated tags.</p>
             </div>
           </div>
-        </aside>
-      </section>
 
-      <section id="features" style="margin-top:28px">
+          <div class="hero-visual">
+            <div class="mock-container">
+              <div class="carousel">
+                <div class="carousel-track" id="carouselTrack">
+                  <div class="carousel-slide">
+                    <img src="./assets/demo_screens/Screenshot_20251031-191142.png" alt="Raincoat app screenshot 1" />
+                  </div>
+                  <div class="carousel-slide">
+                    <img src="./assets/demo_screens/Screenshot_20251031-191151.png" alt="Raincoat app screenshot 2" />
+                  </div>
+                  <div class="carousel-slide">
+                    <img src="./assets/demo_screens/Screenshot_20251031-191233.png" alt="Raincoat app screenshot 3" />
+                  </div>
+                  <div class="carousel-slide">
+                    <img src="./assets/demo_screens/Screenshot_20251031-203116.png" alt="Raincoat app screenshot 4" />
+                  </div>
+                </div>
+                <button class="carousel-btn prev" id="prevBtn" aria-label="Previous slide">‹</button>
+                <button class="carousel-btn next" id="nextBtn" aria-label="Next slide">›</button>
+              </div>
+              <div class="carousel-dots" id="carouselDots"></div>
+              <div style="margin-top:var(--spacing-sm);text-align:center;">
+                <div class="status-badge">In development • Client-side ONNX pipeline</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features-section">
+      <div class="wrap">
+        <div class="section-header">
+          <h2>Everything you need.<br/><strong>All on-device.</strong></h2>
+          <p>Smart features that respect your privacy</p>
+        </div>
+
         <div class="features">
           <div class="feature">
             <h3>Smart Auto-Tagging</h3>
@@ -220,52 +725,144 @@
             <p>Pack smarter with suggested packing lists and outfits tailored to the forecast at your destination.</p>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section id="tech" class="tech" aria-labelledby="tech-heading">
-        <h3 id="tech-heading">Built with modern tech</h3>
-        <p style="color:var(--muted);margin:0">Privacy-first architecture powered by on-device inference and efficient vector search.</p>
-        <div class="chips" style="margin-top:14px">
-          <div class="chip">Next.js</div>
-          <div class="chip">Ruby on Rails</div>
-          <div class="chip">PostgreSQL + pgvector</div>
-          <div class="chip">ONNX Runtime Web</div>
-          <div class="chip">YOLOv8</div>
-          <div class="chip">FashionCLIP</div>
-          <div class="chip">U²-Net</div>
-          <div class="chip">WebGPU</div>
-          <div class="chip">TypeScript</div>
+    <section id="tech" class="tech-section">
+      <div class="wrap">
+        <div class="tech-box">
+          <h3>Built with modern tech</h3>
+          <p>Privacy-first architecture powered by on-device inference and efficient vector search.</p>
+          <div class="chips">
+            <div class="chip">Next.js</div>
+            <div class="chip">Ruby on Rails</div>
+            <div class="chip">PostgreSQL + pgvector</div>
+            <div class="chip">ONNX Runtime Web</div>
+            <div class="chip">YOLOv8</div>
+            <div class="chip">FashionCLIP</div>
+            <div class="chip">U²-Net</div>
+            <div class="chip">WebGPU</div>
+            <div class="chip">TypeScript</div>
+          </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <footer>
-        <div>
-          <strong>Raincoat</strong><br/>
-          Private, weather-aware outfit recommendations
+    <footer>
+      <div class="wrap">
+        <div class="footer-content">
+          <div class="footer-info">
+            <strong>Raincoat</strong>
+            <span style="color:var(--muted);font-size:15px;">Private, weather-aware outfit recommendations</span>
+          </div>
+
+          <div class="social-links">
+            <a href="https://www.linkedin.com/company/project-raincoat/" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="mailto:hello@raincoatlabs.nyc">Contact</a>
+            <small>© 2025 Raincoat — Prototype</small>
+          </div>
         </div>
-        <div style="text-align:right">
-          <div style="margin-bottom:6px;color:var(--muted)">© 2025 Raincoat — Prototype</div>
-          <a href="https://www.linkedin.com/company/project-raincoat/" style="color:var(--muted);text-decoration:none" target="_blank" rel="noopener">LinkedIn</a>
-          <span style="margin-left:10px;color:var(--muted)">•</span>
-          <a href="mailto:hello@raincoatlabs.nyc" style="color:var(--muted);text-decoration:none;margin-left:10px">Contact</a>
-        </div>
-      </footer>
-    </main>
-  </div>
+      </div>
+    </footer>
+  </main>
 
   <script>
-    // lightweight mockup selector — replace paths with your images
+    // Carousel functionality
     (function(){
-      var mockupImg = document.getElementById('mockup');
-      if(!mockupImg) return;
-      var width = window.innerWidth;
-      var pool = width < 640 ? 2 : 4;
-      var idx = Math.floor(Math.random() * pool);
-      var path = './assets/preview_mockups/';
-      var file = width < 640 ? 'mobile' + (idx+1) + '.png' : 'mockup' + idx + '.png';
-      mockupImg.src = path + file;
-      // graceful fallback if image missing
-      mockupImg.onerror = function(){ mockupImg.style.background = 'linear-gradient(180deg,#fff,#f6fbff)'; mockupImg.alt='Raincoat app preview'; }
+      var track = document.getElementById('carouselTrack');
+      var prevBtn = document.getElementById('prevBtn');
+      var nextBtn = document.getElementById('nextBtn');
+      var dotsContainer = document.getElementById('carouselDots');
+
+      if(!track || !prevBtn || !nextBtn || !dotsContainer) return;
+
+      var slides = track.querySelectorAll('.carousel-slide');
+      var totalSlides = slides.length;
+      var currentIndex = 0;
+      var autoplayInterval;
+
+      // Create dots
+      for(var i = 0; i < totalSlides; i++){
+        var dot = document.createElement('button');
+        dot.className = 'carousel-dot';
+        dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+        dot.dataset.index = i;
+        if(i === 0) dot.classList.add('active');
+        dotsContainer.appendChild(dot);
+      }
+
+      var dots = dotsContainer.querySelectorAll('.carousel-dot');
+
+      function updateCarousel(){
+        track.style.transform = 'translateX(-' + (currentIndex * 100) + '%)';
+        dots.forEach(function(dot, idx){
+          dot.classList.toggle('active', idx === currentIndex);
+        });
+      }
+
+      function goToSlide(index){
+        currentIndex = (index + totalSlides) % totalSlides;
+        updateCarousel();
+        resetAutoplay();
+      }
+
+      function nextSlide(){
+        goToSlide(currentIndex + 1);
+      }
+
+      function prevSlide(){
+        goToSlide(currentIndex - 1);
+      }
+
+      function startAutoplay(){
+        autoplayInterval = setInterval(nextSlide, 4000);
+      }
+
+      function stopAutoplay(){
+        clearInterval(autoplayInterval);
+      }
+
+      function resetAutoplay(){
+        stopAutoplay();
+        startAutoplay();
+      }
+
+      // Event listeners
+      prevBtn.addEventListener('click', prevSlide);
+      nextBtn.addEventListener('click', nextSlide);
+
+      dots.forEach(function(dot){
+        dot.addEventListener('click', function(){
+          goToSlide(parseInt(this.dataset.index));
+        });
+      });
+
+      // Pause autoplay on hover
+      track.parentElement.addEventListener('mouseenter', stopAutoplay);
+      track.parentElement.addEventListener('mouseleave', startAutoplay);
+
+      // Touch swipe support
+      var touchStartX = 0;
+      var touchEndX = 0;
+
+      track.addEventListener('touchstart', function(e){
+        touchStartX = e.changedTouches[0].screenX;
+        stopAutoplay();
+      });
+
+      track.addEventListener('touchend', function(e){
+        touchEndX = e.changedTouches[0].screenX;
+        if(touchStartX - touchEndX > 50){
+          nextSlide();
+        } else if(touchEndX - touchStartX > 50){
+          prevSlide();
+        } else {
+          startAutoplay();
+        }
+      });
+
+      // Start autoplay
+      startAutoplay();
     })();
   </script>
 </body>
