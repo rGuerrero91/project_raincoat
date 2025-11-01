@@ -15,6 +15,10 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
+  # Enable static file serving from /public directory (needed for AI models, ONNX files, etc.)
+  # Rails API mode disables this by default, but we need it for serving ONNX models
+  config.public_file_server.enabled = true
+
   # Enable/disable Action Controller caching. By default Action Controller caching is disabled.
   # Run rails dev:cache to toggle Action Controller caching.
   if Rails.root.join("tmp/caching-dev.txt").exist?

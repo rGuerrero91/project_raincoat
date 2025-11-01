@@ -1,0 +1,181 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-neutral-bg text-ink antialiased;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
+
+  * {
+    @apply box-border;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* Modern Button Styles - Apple/Cladwell inspired */
+  .btn-primary {
+    @apply inline-flex items-center justify-center;
+    @apply px-7 py-3.5 rounded-full;
+    @apply bg-primary text-white font-semibold;
+    @apply text-base leading-none;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:bg-primary-dark hover:shadow-accent;
+    @apply active:scale-[0.98];
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+    min-height: 44px;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center;
+    @apply px-7 py-3.5 rounded-full;
+    @apply bg-transparent text-primary font-semibold;
+    @apply border border-primary/30;
+    @apply text-base leading-none;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:bg-primary/10 hover:border-primary/50;
+    @apply active:scale-[0.98];
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    min-height: 44px;
+  }
+
+  .btn-tertiary {
+    @apply inline-flex items-center justify-center;
+    @apply px-5 py-2.5 rounded-lg;
+    @apply text-primary font-semibold;
+    @apply text-sm leading-none;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:bg-primary/10;
+    @apply active:scale-[0.98];
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+    min-height: 44px;
+  }
+
+  /* Modern Card Styles */
+  .card {
+    @apply bg-neutral-bg rounded-4xl shadow-soft;
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover {
+    @apply hover:shadow-medium hover:-translate-y-1;
+  }
+
+  /* Tag/Chip Styles */
+  .tag {
+    @apply inline-flex items-center px-4 py-1.5 rounded-full;
+    @apply text-sm font-semibold;
+    @apply bg-primary-light text-primary;
+    @apply transition-all duration-200;
+    @apply hover:bg-primary/20;
+  }
+
+  .tag-removable {
+    @apply cursor-pointer hover:bg-primary hover:text-white;
+  }
+
+  /* Container */
+  .container-app {
+    @apply max-w-md mx-auto px-5 py-8;
+  }
+
+  /* Eyebrow text */
+  .text-eyebrow {
+    @apply text-xs font-semibold text-primary uppercase tracking-wider;
+  }
+
+  /* Status Badge */
+  .badge {
+    @apply inline-flex items-center gap-2;
+    @apply px-4 py-2 rounded-full;
+    @apply bg-primary-light text-primary;
+    @apply text-sm font-semibold;
+  }
+
+  /* Smooth Transitions Between Screens */
+  .screen-transition-enter {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  .screen-transition-enter-active {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 300ms, transform 300ms;
+  }
+
+  .screen-transition-exit {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .screen-transition-exit-active {
+    opacity: 0;
+    transform: translateX(-100%);
+    transition: opacity 300ms, transform 300ms;
+  }
+}
+
+@layer utilities {
+  /* Loading States */
+  .skeleton {
+    @apply bg-neutral-light animate-pulse rounded-xl;
+  }
+
+  /* Touch Target Minimum Size */
+  button, a, input[type="button"], input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl;
+    @apply border border-white/20;
+  }
+
+  /* Subtle pulse animation */
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Float Animation for Weather Icons */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
