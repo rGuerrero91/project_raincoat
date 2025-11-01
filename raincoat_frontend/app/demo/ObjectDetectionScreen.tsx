@@ -1,11 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
-import Container from '@/components/Container';
-import Button from '@/components/Button';
-import Card from '@/components/Card';
-import { Search, AlertTriangle, Info, Shirt as ShirtIcon, Shirt as BottomIcon, Coat, Footprints, Backpack } from 'lucide-react';
-import yoloDetector, { type YOLODetection } from '@/lib/yolo-detector';
+import { useEffect, useState, useRef } from "react";
+import Container from "@/components/Container";
+import Button from "@/components/Button";
+import Card from "@/components/Card";
+import {
+  Search,
+  AlertTriangle,
+  Info,
+  Shirt as ShirtIcon,
+  Shirt as BottomIcon,
+  MapPinned as Hoodie,
+  Footprints,
+  Backpack,
+} from "lucide-react";
+import yoloDetector, { type YOLODetection } from "@/lib/yolo-detector";
 
 interface ObjectDetectionScreenProps {
   imageFile: File;
@@ -18,26 +27,33 @@ interface ObjectDetectionScreenProps {
 }
 
 const categoryDisplayNames: { [key: string]: string } = {
-  top: 'Top',
-  bottom: 'Bottom',
-  outerwear: 'Outerwear',
-  shoes: 'Shoes',
-  accessories: 'Accessories'
+  top: "Top",
+  bottom: "Bottom",
+  outerwear: "Outerwear",
+  shoes: "Shoes",
+  accessories: "Accessories",
 };
 
-const categoryIcons: { [key: string]: React.ComponentType<{ className?: string }> } = {
+const categoryIcons: {
+  [key: string]: React.ComponentType<{ className?: string }>;
+} = {
   top: ShirtIcon,
   bottom: BottomIcon,
-  outerwear: Coat,
+  outerwear: Hoodie,
   shoes: Footprints,
   accessories: Backpack,
 };
 
-export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }: ObjectDetectionScreenProps) {
+export default function ObjectDetectionScreen({
+  imageFile,
+  onDetectionSelected,
+}: ObjectDetectionScreenProps) {
   const [isDetecting, setIsDetecting] = useState(true);
   const [detections, setDetections] = useState<YOLODetection[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null);
+  const [imageElement, setImageElement] = useState<HTMLImageElement | null>(
+    null
+  );
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -45,7 +61,7 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
 
     const detectObjects = async () => {
       try {
-        console.log('[ObjectDetectionScreen] Starting YOLO detection');
+        console.log("[ObjectDetectionScreen] Starting YOLO detection");
 
         const img = new Image();
         const imageUrl = URL.createObjectURL(imageFile);
@@ -68,7 +84,7 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
 
         if (isCancelled) return;
 
-        console.log('[ObjectDetectionScreen] Detections:', results);
+        console.log("[ObjectDetectionScreen] Detections:", results);
         setDetections(results);
 
         if (canvasRef.current && results.length > 0) {
@@ -78,13 +94,15 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
         setIsDetecting(false);
 
         if (results.length === 1) {
-          console.log('[ObjectDetectionScreen] Auto-selecting single detection');
+          console.log(
+            "[ObjectDetectionScreen] Auto-selecting single detection"
+          );
           setTimeout(() => handleSelectDetection(results[0]), 1000);
         }
       } catch (err) {
         if (isCancelled) return;
-        console.error('[ObjectDetectionScreen] Detection failed:', err);
-        setError(err instanceof Error ? err.message : 'Detection failed');
+        console.error("[ObjectDetectionScreen] Detection failed:", err);
+        setError(err instanceof Error ? err.message : "Detection failed");
         setIsDetecting(false);
       }
     };
@@ -99,15 +117,19 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
   const handleSelectDetection = (detection: YOLODetection) => {
     if (!imageElement) return;
 
-    console.log('[ObjectDetectionScreen] User selected:', detection.category);
+    console.log("[ObjectDetectionScreen] User selected:", detection.category);
 
-    const croppedUrl = yoloDetector.cropToBbox(imageElement, detection.bbox, 0.05);
+    const croppedUrl = yoloDetector.cropToBbox(
+      imageElement,
+      detection.bbox,
+      0.05
+    );
 
     onDetectionSelected(detection, croppedUrl, imageElement, detections);
   };
 
   const handleSkipDetection = () => {
-    console.log('[ObjectDetectionScreen] User skipped detection');
+    console.log("[ObjectDetectionScreen] User skipped detection");
 
     if (!imageElement) return;
 
@@ -133,8 +155,14 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
           {/* Loading animation */}
           <div className="flex justify-center gap-2">
             <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
-            <div className="w-3 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-            <div className="w-3 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+            <div
+              className="w-3 h-3 bg-primary rounded-full animate-pulse"
+              style={{ animationDelay: "0.2s" }}
+            />
+            <div
+              className="w-3 h-3 bg-primary rounded-full animate-pulse"
+              style={{ animationDelay: "0.4s" }}
+            />
           </div>
         </Card>
       </Container>
@@ -148,7 +176,9 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
           <div className="mb-6 p-5 bg-yellow-50 border-2 border-yellow-200 rounded-2xl">
             <div className="flex items-center justify-center gap-2 mb-2">
               <AlertTriangle className="w-5 h-5 text-yellow-700" />
-              <p className="text-yellow-700 font-semibold">Detection unavailable</p>
+              <p className="text-yellow-700 font-semibold">
+                Detection unavailable
+              </p>
             </div>
             <p className="text-sm text-yellow-600">{error}</p>
           </div>
@@ -198,7 +228,8 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
           Select an <strong className="text-primary">item</strong>
         </h2>
         <p className="text-lg text-neutral-medium">
-          Found {detections.length} {detections.length === 1 ? 'item' : 'items'} in your photo
+          Found {detections.length} {detections.length === 1 ? "item" : "items"}{" "}
+          in your photo
         </p>
       </div>
 
@@ -209,7 +240,7 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
             <canvas
               ref={canvasRef}
               className="max-w-full h-auto rounded-2xl"
-              style={{ maxHeight: '400px' }}
+              style={{ maxHeight: "400px" }}
             />
           </div>
         </Card>
@@ -230,14 +261,18 @@ export default function ObjectDetectionScreen({ imageFile, onDetectionSelected }
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-ink">
-                    {categoryDisplayNames[detection.category] || detection.category}
+                    {categoryDisplayNames[detection.category] ||
+                      detection.category}
                   </h3>
                   <p className="text-sm text-neutral-medium">
                     Confidence: {(detection.confidence * 100).toFixed(1)}%
                   </p>
                 </div>
                 <div className="w-14 h-14 rounded-xl bg-primary-light flex items-center justify-center">
-                  <CategoryIcon className="w-7 h-7 text-primary" strokeWidth={2} />
+                  <CategoryIcon
+                    className="w-7 h-7 text-primary"
+                    // strokeWidth={2}
+                  />
                 </div>
               </div>
             </Card>

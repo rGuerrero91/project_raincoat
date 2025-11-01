@@ -4,7 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Container from "@/components/Container";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
-import { Search, Shirt, RectangleHorizontal, Coat, Footprints, Backpack } from "lucide-react";
+import {
+  Search,
+  Shirt,
+  RectangleHorizontal,
+  MapPinned as Hoodie,
+  Footprints,
+  Backpack,
+} from "lucide-react";
 import yoloDetector, { type YOLODetection } from "@/lib/yolo-detector";
 
 interface ObjectDetectionAndCategoryScreenProps {
@@ -12,10 +19,13 @@ interface ObjectDetectionAndCategoryScreenProps {
   onNext: (category: string, croppedImageUrl: string) => void;
 }
 
-const CATEGORY_MAP: Record<string, { icon: React.ComponentType<{ className?: string }>; label: string }> = {
+const CATEGORY_MAP: Record<
+  string,
+  { icon: React.ComponentType<{ className?: string }>; label: string }
+> = {
   top: { icon: Shirt, label: "Top" },
   bottom: { icon: RectangleHorizontal, label: "Bottom" },
-  outerwear: { icon: Coat, label: "Outerwear" },
+  outerwear: { icon: Hoodie, label: "Outerwear" },
   shoes: { icon: Footprints, label: "Shoes" },
   accessories: { icon: Backpack, label: "Accessories" },
 };
@@ -186,9 +196,7 @@ export default function ObjectDetectionAndCategoryScreen({
         <h2 className="text-headline font-bold mb-3">
           Select <strong className="text-primary">Category</strong>
         </h2>
-        <p className="text-lg text-neutral-medium">
-          Found items in your photo
-        </p>
+        <p className="text-lg text-neutral-medium">Found items in your photo</p>
       </div>
 
       {imageElement && canvasRef.current && (
@@ -202,45 +210,52 @@ export default function ObjectDetectionAndCategoryScreen({
       )}
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        {Object.entries(CATEGORY_MAP).map(([key, { icon: IconComponent, label }]) => {
-          const detection = bestByCategory[key];
-          const isSelected = selectedCategory === key;
-          const hasDetection = detection !== null;
+        {Object.entries(CATEGORY_MAP).map(
+          ([key, { icon: IconComponent, label }]) => {
+            const detection = bestByCategory[key];
+            const isSelected = selectedCategory === key;
+            const hasDetection = detection !== null;
 
-          return (
-            <Card
-              key={key}
-              padding="md"
-              hover
-              className={`cursor-pointer transition-all ${
-                isSelected
-                  ? "border-2 border-primary bg-primary-light"
-                  : hasDetection
-                  ? "border border-neutral-medium/30"
-                  : "border border-neutral-medium/20 opacity-50"
-              }`}
-              onClick={() => hasDetection && handleCategorySelect(key)}
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 ${
-                  isSelected ? "bg-primary" : "bg-primary-light"
-                }`}>
-                  <IconComponent className={`w-8 h-8 ${
-                    isSelected ? "text-white" : "text-primary"
-                  }`} strokeWidth={2} />
+            return (
+              <Card
+                key={key}
+                padding="md"
+                hover
+                className={`cursor-pointer transition-all ${
+                  isSelected
+                    ? "border-2 border-primary bg-primary-light"
+                    : hasDetection
+                      ? "border border-neutral-medium/30"
+                      : "border border-neutral-medium/20 opacity-50"
+                }`}
+                onClick={() => hasDetection && handleCategorySelect(key)}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div
+                    className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 ${
+                      isSelected ? "bg-primary" : "bg-primary-light"
+                    }`}
+                  >
+                    <IconComponent
+                      className={`w-8 h-8 ${
+                        isSelected ? "text-white" : "text-primary"
+                      }`}
+                      // strokeWidth={2}
+                    />
+                  </div>
+                  <p className="font-semibold text-ink mb-1">{label}</p>
+                  {hasDetection ? (
+                    <p className="text-xs text-neutral-medium">
+                      {(detection!.confidence * 100).toFixed(0)}% confidence
+                    </p>
+                  ) : (
+                    <p className="text-xs text-neutral-medium">Not detected</p>
+                  )}
                 </div>
-                <p className="font-semibold text-ink mb-1">{label}</p>
-                {hasDetection ? (
-                  <p className="text-xs text-neutral-medium">
-                    {(detection!.confidence * 100).toFixed(0)}% confidence
-                  </p>
-                ) : (
-                  <p className="text-xs text-neutral-medium">Not detected</p>
-                )}
-              </div>
-            </Card>
-          );
-        })}
+              </Card>
+            );
+          }
+        )}
       </div>
 
       {selectedCategory && croppedUrl && (
