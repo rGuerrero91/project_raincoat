@@ -6,7 +6,7 @@ import PrivacyScreen from "./demo/PrivacyScreen";
 import AddItemScreen from "./demo/AddItemScreen";
 import ObjectDetectionScreen from "./demo/ObjectDetectionScreen";
 import CategoryScreen from "./demo/CategoryScreen";
-// import ObjectDetectionAndCategoryScreen from "./demo/ObjectDetectionAndCategoryScreen";
+import ObjectDetectionAndCategoryScreen from "./demo/ObjectDetectionAndCategoryScreen";
 import ProcessingScreen from "./demo/ProcessingScreen";
 import TagsScreen from "./demo/TagsScreen";
 import ClosetScreen from "./demo/ClosetScreen";
@@ -22,7 +22,7 @@ export type DemoStep =
   | "add-item"
   | "object-detection"
   | "category"
-  // | "object-detection-category"
+  | "object-detection-category"
   | "processing"
   | "tags"
   | "closet"
@@ -56,9 +56,9 @@ export default function Home() {
       "welcome",
       "privacy",
       "add-item",
-      "object-detection",
-      "category",
-      // "object-detection-category",
+      // "object-detection",
+      // "category",
+      "object-detection-category",
       "processing",
       "tags",
       "closet",
@@ -181,22 +181,22 @@ export default function Home() {
           />
         );
 
-      // case "object-detection-category":
-      //   return (
-      //     <ObjectDetectionAndCategoryScreen
-      //       imageFile={currentItem?.fileObject!}
-      //       onNext={(category, croppedImageUrl) => {
-      //         if (currentItem) {
-      //           setCurrentItem({
-      //             ...currentItem,
-      //             category,
-      //             croppedImage: croppedImageUrl,
-      //           });
-      //         }
-      //         nextStep();
-      //       }}
-      //     />
-      //   );
+      case "object-detection-category":
+        return (
+          <ObjectDetectionAndCategoryScreen
+            imageFile={currentItem?.fileObject!}
+            onNext={(category, croppedImageUrl) => {
+              if (currentItem) {
+                setCurrentItem({
+                  ...currentItem,
+                  category,
+                  croppedImage: croppedImageUrl,
+                });
+              }
+              nextStep();
+            }}
+          />
+        );
 
       case "processing":
         return (
