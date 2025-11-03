@@ -209,6 +209,19 @@ export default function ObjectDetectionAndCategoryScreen({
         </Card>
       )}
 
+      {selectedCategory && croppedUrl && (
+        <div className="mb-6">
+          <Card padding="md">
+            <h3 className="font-semibold text-ink mb-3">Preview:</h3>
+            <img
+              src={croppedUrl}
+              alt="Cropped preview"
+              className="max-w-full max-h-64 object-contain rounded-xl"
+            />
+          </Card>
+        </div>
+      )}
+      
       <div className="grid grid-cols-2 gap-4 mb-6">
         {Object.entries(CATEGORY_MAP).map(
           ([key, { icon: IconComponent, label }]) => {
@@ -258,18 +271,6 @@ export default function ObjectDetectionAndCategoryScreen({
         )}
       </div>
 
-      {selectedCategory && croppedUrl && (
-        <div className="mb-6">
-          <Card padding="md">
-            <h3 className="font-semibold text-ink mb-3">Preview:</h3>
-            <img
-              src={croppedUrl}
-              alt="Cropped preview"
-              className="max-w-full max-h-64 object-contain rounded-xl"
-            />
-          </Card>
-        </div>
-      )}
 
       <Button
         variant="primary"

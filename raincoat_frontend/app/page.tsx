@@ -20,8 +20,8 @@ export type DemoStep =
   | "welcome"
   | "privacy"
   | "add-item"
-  | "object-detection"
-  | "category"
+  // | "object-detection"
+  // | "category"
   | "object-detection-category"
   | "processing"
   | "tags"
@@ -137,49 +137,49 @@ export default function Home() {
           />
         );
 
-      case "object-detection":
-        return (
-          <ObjectDetectionScreen
-            imageFile={currentItem?.fileObject!}
-            onDetectionSelected={(
-              detection,
-              croppedImageUrl,
-              originalImage,
-              allDetections
-            ) => {
-              if (currentItem) {
-                setCurrentItem({
-                  ...currentItem,
-                  croppedImage: croppedImageUrl,
-                  detectedCategory: detection?.category || "Unknown",
-                  originalImageElement: originalImage,
-                  allDetections: allDetections,
-                });
-              }
-              nextStep();
-            }}
-          />
-        );
+      // case "object-detection":
+      //   return (
+      //     <ObjectDetectionScreen
+      //       imageFile={currentItem?.fileObject!}
+      //       onDetectionSelected={(
+      //         detection,
+      //         croppedImageUrl,
+      //         originalImage,
+      //         allDetections
+      //       ) => {
+      //         if (currentItem) {
+      //           setCurrentItem({
+      //             ...currentItem,
+      //             croppedImage: croppedImageUrl,
+      //             detectedCategory: detection?.category || "Unknown",
+      //             originalImageElement: originalImage,
+      //             allDetections: allDetections,
+      //           });
+      //         }
+      //         nextStep();
+      //       }}
+      //     />
+      //   );
 
-      case "category":
-        return (
-          <CategoryScreen
-            detectedCategory={currentItem?.detectedCategory}
-            croppedImageUrl={currentItem?.croppedImage}
-            originalImage={currentItem?.originalImageElement}
-            allDetections={currentItem?.allDetections}
-            onNext={(category, updatedCroppedUrl) => {
-              if (currentItem) {
-                setCurrentItem({
-                  ...currentItem,
-                  category,
-                  croppedImage: updatedCroppedUrl || currentItem.croppedImage,
-                });
-              }
-              nextStep();
-            }}
-          />
-        );
+      // case "category":
+      //   return (
+      //     <CategoryScreen
+      //       detectedCategory={currentItem?.detectedCategory}
+      //       croppedImageUrl={currentItem?.croppedImage}
+      //       originalImage={currentItem?.originalImageElement}
+      //       allDetections={currentItem?.allDetections}
+      //       onNext={(category, updatedCroppedUrl) => {
+      //         if (currentItem) {
+      //           setCurrentItem({
+      //             ...currentItem,
+      //             category,
+      //             croppedImage: updatedCroppedUrl || currentItem.croppedImage,
+      //           });
+      //         }
+      //         nextStep();
+      //       }}
+      //     />
+      //   );
 
       case "object-detection-category":
         return (
