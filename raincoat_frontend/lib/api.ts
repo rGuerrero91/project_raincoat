@@ -20,22 +20,62 @@ export interface WeatherRecommendation {
   description?: string;
 }
 
+export interface ClothingPiece {
+  id: number;
+  name?: string;
+  description?: string;
+  category: string;
+  brand?: string;
+  colors?: string[];
+  materials?: string[];
+  ai_tags?: any;
+  user_tags?: any;
+  has_embedding?: boolean;
+  images?: string[];
+}
+
 export interface WeatherRecommendationsResponse {
-  weather?: WeatherInfo;
-  recommendations?: WeatherRecommendation[];
+  weather?: WeatherSnapshot;
+  recommendations?: {
+    descriptors?: string[];
+    temperature_category?: string;
+    suggested_pieces?: ClothingPiece[];
+  };
+  // Legacy format support
+  weather_legacy?: WeatherInfo;
+  recommendations_legacy?: WeatherRecommendation[];
+}
+
+export interface WeatherSnapshot {
+  id?: number;
+  temperature_c: number;
+  temperature_f: number;
+  feels_like_c: number;
+  condition_text: string;
+  condition_icon_url: string;
+  humidity: number;
+  wind_kph: number;
+  precipitation_mm: number;
+  fashion_descriptors: string[];
+  temperature_category: string;
+  recorded_at: string;
+  is_fresh: boolean;
 }
 
 export interface CurrentWeatherResponse {
-  temperature: number;
-  condition: string;
+  location?: {
+    id?: number;
+    name?: string;
+    city?: string;
+  };
+  weather?: WeatherSnapshot;
+  // Legacy format support
+  temperature?: number;
+  condition?: string;
   humidity?: number;
   wind_speed?: number;
   forecast?: string;
   details?: string;
-  location?: {
-    city?: string;
-    country?: string;
-  };
 }
 
 class ApiClient {

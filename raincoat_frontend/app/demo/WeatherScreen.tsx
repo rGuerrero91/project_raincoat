@@ -39,12 +39,28 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
 
         if (response.success && response.data) {
           console.log('Weather data received:', response.data);
-          const iconComponent = getWeatherIcon(response.data.condition);
+
+          // Handle the actual API response format
+          const weatherInfo = response.data.weather || response.data;
+          const locationInfo = response.data.location || {};
+
+          const iconComponent = getWeatherIcon(weatherInfo.condition_text || weatherInfo.condition || '');
+          const temperature = weatherInfo.temperature_f || weatherInfo.temperature || 68;
+          const condition = weatherInfo.condition_text || weatherInfo.condition || 'Partly Cloudy';
+
+          // Build details string
+          const details = [
+            weatherInfo.humidity ? `Humidity: ${weatherInfo.humidity}%` : null,
+            weatherInfo.wind_kph ? `Wind: ${weatherInfo.wind_kph} km/h` : null,
+          ]
+            .filter(Boolean)
+            .join(', ') || 'Light breeze, low humidity';
+
           setWeatherData({
-            temperature: response.data.temperature,
-            condition: response.data.condition,
+            temperature,
+            condition,
             iconComponent,
-            details: response.data.details || `${response.data.location?.city || location.city}`,
+            details,
           });
         } else {
           console.warn('Weather API returned no data, using fallback');
