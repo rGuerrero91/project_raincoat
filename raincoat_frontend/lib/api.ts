@@ -8,6 +8,36 @@ interface ApiResponse<T = any> {
   error?: string;
 }
 
+export interface WeatherInfo {
+  temperature: number;
+  condition: string;
+}
+
+export interface WeatherRecommendation {
+  name: string;
+  item_count?: number;
+  reason?: string;
+  description?: string;
+}
+
+export interface WeatherRecommendationsResponse {
+  weather?: WeatherInfo;
+  recommendations?: WeatherRecommendation[];
+}
+
+export interface CurrentWeatherResponse {
+  temperature: number;
+  condition: string;
+  humidity?: number;
+  wind_speed?: number;
+  forecast?: string;
+  details?: string;
+  location?: {
+    city?: string;
+    country?: string;
+  };
+}
+
 class ApiClient {
   private baseUrl: string;
   private sessionId: string | null = null;
@@ -27,9 +57,9 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
 
     // Add session ID if available
@@ -150,11 +180,11 @@ class ApiClient {
 
   // Weather
   async getCurrentWeather() {
-    return this.request('/api/v1/weather/current');
+    return this.request<CurrentWeatherResponse>('/api/v1/weather/current');
   }
 
   async getWeatherRecommendations() {
-    return this.request('/api/v1/weather/recommendations');
+    return this.request<WeatherRecommendationsResponse>('/api/v1/weather/recommendations');
   }
 
   async refreshWeather() {

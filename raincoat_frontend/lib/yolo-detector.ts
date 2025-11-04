@@ -72,7 +72,7 @@ class YOLODetector {
       // Load configuration
       const configResponse = await fetch(`${API_URL}/models/yolo_config.json`);
       this.config = await configResponse.json();
-      console.log('[YOLO] Config loaded:', this.config.model_info.name);
+      console.log('[YOLO] Config loaded:', this.config?.model_info?.name);
 
       // Load ONNX model with same settings as U2-Net/FashionCLIP
       console.log('[YOLO] Loading ONNX model...');
