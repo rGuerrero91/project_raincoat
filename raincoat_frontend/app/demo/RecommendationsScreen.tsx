@@ -5,7 +5,7 @@ import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import { Shirt, Lightbulb, Check } from 'lucide-react';
-import { ClothingItem } from '../page';
+import { ClothingItem } from './page';
 import apiClient from '@/lib/api';
 
 interface RecommendationsScreenProps {

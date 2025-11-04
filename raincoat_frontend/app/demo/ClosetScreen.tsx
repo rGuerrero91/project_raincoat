@@ -2,7 +2,7 @@ import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import { Plus } from 'lucide-react';
-import { ClothingItem } from '../page';
+import { ClothingItem } from './page';
 
 interface ClosetScreenProps {
   items: ClothingItem[];
