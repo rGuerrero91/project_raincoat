@@ -177,9 +177,9 @@ export default function LandingPage() {
               </div>
 
               <div className="hero-visual relative">
-                <div className="bg-gradient-to-br from-[rgba(0,113,227,0.05)] to-[rgba(0,119,237,0.02)] rounded-[var(--radius)] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+                <div className="bg-gradient-to-br from-[rgba(0,113,227,0.05)] to-[rgba(0,119,237,0.02)] rounded-[var(--radius)] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
                   <div className="w-full rounded-xl overflow-hidden bg-white aspect-[4/3] flex items-center justify-center relative">
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center p-4 w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center p-6 md:p-12 w-full">
                       {/* Client Side */}
                       <div className="bg-white rounded-xl p-2 flex flex-col gap-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                         <div className="w-12 h-12 rounded-[10px] flex items-center justify-center mb-2 bg-gradient-to-br from-[var(--accent-light)] to-[var(--card)]">
