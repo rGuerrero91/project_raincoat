@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Raincoat Labs — Privacy-first visual AI</title>
+  <meta name="description" content="Raincoat Labs builds privacy-first visual intelligence: on-device computer vision pipelines and a licensable similarity engine for fashion and retail." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#fdfcfb;
+      --muted:#8b9199;
+      --ink:#4a5568;
+      --accent:#d4a89a;
+      --accent-2:#e5c4b8;
+      --accent-hover:#c29585;
+      --card:#f7f6f4;
+      --accent-light:#f5ebe8;
+      --radius:18px;
+      --container-padding:max(22px, env(safe-area-inset-left));
+      --max-width:1280px;
+      --spacing-xs:8px;
+      --spacing-sm:16px;
+      --spacing-md:24px;
+      --spacing-lg:48px;
+      --spacing-xl:80px;
+    }
+
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    body{
+      margin:0;
+      font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.6;
+      overflow-x:hidden;
+    }
+
+    .wrap{
+      max-width:var(--max-width);
+      margin:0 auto;
+      padding:0 var(--container-padding);
+    }
+
+    /* Header */
+    header{
+      position:sticky;
+      top:0;
+      z-index:100;
+      background:rgba(255,255,255,0.8);
+      backdrop-filter:blur(20px);
+      -webkit-backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(0,0,0,0.05);
+      padding:var(--spacing-sm) 0;
+      margin-bottom:0;
+      transition:all 0.3s ease;
+    }
+
+    .header-content{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      max-width:var(--max-width);
+      margin:0 auto;
+      padding:0 var(--container-padding);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:var(--spacing-sm);
+      text-decoration:none;
+      color:inherit;
+      transition:opacity 0.2s;
+    }
+
+    .brand:hover{
+      opacity:0.8;
+    }
+
+    .logo{
+      width:40px;
+      height:40px;
+      border-radius:10px;
+      overflow:hidden;
+      flex-shrink:0;
+    }
+
+    .logo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      filter:grayscale(50%);
+    }
+
+    .brand h1{
+      font-size:21px;
+      font-weight:600;
+      margin:0;
+      letter-spacing:-0.02em;
+      color:var(--ink);
+    }
+
+    .nav{
+      display:flex;
+      gap:var(--spacing-md);
+      align-items:center;
+    }
+
+    .nav a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:17px;
+      font-weight:400;
+      transition:color 0.2s;
+      position:relative;
+    }
+
+    .nav a:hover{
+      color:var(--ink);
+    }
+
+    .nav a::after{
+      content:'';
+      position:absolute;
+      bottom:-4px;
+      left:0;
+      width:0;
+      height:2px;
+      background:var(--accent);
+      transition:width 0.3s ease;
+    }
+
+    .nav a:hover::after{
+      width:100%;
+    }
+
+    /* Hero Section */
+    .hero-section{
+      padding:var(--spacing-xl) 0;
+      min-height:calc(100vh - 80px);
+      display:flex;
+      align-items:center;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:var(--spacing-xl);
+      align-items:center;
+      width:100%;
+    }
+
+    @media (max-width:1024px){
+      .hero{
+        grid-template-columns:1fr;
+        gap:var(--spacing-lg);
+        text-align:center;
+      }
+      .hero-visual{
+        /* order:-1; */
+      }
+    }
+
+    .eyebrow{
+      color:var(--accent);
+      font-weight:600;
+      font-size:14px;
+      text-transform:uppercase;
+      letter-spacing:0.05em;
+      margin-bottom:var(--spacing-sm);
+    }
+
+    .headline{
+      font-size:clamp(42px, 8vw, 80px);
+      font-weight:700;
+      margin:0 0 var(--spacing-md) 0;
+      color:var(--ink);
+      line-height:1.1;
+      letter-spacing:-0.03em;
+    }
+
+    .headline strong{
+      color:var(--accent);
+      font-weight:700;
+    }
+
+    .lede{
+      color:var(--muted);
+      font-size:21px;
+      margin-bottom:var(--spacing-lg);
+      max-width:65ch;
+      line-height:1.6;
+      font-weight:400;
+    }
+
+    .cta-row{
+      display:flex;
+      gap:var(--spacing-sm);
+      align-items:center;
+      flex-wrap:wrap;
+      margin-bottom:var(--spacing-md);
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px 28px;
+      border-radius:980px;
+      background:var(--accent);
+      color:white;
+      text-decoration:none;
+      font-weight:600;
+      font-size:17px;
+      transition:all 0.2s ease;
+      border:none;
+      cursor:pointer;
+    }
+
+    .btn:hover{
+      background:var(--accent-hover);
+      transform:translateY(-1px);
+      box-shadow:0 4px 12px rgba(212,168,154,0.25);
+    }
+
+    .btn.ghost{
+      background:transparent;
+      color:var(--ink);
+      border:1px solid rgba(212,168,154,0.4);
+    }
+
+    .btn.ghost:hover{
+      background:rgba(212,168,154,0.08);
+      box-shadow:none;
+      transform:none;
+    }
+
+    .hero-visual{
+      position:relative;
+    }
+
+    .mock-container{
+      background:linear-gradient(135deg, rgba(0,113,227,0.05) 0%, rgba(0,119,237,0.02) 100%);
+      border-radius:var(--radius);
+      padding:var(--spacing-md);
+      box-shadow:0 20px 60px rgba(0,0,0,0.08);
+    }
+
+    .mock{
+      width:100%;
+      border-radius:12px;
+      overflow:hidden;
+      background:white;
+      aspect-ratio:4/3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+
+    .mock img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:var(--spacing-xs);
+      background:rgba(212,168,154,0.12);
+      color:var(--ink);
+      padding:8px 16px;
+      border-radius:20px;
+      font-weight:600;
+      font-size:14px;
+      margin-top:var(--spacing-md);
+    }
+
+    /* Architecture Diagram */
+    .arch-diagram{
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      gap:var(--spacing-md);
+      align-items:center;
+      padding:var(--spacing-lg) var(--spacing-md);
+    }
+
+    @media (max-width:768px){
+      .arch-diagram{
+        grid-template-columns:1fr;
+        gap:var(--spacing-sm);
+      }
+      .arch-arrow{
+        transform:rotate(90deg);
+        margin:var(--spacing-xs) 0;
+      }
+    }
+
+    .arch-card{
+      background:white;
+      border-radius:12px;
+      padding:var(--spacing-md);
+      display:flex;
+      flex-direction:column;
+      gap:var(--spacing-sm);
+      box-shadow:0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .arch-card-title{
+      font-size:15px;
+      font-weight:600;
+      color:var(--ink);
+      margin-bottom:var(--spacing-xs);
+    }
+
+    .arch-icon{
+      width:48px;
+      height:48px;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:var(--spacing-xs);
+      background:linear-gradient(135deg, var(--accent-light), var(--card));
+    }
+
+    .arch-tech-badge{
+      display:inline-block;
+      background:rgba(212,168,154,0.1);
+      color:var(--ink);
+      padding:4px 10px;
+      border-radius:12px;
+      font-size:11px;
+      font-weight:600;
+      margin:2px;
+    }
+
+    .arch-feature{
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.4;
+    }
+
+    .arch-feature-icon{
+      width:16px;
+      height:16px;
+      flex-shrink:0;
+      margin-top:2px;
+    }
+
+    .arch-arrow{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:var(--spacing-xs);
+    }
+
+    .arch-arrow-line{
+      width:40px;
+      height:2px;
+      background:linear-gradient(90deg, var(--accent-2), var(--accent));
+      position:relative;
+    }
+
+    .arch-arrow-line::after{
+      content:'';
+      position:absolute;
+      right:-6px;
+      top:-4px;
+      width:0;
+      height:0;
+      border-left:6px solid var(--accent);
+      border-top:5px solid transparent;
+      border-bottom:5px solid transparent;
+    }
+
+    .arch-arrow-label{
+      font-size:11px;
+      font-weight:600;
+      color:var(--accent);
+      text-align:center;
+      line-height:1.3;
+    }
+
+    .arch-highlight{
+      background:rgba(212,168,154,0.08);
+      padding:var(--spacing-xs) var(--spacing-sm);
+      border-radius:8px;
+      border-left:3px solid var(--accent);
+      font-size:12px;
+      color:var(--ink);
+      font-weight:500;
+    }
+
+    /* Features Section */
+    .features-section{
+      padding:var(--spacing-xl) 0;
+      background:var(--card);
+      margin-top:var(--spacing-xl);
+    }
+
+    .section-header{
+      text-align:center;
+      margin-bottom:var(--spacing-lg);
+    }
+
+    .section-header h2{
+      font-size:clamp(32px, 5vw, 56px);
+      font-weight:700;
+      margin-bottom:var(--spacing-sm);
+      letter-spacing:-0.02em;
+    }
+
+    .section-header p{
+      font-size:21px;
+      color:var(--muted);
+      max-width:65ch;
+      margin:0 auto;
+    }
+
+    .features{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+      gap:var(--spacing-md);
+      margin-top:var(--spacing-lg);
+    }
+
+    @media (max-width:768px){
+      .features{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .feature{
+      background:var(--bg);
+      padding:var(--spacing-md);
+      border-radius:var(--radius);
+      transition:transform 0.2s, box-shadow 0.2s;
+    }
+
+    .feature:hover{
+      transform:translateY(-4px);
+      box-shadow:0 12px 40px rgba(0,0,0,0.08);
+    }
+
+    /* .feature-icon{
+      width:48px;
+      height:48px;
+      border-radius:12px;
+      background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:var(--spacing-sm);
+      font-size:24px;
+    } */
+
+    .feature h3{
+      font-size:24px;
+      font-weight:600;
+      margin:0 0 var(--spacing-xs) 0;
+      letter-spacing:-0.01em;
+    }
+
+    .feature p{
+      color:var(--muted);
+      font-size:17px;
+      margin:0;
+      line-height:1.6;
+    }
+
+    /* About Section */
+    .about-section{
+      padding:var(--spacing-xl) 0;
+    }
+
+    .about-content{
+      display:grid;
+      grid-template-columns:1.2fr 0.8fr;
+      gap:var(--spacing-xl);
+      align-items:center;
+    }
+
+    @media (max-width:1024px){
+      .about-content{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .about-text h3{
+      font-size:clamp(28px, 4vw, 42px);
+      font-weight:700;
+      margin-bottom:var(--spacing-sm);
+      letter-spacing:-0.02em;
+    }
+
+    .about-text p{
+      font-size:19px;
+      color:var(--muted);
+      line-height:1.7;
+      margin-bottom:var(--spacing-md);
+    }
+
+    .signup-box{
+      background:var(--card);
+      padding:var(--spacing-md);
+      border-radius:var(--radius);
+    }
+
+    .signup-box h4{
+      font-size:21px;
+      font-weight:600;
+      margin-bottom:var(--spacing-sm);
+    }
+
+    .signup-form{
+      display:flex;
+      gap:var(--spacing-xs);
+      margin-top:var(--spacing-sm);
+    }
+
+    @media (max-width:640px){
+      .signup-form{
+        flex-direction:column;
+      }
+    }
+
+    .input{
+      flex:1;
+      padding:14px 20px;
+      border:1px solid rgba(0,0,0,0.1);
+      border-radius:980px;
+      font-size:17px;
+      font-family:inherit;
+      transition:border-color 0.2s;
+    }
+
+    .input:focus{
+      outline:none;
+      border-color:var(--accent);
+    }
+
+    #msg{
+      margin-top:var(--spacing-xs);
+      font-size:15px;
+      color:var(--accent);
+    }
+
+    /* Footer */
+    footer{
+      padding:var(--spacing-lg) 0;
+      border-top:1px solid rgba(0,0,0,0.08);
+      margin-top:var(--spacing-xl);
+    }
+
+    .footer-content{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:var(--spacing-md);
+    }
+
+    @media (max-width:768px){
+      .footer-content{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+
+    .footer-info{
+      display:flex;
+      flex-direction:column;
+      gap:var(--spacing-xs);
+    }
+
+    .footer-info strong{
+      font-size:17px;
+      font-weight:600;
+    }
+
+    .footer-info a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:15px;
+    }
+
+    .footer-info a:hover{
+      color:var(--accent);
+    }
+
+    .social-links{
+      display:flex;
+      gap:var(--spacing-md);
+      align-items:center;
+    }
+
+    .social-links a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:15px;
+      transition:color 0.2s;
+    }
+
+    .social-links a:hover{
+      color:var(--accent);
+    }
+
+    footer small{
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width:768px){
+      .hero-section{
+        padding:var(--spacing-lg) 0;
+        min-height:auto;
+      }
+
+      .headline{
+        font-size:clamp(36px, 10vw, 56px);
+      }
+
+      .lede{
+        font-size:19px;
+      }
+
+      .logo{
+        width:32px;
+        height:32px;
+      }
+
+      .brand h1{
+        font-size:18px;
+      }
+
+      .nav{
+        gap:var(--spacing-sm);
+      }
+
+      .nav a{
+        font-size:15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a class="brand" href="/">
+        <!-- <div class="logo">
+          <img src="./assets/raincoatLabsLogo1.jpg" alt="Raincoat Labs Logo" />
+        </div> -->
+        <h1>Raincoat Labs</h1>
+      </a>
+
+      <nav class="nav" aria-label="Primary">
+        <a href="./product.html">Product</a>
+        <!-- <a href="#features">Features</a> -->
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-section" role="region" aria-labelledby="hero-heading">
+      <div class="wrap">
+        <div class="hero">
+          <div class="hero-content">
+            <div class="eyebrow">Now Building</div>
+            <h1 id="hero-heading" class="headline">Visual intelligence.<br/><strong>Privacy-first.</strong></h1>
+            <p class="lede">On-device computer vision pipelines and a licensable similarity engine for fashion and retail. Add visual search, recommendations, and private personalization without uploading photos.</p>
+
+            <div class="cta-row">
+              <a class="btn" href="#contact">Get early access</a>
+              <a class="btn ghost" href="#features">Learn more</a>
+            </div>
+
+            <div class="badge">
+              Built for retailers, marketplaces, and app developers
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="mock-container">
+              <div class="mock">
+                <div class="arch-diagram">
+                  <!-- Client Side -->
+                  <div class="arch-card">
+                    <div class="arch-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                      </svg>
+                    </div>
+                    <div class="arch-card-title">Your Device</div>
+                    <!-- <div class="arch-highlight">Photos never leave</div> -->
+                    <div class="arch-feature">
+                      <svg class="arch-feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>AI processing on-device</span>
+                    </div>
+                    <div class="arch-feature">
+                      <svg class="arch-feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Generate embeddings</span>
+                    </div>
+                    <div style="margin-top:4px;">
+                      <span class="arch-tech-badge">ONNX</span>
+                      <span class="arch-tech-badge">WebGPU</span>
+                    </div>
+                  </div>
+
+                  <!-- Arrow -->
+                  <div class="arch-arrow">
+                    <div class="arch-arrow-line"></div>
+                    <div class="arch-arrow-label">Only 2KB<br/>encrypted</div>
+                  </div>
+
+                  <!-- Server Side -->
+                  <div class="arch-card">
+                    <div class="arch-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                      </svg>
+                    </div>
+                    <div class="arch-card-title">Smart API</div>
+                    <div class="arch-feature">
+                      <svg class="arch-feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Vector similarity search</span>
+                    </div>
+                    <div class="arch-feature">
+                      <svg class="arch-feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Weather-aware matching</span>
+                    </div>
+                    <div style="margin-top:4px;">
+                      <span class="arch-tech-badge">pgvector</span>
+                      <span class="arch-tech-badge">Rails</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features-section">
+      <div class="wrap">
+        <div class="section-header">
+          <h2>Built for the <strong>future of privacy</strong></h2>
+          <p>Everything runs client side. Your images never leave your device.</p>
+        </div>
+
+        <div class="features">
+          <div class="feature">
+            <h3>Client-side inference</h3>
+            <p>Run optimized ONNX models on device with WebGPU/WASM for real-time detection and embedding generation. Zero server uploads.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Vector similarity engine</h3>
+            <p>512D embeddings and pgvector-compatible search for "find similar" and cross-catalog matching with low-latency results.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Privacy by design</h3>
+            <p>Only embeddings and user-validated metadata are shared. Reduce data liability while preserving personalization and conversion uplift.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Retail SDK & API</h3>
+            <p>Lightweight SDKs and REST APIs for easy integration into e-commerce platforms, AR try-ons, and discovery features.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Model ops & export</h3>
+            <p>Production-ready model export (PyTorch → ONNX), progressive loading, quantization, and cross-platform optimization.</p>
+          </div>
+
+          <div class="feature">
+            <h3>Encrypted compute roadmap</h3>
+            <p>Research into obfuscated client-server compute and homomorphic encryption to enable encrypted inference workflows.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="about-section">
+      <div class="wrap">
+        <div class="about-content">
+          <div class="about-text">
+            <h3>About Raincoat Labs</h3>
+            <p>We build modular visual intelligence edge-AI that lets developers add vision-powered features while keeping user data private. Our first production use case is Raincoat, a consumer app that demonstrates the tech and drives early adoption.</p>
+          </div>
+
+          <div class="signup-box">
+            <h4>Interested in a pilot or SDK?</h4>
+            <p style="color:var(--muted);font-size:15px;margin-bottom:var(--spacing-sm);">Request early access</p>
+            <div class="signup-form">
+              <input class="input" id="email" type="email" placeholder="name@company.com" aria-label="email for early access" />
+              <button class="btn" id="signupBtn">Request access</button>
+            </div>
+            <div id="msg"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer id="contact">
+      <div class="wrap">
+        <div class="footer-content">
+          <div class="footer-info">
+            <strong>Raincoat Labs</strong>
+            <a href="mailto:hello@raincoatlabs.nyc">hello@raincoatlabs.nyc</a>
+            <a href="https://raincoatlabs.nyc" target="_blank" rel="noopener">raincoatlabs.nyc</a>
+          </div>
+
+          <div class="social-links">
+            <a href="https://x.com/Raincoat_Labs" aria-label="Twitter" target="_blank" rel="noopener">Twitter</a>
+            <a href="https://www.linkedin.com/company/raincoatlabs/" aria-label="LinkedIn" target="_blank" rel="noopener">LinkedIn</a>
+            <small>Built with privacy-first AI</small>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById('signupBtn').addEventListener('click', function(){
+      var email = document.getElementById('email').value.trim();
+      var msg = document.getElementById('msg');
+      if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        msg.textContent = 'Please enter a valid email address.';
+        msg.style.color = '#d32f2f';
+        return;
+      }
+      msg.textContent = 'Thanks! We will reach out with early access details.';
+      msg.style.color = 'var(--accent)';
+
+      const apiUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:3002/api/early-access'
+        : '/api/early-access';
+
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Early access request successful:', data);
+        if (data.duplicate) {
+          msg.textContent = 'You are already registered for early access.';
+        }
+      })
+      .catch(error => {
+        console.error('Early access request failed:', error);
+        msg.textContent = 'There was an error. Please try again later.';
+        msg.style.color = '#d32f2f';
+      });
+
+      document.getElementById('email').value = '';
+    });
+  </script>
+</body>
+</html>

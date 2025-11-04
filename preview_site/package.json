@@ -1,0 +1,20 @@
+{
+  "name": "raincoat-labs-website",
+  "version": "1.0.0",
+  "description": "Raincoat Labs website with early access API",
+  "main": "api-server.js",
+  "scripts": {
+    "start": "node api-server.js",
+    "dev": "nodemon api-server.js"
+  },
+  "keywords": ["raincoat", "api", "early-access"],
+  "author": "Raincoat Labs",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

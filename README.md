@@ -15,13 +15,13 @@ Raincoat is a privacy first, Machine learning powered, weather based outfit reco
 
 ## Architecture
 
-**Frontend**: Next.js 14 with TypeScript and Tailwind CSS (planned)  
-**Backend**: Ruby on Rails 8 (API-only)  
-**Database**: PostgreSQL 15 with pgvector for AI embeddings  
-**Image Storage**: Active Storage with direct uploads  
-**Authentication**: JWT with Devise  
-**Caching**: Redis  
-**AI Processing**: Client-side ONNX models (U2-Net, YOLO(not yet integrated), FashionCLIP)  
+**Frontend**: Next.js 15 with TypeScript and Tailwind CSS
+**Backend**: Ruby on Rails 8 (API-only)
+**Database**: PostgreSQL 15 with pgvector for AI embeddings
+**Image Storage**: Active Storage with direct uploads
+**Authentication**: JWT with Devise
+**Caching**: Redis
+**AI Processing**: Client-side ONNX models (U2-Net, YOLOv8, FashionCLIP)
 **Weather Data**: WeatherAPI.com
 
 ### Privacy-First Design
@@ -30,6 +30,10 @@ Raincoat is a privacy first, Machine learning powered, weather based outfit reco
 USER DEVICE (Browser)
 ====================
 Photo Attachment
+    ↓
+YOLOv8 ONNX (object detection & cropping)
+    ↓
+User Category Selection
     ↓
 U2-Net ONNX (background removal)
     ↓
@@ -55,6 +59,7 @@ Photos never leave your device. Only vector embeddings and user-validated tags a
 ### Prerequisites
 
 - Ruby 3.4.5 (use rbenv, rvm, or asdf)
+- Node.js 18+ and npm (for Next.js frontend)
 - Docker Desktop
 - Git
 - Python 3.11+ (for AI model preparation)
@@ -108,28 +113,46 @@ rvm use 3.4.5
    # Install Python dependencies
    pip install torch transformers
 
-   # Extract U2-Net and export FashionCLIP
+   # Extract U2-Net, export FashionCLIP, and YOLO
    python extract_u2net_onnx.py
    python export_fashionclip_onnx.py
+   python export_yolo_onnx.py
 
    # Generate label embeddings
    python generate_label_embeddings.py
 
-   # Copy models to public directory
+   # Copy models to Rails public directory
    cp models/*.onnx ../../raincoat_api/public/models/
    cp models/*.json ../../raincoat_api/public/models/
    ```
 
-5. **Start Rails server**
+5. **Setup Next.js Frontend**
 
    ```bash
-   cd raincoat_api
-   bundle exec rails server
+   cd raincoat_frontend
+   npm install
+
+   # Copy WASM files to Next.js public directory
+   cp ../raincoat_api/public/js/onnx/ort-wasm.wasm public/
+   cp ../raincoat_api/public/js/onnx/ort-wasm-simd.wasm public/
    ```
 
-6. **Access the application**
+6. **Start development servers**
+
+   ```bash
+   # Terminal 1: Start Rails API
+   cd raincoat_api
+   bundle exec rails server
+
+   # Terminal 2: Start Next.js frontend
+   cd raincoat_frontend
+   npm run dev
+   ```
+
+7. **Access the application**
+   - Next.js Frontend: http://localhost:3001
    - Rails API: http://localhost:3000
-   - Test upload: http://localhost:3000/closet/new
+   - Rails Test Page: http://localhost:3000/clothing_pieces/new
    - PostgreSQL: localhost:5432
    - Redis: localhost:6379
 
@@ -178,19 +201,50 @@ project_raincoat/
 │   ├── config/             # Rails configuration
 │   ├── db/                 # Database migrations & seeds
 │   ├── public/             # Static assets & AI models
-│   │   ├── js/onnx/        # ONNX runtime files
+│   │   ├── js/
+│   │   │   ├── onnx/       # ONNX runtime WASM files
+│   │   │   ├── yolo_handler.js      # YOLOv8 detection handler
+│   │   │   ├── pipeline_handler.js  # Full processing pipeline
+│   │   │   └── model_cache.js       # Model caching logic
 │   │   └── models/         # AI model files
 │   │       ├── u2net.onnx  # Background removal (~167 MB)
 │   │       ├── fashionclip_image_encoder.onnx  # Image embeddings (~150 MB)
+│   │       ├── yolo_raincoat.onnx  # Object detection (~6 MB)
+│   │       ├── yolo_config.json    # YOLO configuration
 │   │       ├── label_embeddings.json  # Fashion/weather labels (~50 KB)
 │   │       └── weather_rules.json  # Transitional mappings (~2 KB)
 │   ├── Gemfile            # Ruby dependencies
 │   └── Dockerfile.dev      # Development Docker image
-├── raincoat_frontend/      # Next.js frontend (planned)
+├── raincoat_frontend/      # Next.js 15 frontend
+│   ├── app/                # Next.js App Router
+│   │   ├── demo/           # Demo flow screens
+│   │   │   ├── WelcomeScreen.tsx
+│   │   │   ├── PrivacyScreen.tsx
+│   │   │   ├── AddItemScreen.tsx
+│   │   │   ├── ObjectDetectionScreen.tsx
+│   │   │   ├── CategoryScreen.tsx
+│   │   │   ├── ProcessingScreen.tsx
+│   │   │   ├── TagsScreen.tsx
+│   │   │   ├── ClosetScreen.tsx
+│   │   │   ├── LocationScreen.tsx
+│   │   │   ├── WeatherScreen.tsx
+│   │   │   ├── RecommendationsScreen.tsx
+│   │   │   └── CompleteScreen.tsx
+│   │   └── page.tsx        # Demo orchestrator
+│   ├── components/         # Reusable React components
+│   ├── lib/                # Utilities and AI handlers
+│   │   ├── yolo-detector.ts      # YOLOv8 TypeScript wrapper
+│   │   ├── onnx-processor.ts     # U2-Net & FashionCLIP processor
+│   │   └── api.ts                # API client
+│   ├── public/             # Static files
+│   │   ├── ort-wasm.wasm          # ONNX Runtime WASM
+│   │   └── ort-wasm-simd.wasm    # ONNX Runtime SIMD WASM
+│   └── package.json        # Node dependencies
 ├── scripts/                # Utility scripts
 │   ├── model_extractions/  # AI model preparation
 │   │   ├── extract_u2net_onnx.py
 │   │   ├── export_fashionclip_onnx.py
+│   │   ├── export_yolo_onnx.py
 │   │   └── generate_label_embeddings.py
 │   ├── reset_docker.ps1    # Windows Docker reset
 │   └── reset_docker.sh     # Unix Docker reset
@@ -205,12 +259,22 @@ project_raincoat/
 
 ### Client-Side Models (Browser)
 
+**YOLOv8n (Object Detection)**
+
+- Size: ~6 MB
+- Input: 640x640 RGB image with letterboxing
+- Output: Bounding boxes with category classifications
+- Categories: top, bottom, outerwear, shoes, accessories
+- Purpose: Detect and crop clothing items from photos
+- Features: Multi-object detection, auto-cropping with padding
+
 **U2-Net (Background Removal)**
 
 - Size: ~167 MB
-- Input: 320x320 RGB image
+- Input: 320x320 RGB image (auto-resized from max 800px for performance)
 - Output: Segmentation mask
 - Purpose: Remove distracting backgrounds from clothing photos
+- Optimization: Images resized to max 800x800 before processing
 
 **FashionCLIP (Image Encoder)**
 
@@ -328,16 +392,42 @@ docker compose -f docker-compose.dev.yaml up --build
 cd scripts/model_extractions
 
 # Install dependencies
-pip install torch transformers
+pip install torch transformers ultralytics
 
 # Extract and export models
 python extract_u2net_onnx.py
 python export_fashionclip_onnx.py
+python export_yolo_onnx.py
 python generate_label_embeddings.py
 
 # Deploy to public directory
 cp models/*.onnx ../../raincoat_api/public/models/
 cp models/*.json ../../raincoat_api/public/models/
+```
+
+### Frontend Commands
+
+```bash
+# Navigate to frontend directory
+cd raincoat_frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
 ```
 
 ## Testing
@@ -397,12 +487,12 @@ REDIS_URL=<production-redis-url>
 ### Closet Management
 
 - `GET /closet` - List user's clothing items
-- `GET /closet/new` - New clothing item form (with AI processing)
+- `GET /clothing_pieces/new` - Rails test page (with AI processing)
 - `POST /closet` - Create clothing item (with embedding)
 - `GET /closet/:id` - Show clothing item details
 - `GET /closet/:id/similar` - Find similar items
 
-### API v1 (JSON)
+### API v1 (JSON) - Used by Next.js Frontend
 
 - `GET /api/v1/clothing_pieces` - List items
 - `POST /api/v1/clothing_pieces` - Create item
@@ -410,71 +500,106 @@ REDIS_URL=<production-redis-url>
 - `GET /api/v1/clothing_pieces/:id/similar` - Similar items
 - `POST /api/v1/embeddings/search` - Vector similarity search
 - `GET /api/v1/embeddings/stats` - Embedding statistics
+- `GET /api/v1/weather?location=...` - Get weather data
+- `GET /api/v1/recommendations?location=...&closet_items=...` - Get outfit recommendations
+
+### Static Assets (Served by Rails)
+
+- `/models/*.onnx` - AI model files
+- `/models/*.json` - Model configurations and embeddings
+- `/js/onnx/*.wasm` - ONNX Runtime WebAssembly files
+- `/js/*.js` - Client-side JavaScript handlers
 
 ## Development Roadmap
 
 ### Phase 1: Foundation (COMPLETED)
 
-- Project setup and development environment
-- Rails API scaffolding and database setup
-- Authentication system implementation
-- Core data models and migrations
+- [x] Project setup and development environment
+- [x] Rails API scaffolding and database setup
+- [x] Authentication system implementation
+- [x] Core data models and migrations
 
 ### Phase 2: Core Features (COMPLETED)
 
-- User management and profile system
-- Closet CRUD operations and image handling
-- Basic weather integration and location management
-- Clothing categorization and tagging
+- [x] User management and profile system
+- [x] Closet CRUD operations and image handling
+- [x] Weather integration and location management
+- [x] Clothing categorization and tagging
 
-### Phase 3: Smart Features (IN PROGRESS)
+### Phase 3: Smart Features (COMPLETED)
 
-- AI image processing and automatic tagging (COMPLETED - client-side)
-- Basic outfit recommendation engine (IN PROGRESS)
-- Weather-to-outfit matching algorithms (COMPLETED - hybrid approach)
-- Closet and collection management
+- [x] YOLOv8 object detection and auto-cropping (client-side)
+- [x] U2-Net background removal (client-side)
+- [x] FashionCLIP embedding generation (client-side)
+- [x] AI automatic tagging with label embeddings
+- [x] Weather-to-outfit matching (hybrid AI + rules)
+- [x] Vector similarity search with pgvector
+- [x] Next.js frontend demo with full pipeline
 
-### Phase 4: Advanced Features
+### Phase 4: Frontend Polish (IN PROGRESS)
 
-- Enhanced recommendation algorithms
-- Monetization infrastructure and ad targeting
-- Advanced analytics and user insights
-- Mobile-optimized interface
+- [x] Interactive demo flow with 12 screens
+- [x] Live crop preview with category selection
+- [ ] Combine object detection and category screens
+- [ ] Enhanced UI/UX and responsive design
+- [ ] Error handling and user feedback
+- [ ] Loading states and animations
 
-### Phase 5: Production Ready
+### Phase 5: Advanced Features (PLANNED)
 
-- UI/UX polish and responsive design
-- Comprehensive testing and security audit
-- Production deployment and monitoring
-- Beta launch and user feedback integration
+- [ ] Enhanced recommendation algorithms
+- [ ] Outfit builder with smart suggestions
+- [ ] Advanced analytics and user insights
+- [ ] Mobile-optimized progressive web app
+
+### Phase 6: Production Ready (PLANNED)
+
+- [ ] Comprehensive testing and security audit
+- [ ] Production deployment and monitoring
+- [ ] Performance optimization
+- [ ] Beta launch and user feedback integration
 
 ## Technical Highlights
 
 ### Client-Side AI Processing
 
-- Complete privacy: images never leave the device
-- ONNX runtime for efficient browser inference
-- WebGPU acceleration where available, WASM fallback
-- Progressive model loading with caching
+- **Complete Privacy**: Images never leave the device - only embeddings and tags are uploaded
+- **ONNX Runtime**: Efficient browser-based inference with WASM backend
+- **Multi-Model Pipeline**: YOLOv8 → U2-Net → FashionCLIP → Auto-Tagging
+- **Performance Optimized**:
+  - Images resized to max 800x800 before processing
+  - Model caching with IndexedDB
+  - Singleton pattern prevents duplicate model loading
+  - React Strict Mode guards prevent double-processing
 
 ### Hybrid Intelligence
 
-- AI embeddings for semantic similarity (FashionCLIP)
-- Rule-based boosts for weather-specific logic
-- Best of both: flexible discovery + controlled business rules
+- **AI Embeddings**: FashionCLIP generates 512D semantic representations
+- **Rule-Based Boosts**: Weather-specific logic ensures appropriate recommendations
+- **Label Matching**: Cosine similarity between image and text embeddings
+- **Best of Both**: Flexible AI discovery + controlled business rules
 
 ### Vector Similarity Search
 
-- PostgreSQL with pgvector extension
-- 512-dimensional embeddings for clothing items
-- Cosine similarity for finding related pieces
-- Efficient nearest-neighbor queries
+- **PostgreSQL + pgvector**: Native vector operations in the database
+- **512-Dimensional Embeddings**: Rich semantic representations
+- **Cosine Similarity**: Find related items by semantic meaning
+- **Efficient Queries**: Nearest-neighbor search with proper indexing
 
 ### Weather Integration
 
-- Weather API conditions mapped to fashion descriptors
-- Transitional labels bridge weather terms to clothing tags
-- Rule-based overrides for reliable recommendations
+- **API Integration**: Real-time weather data from WeatherAPI.com
+- **Semantic Mapping**: Weather conditions → fashion descriptors
+- **Hybrid Matching**: AI embeddings + rule-based overrides
+- **Location Support**: Multiple locations with cached weather data
+
+### Next.js Frontend Architecture
+
+- **App Router**: Modern Next.js 15 with TypeScript
+- **Component-Based**: Reusable UI components with Tailwind CSS
+- **State Management**: React hooks for demo flow orchestration
+- **Type Safety**: Full TypeScript coverage with proper interfaces
+- **API Integration**: Clean separation between frontend and Rails backend
 
 ## Contributing
 
