@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
-import { Shirt, RectangleHorizontal, Backpack, Footprints, Coat } from 'lucide-react';
+import { Shirt, RectangleHorizontal, Backpack, Footprints, MapPinned as Hoodie } from 'lucide-react';
 import { yoloDetector, YOLODetection } from '@/lib/yolo-detector';
 
 interface CategoryScreenProps {
@@ -18,7 +18,7 @@ const categories = [
   { id: 'bottom', label: 'BOTTOM', icon: RectangleHorizontal, enabled: true },
   { id: 'accessories', label: 'ACCESSORIES', icon: Backpack, enabled: true },
   { id: 'shoes', label: 'SHOES', icon: Footprints, enabled: true },
-  { id: 'outerwear', label: 'OUTERWEAR', icon: Coat, enabled: true },
+  { id: 'outerwear', label: 'OUTERWEAR', icon: Hoodie, enabled: true },
 ];
 
 export default function CategoryScreen({
