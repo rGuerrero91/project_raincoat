@@ -164,10 +164,10 @@ export default function LandingPage() {
                     Get early access
                   </a>
                   <Link
-                    href="/demo"
+                    href="/product"
                     className="inline-flex items-center justify-center py-[14px] px-[28px] rounded-full bg-transparent text-[var(--ink)] no-underline font-semibold text-[17px] transition-all duration-200 border border-[rgba(212,168,154,0.4)] cursor-pointer hover:bg-[rgba(212,168,154,0.08)]"
                   >
-                    Try the demo
+                    Raincoat the App
                   </Link>
                 </div>
 

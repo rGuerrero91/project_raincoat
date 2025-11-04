@@ -118,7 +118,7 @@ export default function ProductPage() {
       <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-[20px] border-b border-black/5 py-4 transition-all duration-300">
         <div className="max-w-[var(--max-width)] mx-auto px-[var(--container-padding)] flex items-center justify-between">
           <Link
-            href="/product"
+            href="/"
             className="flex items-center gap-4 no-underline text-inherit transition-opacity duration-200 hover:opacity-80"
           >
             <h1 className="text-[21px] font-semibold m-0 tracking-[-0.02em] text-[var(--ink)]">
@@ -271,10 +271,13 @@ export default function ProductPage() {
                       />
                     ))}
                   </div> */}
-                  <div className="mt-4 text-center">
-                    <div className="inline-flex items-center gap-2 bg-[rgba(212,168,154,0.12)] text-[var(--ink)] py-2 px-4 rounded-[20px] font-semibold text-sm">
-                      In development • Client-side ONNX pipeline
-                    </div>
+                  <div className="mt-2 text-center">
+                   <Link
+                    href="/demo"
+                    className="inline-flex items-center justify-center py-[12px] px-[16px] rounded-full bg-transparent text-[var(--ink)] no-underline font-semibold text-[17px] transition-all duration-200 border border-[rgba(212,168,154,0.4)] cursor-pointer hover:bg-[rgba(212,168,154,0.08)]"
+                  >
+                    Try the demo
+                  </Link>
                   </div>
                 </div>
               </div>
