@@ -7,7 +7,7 @@ services:
     name: raincoat-api
     runtime: ruby
     region: ohio
-    plan: starter # Free tier available, or: starter, standard, pro, pro plus, pro max, pro ultra
+    plan: free
     rootDir: raincoat_api # subdirectory for api
     buildCommand: "./bin/render-build.sh"
     startCommand: "bundle exec puma -C config/puma.rb"
@@ -40,13 +40,13 @@ databases:
   # PostgreSQL Database with pgvector support
   - name: raincoat-db
     databaseName: raincoat_api_production
-    plan: starter
+    plan: free
     region: ohio
     ipAllowList: [] # Empty = allow all (Render services can connect)
     postgresMajorVersion: 16
 
   # Redis for caching and background jobs
   - name: raincoat-redis
-    plan: starter
+    plan: free
     region: ohio
     ipAllowList: []
