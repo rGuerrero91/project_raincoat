@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_30_032143) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_05_214514) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -92,6 +92,33 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_30_032143) do
     t.index ["user_id"], name: "index_locations_on_user_id"
   end
 
+  create_table "outfit_items", force: :cascade do |t|
+    t.bigint "outfit_id", null: false
+    t.bigint "clothing_piece_id", null: false
+    t.string "slot", null: false
+    t.integer "position", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["clothing_piece_id"], name: "index_outfit_items_on_clothing_piece_id"
+    t.index ["outfit_id", "slot"], name: "index_outfit_items_on_outfit_id_and_slot", unique: true
+    t.index ["outfit_id"], name: "index_outfit_items_on_outfit_id"
+  end
+
+  create_table "outfits", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.decimal "weather_temperature", precision: 4, scale: 1
+    t.string "weather_condition"
+    t.string "season"
+    t.text "description"
+    t.json "style_tags", default: []
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "created_at"], name: "index_outfits_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_outfits_on_user_id"
+    t.index ["weather_condition"], name: "index_outfits_on_weather_condition"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "name"
@@ -131,5 +158,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_30_032143) do
   add_foreign_key "clothing_embeddings", "clothing_pieces"
   add_foreign_key "clothing_pieces", "users"
   add_foreign_key "locations", "users"
+  add_foreign_key "outfit_items", "clothing_pieces"
+  add_foreign_key "outfit_items", "outfits"
+  add_foreign_key "outfits", "users"
   add_foreign_key "weather_snapshots", "locations"
 end

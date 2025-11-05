@@ -2,6 +2,8 @@ class ClothingPiece < ApplicationRecord
   belongs_to :user
   has_one :clothing_embedding, dependent: :destroy
   has_many_attached :images
+  has_many :outfit_items, dependent: :destroy
+  has_many :outfits, through: :outfit_items
 
   validates :category, presence: true, inclusion: {
     in: %w[tops bottoms outerwear shoes accessories],
@@ -33,5 +35,9 @@ class ClothingPiece < ApplicationRecord
   def has_embedding?
     clothing_embedding.present?
   end
-  
+
+  def image_url
+    images.first&.url
+  end
+
 end

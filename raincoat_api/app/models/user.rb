@@ -2,6 +2,7 @@ class User < ApplicationRecord
   has_many :clothing_pieces, dependent: :destroy
   has_many :locations, dependent: :destroy
   has_many :weather_snapshots, through: :locations
+  has_many :outfits, dependent: :destroy
 
   validates :email, presence: true, uniqueness: { case_sensitive: false }
   validates :name, presence: true

@@ -11,6 +11,8 @@
 
 # Clear existing data
 puts "Clearing existing data..."
+OutfitItem.destroy_all
+Outfit.destroy_all
 WeatherSnapshot.destroy_all
 Location.destroy_all
 ClothingEmbedding.destroy_all
@@ -465,4 +467,4 @@ puts "Email: test@example.com (#{test_user.clothing_pieces.count} items, #{test_
 puts "Email: demo@example.com (#{demo_user.clothing_pieces.count} items, #{demo_user.locations.count} locations)"
 puts "Email: rudy@email.com (#{rudy_user.clothing_pieces.count} items, #{rudy_user.locations.count} locations)"
 
-puts "\nSeed data complete! "
+puts "\nSeed data complete!"

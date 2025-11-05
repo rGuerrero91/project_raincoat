@@ -63,6 +63,13 @@ Rails.application.routes.draw do
         get :recommendations   # GET /api/v1/weather/recommendations
         post :refresh          # POST /api/v1/weather/refresh
       end
+
+      # Outfit recommendations
+      resources :outfits, only: [:index, :show, :create, :destroy] do
+        collection do
+          post :generate       # POST /api/v1/outfits/generate - Generate outfit recommendations
+        end
+      end
     end
   end
   
