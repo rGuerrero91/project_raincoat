@@ -124,7 +124,8 @@ class ModelCache {
     // check cache first
     const cachedData = await this.getModel(url);
     if (cachedData) {
-      return await ort.InferenceSession.create(cachedData);
+      // Return raw ArrayBuffer - caller will create session
+      return cachedData;
     }
 
     // if not there fetch and store
@@ -135,8 +136,8 @@ class ModelCache {
     // Store in cache
     await this.setModel(url, arrayBuffer);
 
-    // session
-    return await ort.InferenceSession.create(arrayBuffer);
+    // Return raw ArrayBuffer - caller will create session
+    return arrayBuffer;
   }
 
   async loadJSON(url) {

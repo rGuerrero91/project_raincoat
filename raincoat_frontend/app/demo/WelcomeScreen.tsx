@@ -2,12 +2,24 @@ import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import { Umbrella } from 'lucide-react';
+import onnxProcessor from '@/lib/onnx-processor';
 
 interface WelcomeScreenProps {
   onNext: () => void;
 }
 
 export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
+  const handleStartDemo = () => {
+    // Start preloading heavy AI models in background
+    // FashionCLIP (335MB) + U2-Net (168MB) will load while user goes through initial screens
+    console.log('[Demo] Starting model preload in background...');
+    onnxProcessor.preloadModels().catch((err) => {
+      console.warn('[Demo] Model preload failed, will load on-demand:', err);
+    });
+
+    onNext();
+  };
+
   return (
     <Container className="flex items-center justify-center min-h-screen">
       <Card padding="xl" className="text-center max-w-2xl w-full">
@@ -34,7 +46,7 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
 
         {/* CTA Button */}
         <div className="space-y-4">
-          <Button variant="primary" fullWidth onClick={onNext} className="text-lg py-4">
+          <Button variant="primary" fullWidth onClick={handleStartDemo} className="text-lg py-4">
             Start Demo
           </Button>
           <p className="text-sm text-neutral-medium opacity-70">

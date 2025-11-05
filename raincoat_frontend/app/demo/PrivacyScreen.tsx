@@ -1,13 +1,48 @@
+import { useEffect, useState } from 'react';
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
-import { Lock, Smartphone, Tag, Shield } from 'lucide-react';
+import { Lock, Smartphone, Tag, Shield, Download } from 'lucide-react';
 
 interface PrivacyScreenProps {
   onNext: () => void;
 }
 
+declare global {
+  interface Window {
+    modelCache?: {
+      initialize(): Promise<void>;
+      loadONNXModel(url: string): Promise<ArrayBuffer>;
+      loadJSON(url: string): Promise<any>;
+      getStats(): Promise<{ models: number; json: number; total: number }>;
+      clearCache(): Promise<void>;
+    };
+  }
+}
+
 export default function PrivacyScreen({ onNext }: PrivacyScreenProps) {
+  const [isPreloading, setIsPreloading] = useState(true);
+
+  useEffect(() => {
+    // Check if models are still loading
+    const checkInterval = setInterval(() => {
+      if (window.modelCache) {
+        console.log(window.modelCache.getStats());
+        setIsPreloading(false);
+      }
+    }, 1000);
+
+    // Auto-hide after 10 seconds (models should be loaded by then)
+    const timeout = setTimeout(() => {
+      setIsPreloading(false);
+    }, 5000);
+
+    return () => {
+      clearInterval(checkInterval);
+      clearTimeout(timeout);
+    };
+  }, []);
+
   const features = [
     {
       icon: Lock,
@@ -67,6 +102,18 @@ export default function PrivacyScreen({ onNext }: PrivacyScreenProps) {
             );
           })}
         </div>
+
+        {/* AI Model Preloading Indicator */}
+        {isPreloading && (
+          <div className="mb-6 p-4 bg-primary-light/50 rounded-2xl border-2 border-primary/20">
+            <div className="flex items-center justify-center gap-3">
+              <Download className="w-5 h-5 text-primary animate-bounce" />
+              <p className="text-sm text-primary font-medium">
+                Preparing AI models in the background...
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* CTA */}
         <div className="space-y-4">
