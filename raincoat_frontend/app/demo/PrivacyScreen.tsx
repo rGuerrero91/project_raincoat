@@ -8,20 +8,34 @@ interface PrivacyScreenProps {
   onNext: () => void;
 }
 
+declare global {
+  interface Window {
+    modelCache?: {
+      initialize(): Promise<void>;
+      loadONNXModel(url: string): Promise<ArrayBuffer>;
+      loadJSON(url: string): Promise<any>;
+      getStats(): Promise<{ models: number; json: number; total: number }>;
+      clearCache(): Promise<void>;
+    };
+  }
+}
+
 export default function PrivacyScreen({ onNext }: PrivacyScreenProps) {
   const [isPreloading, setIsPreloading] = useState(true);
 
   useEffect(() => {
     // Check if models are still loading
     const checkInterval = setInterval(() => {
-      // You can add a method to onnxProcessor to check loading status
-      // For now, assume loading takes ~10 seconds on average
+      if (window.modelCache) {
+        console.log(window.modelCache.getStats());
+        setIsPreloading(false);
+      }
     }, 1000);
 
     // Auto-hide after 10 seconds (models should be loaded by then)
     const timeout = setTimeout(() => {
       setIsPreloading(false);
-    }, 10000);
+    }, 5000);
 
     return () => {
       clearInterval(checkInterval);
