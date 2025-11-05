@@ -48,7 +48,7 @@ gem 'httparty' # for API calls
 
 gem 'neighbor' # for pgvector
 
-gem 'google-cloud-vision' # for AI image processing
+# gem 'google-cloud-vision' # for AI image processing
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

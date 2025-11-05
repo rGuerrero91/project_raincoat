@@ -1,7 +1,5 @@
 class ModelsController < ApplicationController
-  skip_before_action :require_login
-  
-  
+
   def show
     model_path = params[:path]
     file_path = Rails.root.join('public', 'models', model_path)
