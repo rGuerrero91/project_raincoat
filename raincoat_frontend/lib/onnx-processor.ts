@@ -3,6 +3,19 @@
 
 import * as ort from "onnxruntime-web";
 
+// Import ModelCache type (global from model_cache.js)
+declare global {
+  interface Window {
+    modelCache?: {
+      initialize(): Promise<void>;
+      loadONNXModel(url: string): Promise<ArrayBuffer>;
+      loadJSON(url: string): Promise<any>;
+      getStats(): Promise<{ models: number; json: number; total: number }>;
+      clearCache(): Promise<void>;
+    };
+  }
+}
+
 // Configure ONNX Runtime - WASM files copied from Rails to Next.js /public/
 if (typeof window !== "undefined") {
   // Serve from Next.js public directory (correct MIME types)
@@ -48,32 +61,85 @@ class ONNXProcessor {
   private fashionClipSession: ort.InferenceSession | null = null;
   private labelEmbeddings: { [key: string]: number[] } = {};
   private modelsLoaded = false;
+  private loadingPromise: Promise<void> | null = null;
+
+  /**
+   * Preload models in the background - call this early (e.g., on demo start)
+   * to avoid waiting during image processing
+   */
+  async preloadModels() {
+    if (this.modelsLoaded) {
+      console.log("[ONNX] Models already loaded");
+      return;
+    }
+
+    if (this.loadingPromise) {
+      console.log("[ONNX] Models already loading, waiting...");
+      return this.loadingPromise;
+    }
+
+    console.log("[ONNX] Starting background preload of models...");
+    this.loadingPromise = this.loadModels();
+    return this.loadingPromise;
+  }
 
   async loadModels() {
     if (this.modelsLoaded) return;
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const useCache = typeof window !== "undefined" && window.modelCache;
 
     try {
       console.log("[ONNX] Loading models from", API_URL);
 
+      if (useCache) {
+        console.log("[ONNX] Using IndexedDB cache for persistent storage");
+        await window.modelCache!.initialize();
+      }
+
       // Load U2-Net for background removal
-      this.u2netSession = await ort.InferenceSession.create(
-        `${API_URL}/models/u2net.onnx`,
-        { executionProviders: ["wasm"] }
-      );
+      if (useCache) {
+        const u2netBuffer = await window.modelCache!.loadONNXModel(
+          `${API_URL}/models/u2net.onnx`
+        );
+        this.u2netSession = await ort.InferenceSession.create(
+          u2netBuffer,
+          { executionProviders: ["wasm"] }
+        );
+      } else {
+        this.u2netSession = await ort.InferenceSession.create(
+          `${API_URL}/models/u2net.onnx`,
+          { executionProviders: ["wasm"] }
+        );
+      }
       console.log("[ONNX] U2-Net loaded");
 
       // Load FashionCLIP image encoder
-      this.fashionClipSession = await ort.InferenceSession.create(
-        `${API_URL}/models/fashionclip_image_encoder.onnx`,
-        { executionProviders: ["wasm"] }
-      );
+      if (useCache) {
+        const fashionClipBuffer = await window.modelCache!.loadONNXModel(
+          `${API_URL}/models/fashionclip_image_encoder.onnx`
+        );
+        this.fashionClipSession = await ort.InferenceSession.create(
+          fashionClipBuffer,
+          { executionProviders: ["wasm"] }
+        );
+      } else {
+        this.fashionClipSession = await ort.InferenceSession.create(
+          `${API_URL}/models/fashionclip_image_encoder.onnx`,
+          { executionProviders: ["wasm"] }
+        );
+      }
       console.log("[ONNX] FashionCLIP loaded");
 
       // Load label embeddings
-      const response = await fetch(`${API_URL}/models/label_embeddings.json`);
-      this.labelEmbeddings = await response.json();
+      if (useCache) {
+        this.labelEmbeddings = await window.modelCache!.loadJSON(
+          `${API_URL}/models/label_embeddings.json`
+        );
+      } else {
+        const response = await fetch(`${API_URL}/models/label_embeddings.json`);
+        this.labelEmbeddings = await response.json();
+      }
       console.log(
         "[ONNX] Label embeddings loaded:",
         Object.keys(this.labelEmbeddings).length,
@@ -82,6 +148,11 @@ class ONNXProcessor {
 
       this.modelsLoaded = true;
       console.log("[ONNX] All models loaded successfully");
+
+      if (useCache) {
+        const stats = await window.modelCache!.getStats();
+        console.log("[ONNX] Cache stats:", stats);
+      }
     } catch (error) {
       console.error("[ONNX] Failed to load models:", error);
       throw new Error("Failed to load AI models: " + (error as Error).message);
