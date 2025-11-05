@@ -1,0 +1,52 @@
+# Render Blueprint for Raincoat API
+# This file defines all services needed for the Raincoat API deployment
+
+services:
+  # Rails API Web Service
+  - type: web
+    name: raincoat-api
+    runtime: ruby
+    region: oregon # Choose: oregon, ohio, virginia, frankfurt, singapore
+    plan: starter # Free tier available, or: starter, standard, pro, pro plus, pro max, pro ultra
+    buildCommand: "./bin/render-build.sh"
+    startCommand: "bundle exec puma -C config/puma.rb"
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_MASTER_KEY
+        sync: false # Set this manually in Render dashboard from config/master.key
+      - key: DATABASE_URL
+        fromDatabase:
+          name: raincoat-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: raincoat-redis
+          type: redis
+          property: connectionString
+      # - key: GOOGLE_CLOUD_VISION_CREDENTIALS - Not actually used in Raincoat API
+      #   sync: false  # JSON credentials - set manually in Render dashboard
+      # - key: GOOGLE_CLOUD_PROJECT_ID
+      #   sync: false  # Set manually
+      - key: RAILS_MAX_THREADS
+        value: 5
+      - key: WEB_CONCURRENCY
+        value: 2
+    healthCheckPath: /up
+    autoDeploy: true # Auto-deploy on git push
+
+databases:
+  # PostgreSQL Database with pgvector support
+  - name: raincoat-db
+    databaseName: raincoat_api_production
+    plan: starter # Free tier available for 90 days, then paid
+    region: oregon # Should match your web service region
+    ipAllowList: [] # Empty = allow all (Render services can connect)
+    postgresMajorVersion: 16 # Latest stable version
+
+  # Redis for caching and background jobs
+  - name: raincoat-redis
+    plan: starter # Free tier available
+    region: oregon # Should match your web service region
+    maxmemoryPolicy: allkeys-lru # Eviction policy for cache
+    ipAllowList: []
