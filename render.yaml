@@ -33,6 +33,10 @@ services:
         value: 5
       - key: WEB_CONCURRENCY
         value: 2
+      - key: CORS_ORIGINS
+        value: https://raincoatlabs.nyc,http://localhost:3001,http://localhost:3000
+      - key: WEATHER_API_KEY
+        sync: false # Set this manually in Render dashboard
     healthCheckPath: /up
     autoDeploy: true # Auto-deploy on git push
 
