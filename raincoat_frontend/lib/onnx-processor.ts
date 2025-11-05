@@ -57,7 +57,7 @@ export interface ProcessingResult {
 const MAX_IMAGE_SIZE = 400; // Maximum width/height for processing (reduce computational overhead)
 
 // U2-Net Configuration - Trade-off between speed and quality
-const U2NET_INPUT_SIZE = 256; // Reduced from 320 for ~50% faster processing (was 320)
+const U2NET_INPUT_SIZE = 320; // Model expects 320x320 (cannot change without retraining model)
 const U2NET_QUALITY_MODE = "medium"; // "low" | "medium" | "high" - affects smoothing quality
 const USE_FAST_MASK_APPLICATION = true; // Use optimized mask application (faster, slight quality loss)
 
