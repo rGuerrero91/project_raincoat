@@ -14,8 +14,8 @@ interface CategoryScreenProps {
 }
 
 const categories = [
-  { id: 'top', label: 'TOP', icon: Shirt, enabled: true },
-  { id: 'bottom', label: 'BOTTOM', icon: RectangleHorizontal, enabled: true },
+  { id: 'tops', label: 'TOP', icon: Shirt, enabled: true },
+  { id: 'bottoms', label: 'BOTTOM', icon: RectangleHorizontal, enabled: true },
   { id: 'accessories', label: 'ACCESSORIES', icon: Backpack, enabled: true },
   { id: 'shoes', label: 'SHOES', icon: Footprints, enabled: true },
   { id: 'outerwear', label: 'OUTERWEAR', icon: Hoodie, enabled: true },

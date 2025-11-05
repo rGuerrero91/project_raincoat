@@ -134,7 +134,7 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
   def clothing_piece_params
     params.require(:clothing_piece).permit(:name, :description, :category, :brand, 
                                           colors: [], materials: [], 
-                                          ai_tags: {}, user_tags: {})
+                                          ai_tags: [], user_tags: [])
   end
   
   def parse_vector_data(data)

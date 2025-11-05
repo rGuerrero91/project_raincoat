@@ -62,6 +62,10 @@ class ApiClient {
       ...(options.headers as Record<string, string>),
     };
 
+    // Add demo user authentication for demo mode
+    // Backend accepts: Authorization: Bearer <email>
+    headers['Authorization'] = 'Bearer demo@example.com';
+
     // Add session ID if available
     if (this.sessionId) {
       headers['X-Session-Id'] = this.sessionId;

@@ -7,7 +7,8 @@ class ClothingPiece < ApplicationRecord
     in: %w[tops bottoms outerwear shoes accessories],
     message: "must be one of: tops, bottoms, outerwear, shoes, accessories"
   }
-  validates :images, presence: true
+  # Images are optional to allow demo/API creation without file uploads
+  # validates :images, presence: true
  
   enum :processing_status, [
     :pending,

@@ -23,8 +23,8 @@ const CATEGORY_MAP: Record<
   string,
   { icon: React.ComponentType<{ className?: string }>; label: string }
 > = {
-  top: { icon: Shirt, label: "Top" },
-  bottom: { icon: RectangleHorizontal, label: "Bottom" },
+  tops: { icon: Shirt, label: "Top" },
+  bottoms: { icon: RectangleHorizontal, label: "Bottom" },
   outerwear: { icon: Hoodie, label: "Outerwear" },
   shoes: { icon: Footprints, label: "Shoes" },
   accessories: { icon: Backpack, label: "Accessories" },
