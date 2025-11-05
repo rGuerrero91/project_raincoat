@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Private AI Demo — WebAuthn PRF + node-seal (CKKS)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; padding: 24px; }
+    h1 { margin-top: 0; }
+    button { padding: 10px 14px; border: 1px solid #ccc; border-radius: 10px; background: #fff; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; margin: 8px 0; }
+    code, pre { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; }
+    .muted { color: #6b7280; }
+    .ok { color: #15803d; }
+    .warn { color: #b45309; }
+    .err { color: #b91c1c; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  </style>
+  <!--
+    This page demonstrates a full client-side flow:
+      1) Register a WebAuthn passkey with PRF enabled
+      2) Derive an AES-GCM key from the PRF output using HKDF
+      3) Generate SEAL CKKS keys (public + secret) in the browser via node-seal (WASM)
+      4) Wrap (encrypt) the SEAL secret key with AES-GCM
+      5) Encrypt a sample embedding with CKKS using the public key and upload ciphertext
+      6) Decrypt a returned ciphertext after unwrapping the secret key
+
+    NOTE: WebAuthn PRF is currently available on specific platforms/browsers.
+    The demo attempts feature detection and will display helpful errors.
+
+    IMPORTANT: For production, serve this over HTTPS with a proper RP ID.
+  -->
+</head>
+<body>
+  <h1>Private AI: WebAuthn PRF + node-seal (CKKS)</h1>
+  <p class="muted">All crypto and HE happen locally in your browser. No secrets leave the page unless you wire the upload stubs.</p>
+
+  <div class="card">
+    <h2>0) Load node‑seal</h2>
+    <div class="row">
+      <button id="btnInitSeal">Load SEAL (WASM)</button>
+      <span id="sealStatus" class="muted">not loaded</span>
+    </div>
+    <p class="muted">This uses a CDN import. For production, pin exact versions and integrity hashes.</p>
+  </div>
+
+  <div class="card">
+    <h2>1) Register Passkey (PRF)</h2>
+    <div class="row">
+      <button id="btnRegister">Register New Passkey</button>
+      <button id="btnClearReg">Clear Saved Registration</button>
+      <span id="regStatus" class="muted">not registered</span>
+    </div>
+    <div><label>User ID (hex): <input id="userIdHex" class="mono" size="64" placeholder="e.g., 01ab…"/></label></div>
+    <div class="muted">Your RP ID will be this page's domain. User verification is required.</div>
+    <div id="savedRegInfo" class="muted" style="margin-top: 8px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>2) Derive AES key (HKDF over PRF)</h2>
+    <div class="row">
+      <button id="btnDerive">Derive AES‑GCM Key</button>
+      <span id="deriveStatus" class="muted">no key</span>
+    </div>
+    <div>Purpose string (<code>HKDF info</code>): <input id="purpose" size="36" class="mono" value="AES-GCM SEAL key wrap v1"/></div>
+  </div>
+
+  <div class="card">
+    <h2>3) Generate SEAL keys (CKKS)</h2>
+    <div class="row">
+      <button id="btnGenKeys">Generate CKKS Keys</button>
+      <button id="btnLoadKeys">Load Saved Keys</button>
+      <span id="keysStatus" class="muted">keys not generated</span>
+    </div>
+    <div class="muted">Params: polyModulusDegree=8192, coeffModulus=[60,40,40,60], scale=2<sup>40</sup> (example)</div>
+    <div id="savedKeysInfo" class="muted" style="margin-top: 8px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>4) Wrap (encrypt) the SEAL secret key with AES‑GCM</h2>
+    <div class="row">
+      <button id="btnWrap">Wrap Secret Key</button>
+      <span id="wrapStatus" class="muted">not wrapped</span>
+    </div>
+    <details>
+      <summary>Wrapped secret key (Base64)</summary>
+      <pre id="wrappedSkOut" class="mono"></pre>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>5) Encrypt a sample embedding (CKKS, client‑side)</h2>
+    <div class="row">
+      <button id="btnEnc">Encrypt Random Embedding (dim 128)</button>
+      <span id="encStatus" class="muted">no ciphertext</span>
+    </div>
+    <details>
+      <summary>Plaintext vector (first 8 values)</summary>
+      <pre id="ptPlainOut" class="mono"></pre>
+    </details>
+    <details>
+      <summary>Ciphertext (Base64, full - click to copy)</summary>
+      <textarea id="ctOut" class="mono" rows="6" style="width: 100%; font-size: 11px; resize: vertical;" readonly></textarea>
+    </details>
+    <div style="margin-top: 12px;">
+      <label style="display: block; margin-bottom: 8px;">Or set ciphertext manually (Base64):</label>
+      <textarea id="ctInput" class="mono" rows="4" style="width: 100%; font-size: 11px;" placeholder="Paste base64 ciphertext here..."></textarea>
+      <button id="btnSetCt" style="margin-top: 8px;">Load Ciphertext</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>6) Decrypt the ciphertext (unwrap → decrypt)</h2>
+    <div class="row">
+      <button id="btnDec">Unwrap & Decrypt</button>
+      <span id="decStatus" class="muted">no plaintext</span>
+    </div>
+    <details>
+      <summary>First 8 values of decrypted vector</summary>
+      <pre id="ptOut" class="mono"></pre>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>7) Demo: Compare Encrypted Clothing Embeddings (512-d)</h2>
+    <p class="muted">Load two clothing items from your closet, encrypt their FashionCLIP embeddings with CKKS, compute similarity on encrypted vectors, and decrypt the result.</p>
+
+    <div class="row">
+      <button id="btnLoadCloset1">Load Clothing Item 1</button>
+      <button id="btnLoadCloset2">Load Clothing Item 2</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0;">
+      <div>
+        <strong>Item 1:</strong>
+        <div id="closetItem1Info" class="muted" style="margin-top: 8px;">Not loaded</div>
+        <div id="closetItem1Preview" style="margin-top: 8px;"></div>
+      </div>
+      <div>
+        <strong>Item 2:</strong>
+        <div id="closetItem2Info" class="muted" style="margin-top: 8px;">Not loaded</div>
+        <div id="closetItem2Preview" style="margin-top: 8px;"></div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 16px;">
+      <button id="btnEncryptBoth">Encrypt Both Vectors</button>
+      <span id="encryptBothStatus" class="muted">not encrypted</span>
+    </div>
+
+    <div class="row" style="margin-top: 16px;">
+      <button id="btnCompareSimilarity">Compare Encrypted Vectors (Dot Product)</button>
+      <span id="compareStatus" class="muted">not compared</span>
+    </div>
+
+    <details style="margin-top: 12px;">
+      <summary>Comparison Results</summary>
+      <pre id="comparisonResults" class="mono"></pre>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>8) Demo: Private Search Against Plaintext Database</h2>
+    <p class="muted">Simulate server-side comparison: encrypt one query vector, then compare against ALL plaintext vectors in closet to find most similar item (like pgvector search, but private!).</p>
+
+    <div class="row">
+      <button id="btnLoadQueryItem">Load Query Item (to encrypt)</button>
+      <span id="queryItemStatus" class="muted">not loaded</span>
+    </div>
+
+    <div id="queryItemInfo" style="margin: 12px 0;"></div>
+
+    <div class="row" style="margin-top: 16px;">
+      <button id="btnEncryptQuery">Encrypt Query Vector</button>
+      <span id="encryptQueryStatus" class="muted">not encrypted</span>
+    </div>
+
+    <div class="row" style="margin-top: 16px;">
+      <button id="btnSearchDatabase">Search Database (Encrypted Query vs All Plaintext)</button>
+      <span id="searchStatus" class="muted">not searched</span>
+    </div>
+
+    <details style="margin-top: 12px;">
+      <summary>Search Results (Top 5 Most Similar)</summary>
+      <pre id="searchResults" class="mono"></pre>
+    </details>
+
+    <p class="muted" style="margin-top: 12px;">
+      <strong>How it works:</strong> Server computes encrypted_query • plaintext_db_vector for each item (plaintext-ciphertext multiplication).
+      Client receives encrypted scores, decrypts them, and finds the best match. The query stays private!
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Optional server endpoints (pseudo)</h2>
+    <pre class="mono">POST /api/keys/public { parmsB64, publicKeyB64 }
+POST /api/keys/secret { wrappedSkB64, ivB64 }
+POST /api/embeddings { ciphertextB64 }</pre>
+    <p class="muted">Wire these up as needed; keep secret keys wrapped at rest.</p>
+  </div>
+
+  <pre id="log" class="mono"></pre>
+
+  <script type="module">
+    // --- Dependencies ---
+    // Load node-seal via CDN. For production, pin an exact version and integrity.
+    // You can replace the URL with a locally hosted bundle if preferred.
+    import SEAL from 'https://esm.sh/node-seal@6.0.3';
+
+    // --- UI elements ---
+    const $ = sel => document.querySelector(sel)
+    const log = (m) => { const el = $('#log'); el.textContent += m + '\n'; console.log(m); }
+
+    // Check if SEAL imported successfully
+    console.log('SEAL module loaded:', typeof SEAL)
+    if (typeof SEAL === 'undefined') {
+      log('ERROR: SEAL module failed to import from CDN')
+    }
+
+    // --- LocalStorage keys ---
+    const STORAGE_KEYS = {
+      CREDENTIAL_ID: 'seal_demo_credential_id',
+      WRAPPED_SECRET_KEY: 'seal_demo_wrapped_sk',
+      PUBLIC_KEY: 'seal_demo_public_key'
+    }
+
+    // --- Globals (demo state) ---
+    let seal, context, encoder, scale, parms
+    let keygen, publicKey, secretKey
+    let aesKey   // CryptoKey for AES-GCM (derived from PRF via HKDF)
+    let wrapped  // { iv: Uint8Array, ciphertext: Uint8Array }
+    let savedCtBytes // latest ciphertext bytes (Uint8Array)
+    let savedPlain  // original embedding vector (Float64Array)
+    let credentialId // Store credential ID for reuse
+
+    // Clothing comparison demo
+    let closetItems = {
+      1: null,  // { item, embedding, ciphertext }
+      2: null
+    }
+
+    // Private search demo
+    let queryItem = null  // { item, embedding, ciphertext }
+
+    // --- Utils ---
+    const te = new TextEncoder();
+    const td = new TextDecoder();
+
+    // Efficient base64 encoding/decoding for large data (avoid spread operator)
+    const b64enc = (u8) => {
+      let binary = ''
+      for (let i = 0; i < u8.length; i++) {
+        binary += String.fromCharCode(u8[i])
+      }
+      return btoa(binary)
+    }
+
+    const b64dec = (b64) => {
+      // Clean the base64 string: remove whitespace, newlines, etc.
+      const clean = b64.replace(/\s+/g, '')
+      const binary = atob(clean)
+      const u8 = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) {
+        u8[i] = binary.charCodeAt(i)
+      }
+      return u8
+    }
+
+    function hexToBytes(hex) {
+      const clean = hex.replace(/[^0-9a-f]/gi, '')
+      if (clean.length % 2 !== 0) throw new Error('hex length must be even')
+      const out = new Uint8Array(clean.length / 2)
+      for (let i=0; i<out.length; i++) out[i] = parseInt(clean.substr(i*2,2),16)
+      return out
+    }
+
+    async function hkdfDeriveAesKey(ikmRaw, infoStr) {
+      const master = await crypto.subtle.importKey('raw', ikmRaw, 'HKDF', false, ['deriveKey'])
+      return await crypto.subtle.deriveKey(
+        { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(), info: te.encode(infoStr) },
+        master,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt','decrypt']
+      )
+    }
+
+    async function aesGcmWrap(aesKey, plaintextBytes){
+      const iv = crypto.getRandomValues(new Uint8Array(12))
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, plaintextBytes)
+      return { iv, ciphertext: new Uint8Array(ct) }
+    }
+
+    async function aesGcmUnwrap(aesKey, iv, ciphertext){
+      const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, aesKey, ciphertext)
+      return new Uint8Array(pt)
+    }
+
+    // --- LocalStorage helpers ---
+    function loadSavedCredential() {
+      const savedCred = localStorage.getItem(STORAGE_KEYS.CREDENTIAL_ID)
+      if (savedCred) {
+        credentialId = b64dec(savedCred)
+        $('#regStatus').textContent = 'loaded from storage ✓'
+        $('#regStatus').className = 'ok'
+        $('#savedRegInfo').textContent = `Saved credential ID: ${credentialId.byteLength} bytes`
+        log('Loaded saved credential from localStorage')
+        return true
+      }
+      return false
+    }
+
+    function saveCredential(credId) {
+      localStorage.setItem(STORAGE_KEYS.CREDENTIAL_ID, b64enc(credId))
+      log('Saved credential to localStorage')
+    }
+
+    function clearSavedCredential() {
+      localStorage.removeItem(STORAGE_KEYS.CREDENTIAL_ID)
+      credentialId = null
+      $('#regStatus').textContent = 'cleared'
+      $('#regStatus').className = 'muted'
+      $('#savedRegInfo').textContent = ''
+      log('Cleared saved credential from localStorage')
+    }
+
+    function saveSealKeys(wrappedData, publicKeyStr) {
+      localStorage.setItem(STORAGE_KEYS.WRAPPED_SECRET_KEY, JSON.stringify({
+        iv: b64enc(wrappedData.iv),
+        ciphertext: b64enc(wrappedData.ciphertext)
+      }))
+      localStorage.setItem(STORAGE_KEYS.PUBLIC_KEY, publicKeyStr)
+      log('Saved SEAL keys to localStorage')
+    }
+
+    function loadSavedKeys() {
+      const wrappedStr = localStorage.getItem(STORAGE_KEYS.WRAPPED_SECRET_KEY)
+      const pkStr = localStorage.getItem(STORAGE_KEYS.PUBLIC_KEY)
+      if (wrappedStr && pkStr) {
+        const wrappedData = JSON.parse(wrappedStr)
+        return {
+          wrapped: {
+            iv: b64dec(wrappedData.iv),
+            ciphertext: b64dec(wrappedData.ciphertext)
+          },
+          publicKeyStr: pkStr
+        }
+      }
+      return null
+    }
+
+    // --- Page load initialization ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedCredential()
+
+      const savedKeys = loadSavedKeys()
+      if (savedKeys) {
+        $('#savedKeysInfo').textContent = 'Saved keys available - click "Load Saved Keys" to use them'
+      }
+    })
+
+    // --- 0) Load node-seal ---
+    $('#btnInitSeal').onclick = async () => {
+      try {
+        console.log('Starting SEAL initialization...')
+        console.log('SEAL import:', SEAL)
+        seal = await SEAL()
+        console.log('SEAL instance:', seal)
+
+        // Setup CKKS scheme parameters
+        const schemeType = seal.SchemeType.ckks  // lowercase 'ckks'
+        const securityLevel = seal.SecurityLevel.tc128
+        const polyModulusDegree = 8192
+        const bitSizes = [60, 40, 40, 60]
+
+        parms = seal.EncryptionParameters(schemeType)
+        parms.setPolyModulusDegree(polyModulusDegree)
+        parms.setCoeffModulus(seal.CoeffModulus.Create(polyModulusDegree, Int32Array.from(bitSizes)))
+
+        context = seal.Context(parms, true, securityLevel)
+
+        if (!context.parametersSet()) {
+          throw new Error('Parameters could not be set in the context')
+        }
+
+        encoder = seal.CKKSEncoder(context)
+        scale = Math.pow(2, 40)
+
+        $('#sealStatus').textContent = 'loaded ✓'
+        $('#sealStatus').className = 'ok'
+        log('SEAL loaded. CKKS context ready.')
+      } catch (e) {
+        console.error('SEAL init error:', e)
+        $('#sealStatus').textContent = 'failed'
+        $('#sealStatus').className = 'err'
+        log('SEAL init error: ' + (e.message || e.toString() || JSON.stringify(e)))
+      }
+    }
+
+    // --- 1) Register WebAuthn credential with PRF enabled ---
+    $('#btnRegister').onclick = async () => {
+      try {
+        if (!('credentials' in navigator)) throw new Error('WebAuthn not supported in this browser')
+
+        // Build options — in production, fetch these from your server.
+        const userIdHex = $('#userIdHex').value || '01'
+        const pubKey = {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rp: { name: 'Private AI Demo', id: location.hostname },
+          user: {
+            id: hexToBytes(userIdHex),
+            name: 'user@example.com',
+            displayName: 'Demo User'
+          },
+          pubKeyCredParams: [ { type: 'public-key', alg: -7 } ], // ES256
+          authenticatorSelection: {
+            userVerification: 'required',
+            residentKey: 'required',  // Make it discoverable
+            requireResidentKey: true
+          },
+          extensions: { prf: {} },
+        }
+        const cred = await navigator.credentials.create({ publicKey: pubKey })
+
+        // Store credential ID for later use
+        credentialId = new Uint8Array(cred.rawId)
+
+        // Save to localStorage
+        saveCredential(credentialId)
+
+        const exts = cred.getClientExtensionResults?.() || {}
+        const prfEnabled = !!exts.prf
+        $('#regStatus').textContent = prfEnabled ? 'registered (PRF available) ✓' : 'registered (PRF not indicated)'
+        $('#regStatus').className = prfEnabled ? 'ok' : 'warn'
+        $('#savedRegInfo').textContent = `Saved credential ID: ${credentialId.byteLength} bytes`
+        log('Registration OK. Credential ID length: ' + credentialId.byteLength)
+      } catch (e) {
+        $('#regStatus').textContent = 'failed'
+        $('#regStatus').className = 'err'
+        log('Registration error: ' + e.message)
+      }
+    }
+
+    // --- 1b) Clear saved registration ---
+    $('#btnClearReg').onclick = () => {
+      clearSavedCredential()
+    }
+
+    // --- 2) Derive AES key via PRF -> HKDF ---
+    $('#btnDerive').onclick = async () => {
+      try {
+        if (!credentialId) {
+          throw new Error('Please register a passkey first')
+        }
+
+        const info = $('#purpose').value || 'AES-GCM SEAL key wrap v1'
+        const salt = te.encode('seal-secret-wrap-v1') // PRF input salt (purpose tag)
+
+        const publicKey = {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          userVerification: 'required',
+          allowCredentials: [{
+            type: 'public-key',
+            id: credentialId,
+            transports: ['internal', 'hybrid', 'usb', 'nfc', 'ble']
+          }],
+          extensions: { prf: { eval: { first: salt } } }
+        }
+
+        const asrt = await navigator.credentials.get({ publicKey })
+        const exts = asrt.getClientExtensionResults?.() || {}
+        const prfOut = exts?.prf?.results?.first
+        if (!prfOut) throw new Error('PRF output missing — browser/authenticator may not support PRF')
+
+        aesKey = await hkdfDeriveAesKey(new Uint8Array(prfOut), info)
+        $('#deriveStatus').textContent = 'derived ✓'
+        $('#deriveStatus').className = 'ok'
+        log('Derived AES-GCM key from PRF via HKDF.')
+      } catch (e) {
+        $('#deriveStatus').textContent = 'failed'
+        $('#deriveStatus').className = 'err'
+        log('Derive error: ' + e.message)
+      }
+    }
+
+    // --- 3) Generate SEAL keys ---
+    $('#btnGenKeys').onclick = async () => {
+      try {
+        if (!seal || !context) throw new Error('Load SEAL first')
+        keygen = seal.KeyGenerator(context)
+        publicKey = keygen.createPublicKey()
+        secretKey = keygen.secretKey()
+        $('#keysStatus').textContent = 'keys ready ✓'
+        $('#keysStatus').className = 'ok'
+        log('Generated CKKS keypair.')
+      } catch (e) {
+        $('#keysStatus').textContent = 'failed'
+        $('#keysStatus').className = 'err'
+        log('Keygen error: ' + e.message)
+      }
+    }
+
+    // --- 3b) Load saved keys ---
+    $('#btnLoadKeys').onclick = async () => {
+      try {
+        if (!seal || !context) throw new Error('Load SEAL first')
+        if (!aesKey) throw new Error('Derive AES key first (step 2)')
+
+        const savedKeys = loadSavedKeys()
+        if (!savedKeys) throw new Error('No saved keys found')
+
+        // Load public key
+        publicKey = seal.PublicKey()
+        publicKey.load(context, savedKeys.publicKeyStr)
+
+        // Store wrapped data for later use
+        wrapped = savedKeys.wrapped
+
+        // Unwrap and load secret key
+        const skBytes = await aesGcmUnwrap(aesKey, wrapped.iv, wrapped.ciphertext)
+        let skStr = ''
+        for (let i = 0; i < skBytes.length; i++) {
+          skStr += String.fromCharCode(skBytes[i])
+        }
+        secretKey = seal.SecretKey()
+        secretKey.load(context, skStr)
+
+        // Create KeyGenerator from the loaded secret key
+        // This is needed for operations like createRelinKeys()
+        keygen = seal.KeyGenerator(context, secretKey)
+
+        $('#keysStatus').textContent = 'loaded from storage ✓'
+        $('#keysStatus').className = 'ok'
+        $('#wrapStatus').textContent = 'loaded (wrapped) ✓'
+        $('#wrapStatus').className = 'ok'
+        $('#savedKeysInfo').textContent = 'Keys loaded successfully'
+        log('Loaded and decrypted SEAL keys from localStorage')
+      } catch (e) {
+        $('#keysStatus').textContent = 'failed to load'
+        $('#keysStatus').className = 'err'
+        log('Load keys error: ' + e.message)
+      }
+    }
+
+    // --- 4) Wrap secret key with AES-GCM ---
+    $('#btnWrap').onclick = async () => {
+      try {
+        if (!aesKey) throw new Error('Derive AES key first')
+        if (!secretKey) throw new Error('Generate SEAL keys first')
+
+        // Serialize secret key to bytes
+        const skStr = secretKey.save() // node-seal returns a string (binary)
+
+        // Convert to Uint8Array efficiently (avoid spread operator for large data)
+        const skBytes = new Uint8Array(skStr.length)
+        for (let i = 0; i < skStr.length; i++) {
+          skBytes[i] = skStr.charCodeAt(i)
+        }
+
+        wrapped = await aesGcmWrap(aesKey, skBytes)
+
+        // Save wrapped key and public key to localStorage
+        const pkStr = publicKey.save()
+        saveSealKeys(wrapped, pkStr)
+
+        $('#wrapStatus').textContent = 'wrapped ✓'
+        $('#wrapStatus').className = 'ok'
+        $('#wrappedSkOut').textContent = JSON.stringify({
+          ivB64: b64enc(wrapped.iv),
+          wrappedSkB64: b64enc(wrapped.ciphertext).slice(0, 200) + '... (truncated)'
+        }, null, 2)
+        $('#savedKeysInfo').textContent = 'Keys saved to localStorage'
+        log('Secret key wrapped with AES-GCM. Size: ' + skBytes.length + ' bytes')
+      } catch (e) {
+        $('#wrapStatus').textContent = 'failed'
+        $('#wrapStatus').className = 'err'
+        log('Wrap error: ' + e.message)
+      }
+    }
+
+    // --- 5) Encrypt a sample embedding ---
+    $('#btnEnc').onclick = async () => {
+      try {
+        if (!publicKey) throw new Error('Generate SEAL keys first')
+        // Create a random embedding (dim 128) in range [-1, 1]
+        const dim = 128
+        const v = new Float64Array(dim)
+        for (let i=0;i<dim;i++) v[i] = (Math.random() * 2 - 1)
+        savedPlain = v
+
+        const encryptor = seal.Encryptor(context, publicKey)
+        const pt = encoder.encode(v, scale)
+        const ct = encryptor.encrypt(pt)
+        const ctStr = ct.save() // string (binary)
+
+        // Convert to Uint8Array efficiently (avoid spread operator for large data)
+        savedCtBytes = new Uint8Array(ctStr.length)
+        for (let i = 0; i < ctStr.length; i++) {
+          savedCtBytes[i] = ctStr.charCodeAt(i)
+        }
+
+        $('#encStatus').textContent = 'encrypted ✓'
+        $('#encStatus').className = 'ok'
+        $('#ptPlainOut').textContent = Array.from(v.slice(0, 8)).map(x => x.toFixed(6)).join(', ')
+        $('#ctOut').value = b64enc(savedCtBytes)  // Full base64, no truncation
+        log('Embedding encrypted with CKKS. Ciphertext size: ' + savedCtBytes.length + ' bytes')
+      } catch (e) {
+        $('#encStatus').textContent = 'failed'
+        $('#encStatus').className = 'err'
+        log('Encrypt error: ' + e.message)
+      }
+    }
+
+    // --- 5b) Load ciphertext manually ---
+    $('#btnSetCt').onclick = () => {
+      try {
+        const b64Input = $('#ctInput').value.trim()
+        if (!b64Input) throw new Error('Please paste a base64 ciphertext')
+
+        savedCtBytes = b64dec(b64Input)
+        $('#encStatus').textContent = 'loaded manually ✓'
+        $('#encStatus').className = 'ok'
+        log('Ciphertext loaded manually. Size: ' + savedCtBytes.length + ' bytes')
+      } catch (e) {
+        $('#encStatus').textContent = 'failed to load'
+        $('#encStatus').className = 'err'
+        log('Load ciphertext error: ' + e.message)
+      }
+    }
+
+    // --- 6) Unwrap and decrypt ---
+    $('#btnDec').onclick = async () => {
+      try {
+        if (!wrapped) throw new Error('No wrapped secret — click "Wrap Secret Key" first')
+        if (!savedCtBytes) throw new Error('No ciphertext — click "Encrypt Random Embedding" first')
+
+        // Re-derive aesKey (in a real flow you would call PRF again). For demo we reuse aesKey.
+        if (!aesKey) throw new Error('Derive AES key first')
+
+        // Unwrap secret key
+        const skBytes = await aesGcmUnwrap(aesKey, wrapped.iv, wrapped.ciphertext)
+
+        // Convert bytes back to binary string for SEAL's load() method
+        let skStr = ''
+        for (let i = 0; i < skBytes.length; i++) {
+          skStr += String.fromCharCode(skBytes[i])
+        }
+        const sk = seal.SecretKey()
+        sk.load(context, skStr)
+
+        // Convert ciphertext bytes to binary string
+        let ctStr = ''
+        for (let i = 0; i < savedCtBytes.length; i++) {
+          ctStr += String.fromCharCode(savedCtBytes[i])
+        }
+
+        const decryptor = seal.Decryptor(context, sk)
+        const ct = seal.CipherText()
+        ct.load(context, ctStr)
+        const pt = decryptor.decrypt(ct)
+        const arr = encoder.decode(pt) // Float64Array
+
+        $('#decStatus').textContent = 'decrypted ✓'
+        $('#decStatus').className = 'ok'
+        $('#ptOut').textContent = Array.from(arr.slice(0,8)).map(x => x.toFixed(6)).join(', ')
+        log('Ciphertext decrypted. Compare to original sample vector if desired.')
+      } catch (e) {
+        console.error('Decrypt error:', e)
+        $('#decStatus').textContent = 'failed'
+        $('#decStatus').className = 'err'
+        log('Decrypt error: ' + e.message)
+      }
+    }
+
+    // --- 7) Clothing Comparison Demo ---
+
+    // Helper: fetch closet items
+    async function fetchClosetItems() {
+      const response = await fetch('/api/v1/clothing_pieces')
+      const data = await response.json()
+      if (!data.success) throw new Error('Failed to fetch closet items')
+      return data.data.filter(item => item.has_embedding) // Only items with embeddings
+    }
+
+    // Helper: fetch embedding for an item
+    async function fetchEmbedding(itemId) {
+      const response = await fetch(`/api/v1/clothing_pieces/${itemId}/embedding`)
+      const data = await response.json()
+      if (!data.success || !data.data.embedding || !data.data.embedding.vector_data) {
+        throw new Error('No embedding found for this item')
+      }
+      return data.data.embedding.vector_data
+    }
+
+    // Load closet item with modal selection
+    $('#btnLoadCloset1').onclick = () => loadClosetItem(1)
+    $('#btnLoadCloset2').onclick = () => loadClosetItem(2)
+
+    async function loadClosetItem(slotNum) {
+      try {
+        log(`Loading closet items for slot ${slotNum}...`)
+        const items = await fetchClosetItems()
+
+        if (items.length === 0) {
+          alert('No clothing items with embeddings found in closet. Please add items with embeddings first.')
+          return
+        }
+
+        // Create simple selection list
+        const itemNames = items.map((item, idx) => `${idx + 1}. ${item.name} (${item.category || 'Unknown'})`).join('\n')
+        const selection = prompt(`Select item for Slot ${slotNum}:\n\n${itemNames}\n\nEnter number (1-${items.length}):`)
+
+        if (!selection) return
+
+        const itemIdx = parseInt(selection) - 1
+        if (itemIdx < 0 || itemIdx >= items.length) {
+          alert('Invalid selection')
+          return
+        }
+
+        const selectedItem = items[itemIdx]
+
+        // Fetch embedding
+        log(`Fetching embedding for ${selectedItem.name}...`)
+        const embedding = await fetchEmbedding(selectedItem.id)
+
+        if (embedding.length !== 512) {
+          throw new Error(`Expected 512-d vector, got ${embedding.length}`)
+        }
+
+        // Store item data
+        closetItems[slotNum] = {
+          item: selectedItem,
+          embedding: new Float64Array(embedding),
+          ciphertext: null
+        }
+
+        // Update UI
+        $(`#closetItem${slotNum}Info`).textContent = `${selectedItem.name} (${selectedItem.category || 'Unknown'}) - 512-d vector loaded`
+        $(`#closetItem${slotNum}Info`).className = 'ok'
+
+        // Show preview image if available
+        if (selectedItem.images && selectedItem.images.length > 0) {
+          $(`#closetItem${slotNum}Preview`).innerHTML = `<img src="${selectedItem.images[0].url}" style="max-width: 100%; max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">`
+        }
+
+        log(`Loaded ${selectedItem.name} into slot ${slotNum}`)
+      } catch (e) {
+        console.error('Load closet item error:', e)
+        log(`Error loading item: ${e.message}`)
+        alert(`Error: ${e.message}`)
+      }
+    }
+
+    // Encrypt both vectors
+    $('#btnEncryptBoth').onclick = async () => {
+      try {
+        if (!seal || !context || !publicKey) throw new Error('Initialize SEAL and generate keys first')
+        if (!closetItems[1] || !closetItems[2]) throw new Error('Load both clothing items first')
+
+        log('Encrypting both 512-d vectors...')
+
+        // Encrypt item 1
+        const encryptor = seal.Encryptor(context, publicKey)
+
+        const pt1 = encoder.encode(closetItems[1].embedding, scale)
+        const ct1 = encryptor.encrypt(pt1)
+        const ct1Str = ct1.save()
+        let ct1Bytes = new Uint8Array(ct1Str.length)
+        for (let i = 0; i < ct1Str.length; i++) {
+          ct1Bytes[i] = ct1Str.charCodeAt(i)
+        }
+        closetItems[1].ciphertext = ct1Bytes
+
+        // Encrypt item 2
+        const pt2 = encoder.encode(closetItems[2].embedding, scale)
+        const ct2 = encryptor.encrypt(pt2)
+        const ct2Str = ct2.save()
+        let ct2Bytes = new Uint8Array(ct2Str.length)
+        for (let i = 0; i < ct2Str.length; i++) {
+          ct2Bytes[i] = ct2Str.charCodeAt(i)
+        }
+        closetItems[2].ciphertext = ct2Bytes
+
+        $('#encryptBothStatus').textContent = 'both encrypted ✓'
+        $('#encryptBothStatus').className = 'ok'
+        log(`Encrypted both vectors. CT1: ${ct1Bytes.length} bytes, CT2: ${ct2Bytes.length} bytes`)
+      } catch (e) {
+        console.error('Encryption error:', e)
+        $('#encryptBothStatus').textContent = 'failed'
+        $('#encryptBothStatus').className = 'err'
+        log(`Encryption error: ${e.message}`)
+      }
+    }
+
+    // Compare encrypted vectors (compute dot product homomorphically)
+    $('#btnCompareSimilarity').onclick = async () => {
+      try {
+        if (!seal || !context || !secretKey) throw new Error('Initialize SEAL and keys first')
+        if (!closetItems[1]?.ciphertext || !closetItems[2]?.ciphertext) {
+          throw new Error('Encrypt both vectors first')
+        }
+
+        log('Computing encrypted dot product...')
+
+        // Load ciphertexts
+        let ct1Str = ''
+        for (let i = 0; i < closetItems[1].ciphertext.length; i++) {
+          ct1Str += String.fromCharCode(closetItems[1].ciphertext[i])
+        }
+        const ct1 = seal.CipherText()
+        ct1.load(context, ct1Str)
+
+        let ct2Str = ''
+        for (let i = 0; i < closetItems[2].ciphertext.length; i++) {
+          ct2Str += String.fromCharCode(closetItems[2].ciphertext[i])
+        }
+        const ct2 = seal.CipherText()
+        ct2.load(context, ct2Str)
+
+        // Compute element-wise multiplication (encrypted)
+        const evaluator = seal.Evaluator(context)
+        const ctProduct = seal.CipherText()
+        evaluator.multiply(ct1, ct2, ctProduct)
+
+        // Relinearize after multiplication
+        const relinKeys = keygen.createRelinKeys()
+        evaluator.relinearize(ctProduct, relinKeys, ctProduct)
+
+        // Decrypt the product
+        const decryptor = seal.Decryptor(context, secretKey)
+        const ptProduct = decryptor.decrypt(ctProduct)
+        const productArr = encoder.decode(ptProduct)
+
+        // Sum the products to get dot product
+        let dotProduct = 0
+        for (let i = 0; i < 512; i++) {
+          dotProduct += productArr[i]
+        }
+
+        // Also compute plaintext similarity for comparison
+        let plaintextDot = 0
+        for (let i = 0; i < 512; i++) {
+          plaintextDot += closetItems[1].embedding[i] * closetItems[2].embedding[i]
+        }
+
+        $('#compareStatus').textContent = 'compared ✓'
+        $('#compareStatus').className = 'ok'
+
+        const results = {
+          item1: closetItems[1].item.name,
+          item2: closetItems[2].item.name,
+          encryptedDotProduct: dotProduct.toFixed(6),
+          plaintextDotProduct: plaintextDot.toFixed(6),
+          difference: Math.abs(dotProduct - plaintextDot).toFixed(6),
+          similarity: `${(plaintextDot * 100).toFixed(2)}%`,
+          note: 'CKKS is approximate - small differences are expected'
+        }
+
+        $('#comparisonResults').textContent = JSON.stringify(results, null, 2)
+        log(`Comparison complete. Encrypted: ${dotProduct.toFixed(6)}, Plaintext: ${plaintextDot.toFixed(6)}`)
+      } catch (e) {
+        console.error('Comparison error:', e)
+        $('#compareStatus').textContent = 'failed'
+        $('#compareStatus').className = 'err'
+        log(`Comparison error: ${e.message}`)
+      }
+    }
+
+    // --- 8) Private Database Search Demo ---
+
+    // Load query item
+    $('#btnLoadQueryItem').onclick = async () => {
+      try {
+        log('Loading closet items for query...')
+        const items = await fetchClosetItems()
+
+        if (items.length === 0) {
+          alert('No clothing items with embeddings found in closet.')
+          return
+        }
+
+        const itemNames = items.map((item, idx) => `${idx + 1}. ${item.name} (${item.category || 'Unknown'})`).join('\n')
+        const selection = prompt(`Select query item:\n\n${itemNames}\n\nEnter number (1-${items.length}):`)
+
+        if (!selection) return
+
+        const itemIdx = parseInt(selection) - 1
+        if (itemIdx < 0 || itemIdx >= items.length) {
+          alert('Invalid selection')
+          return
+        }
+
+        const selectedItem = items[itemIdx]
+
+        // Fetch embedding
+        log(`Fetching embedding for ${selectedItem.name}...`)
+        const embedding = await fetchEmbedding(selectedItem.id)
+
+        if (embedding.length !== 512) {
+          throw new Error(`Expected 512-d vector, got ${embedding.length}`)
+        }
+
+        // Store query data
+        queryItem = {
+          item: selectedItem,
+          embedding: new Float64Array(embedding),
+          ciphertext: null
+        }
+
+        // Update UI
+        $('#queryItemStatus').textContent = 'loaded ✓'
+        $('#queryItemStatus').className = 'ok'
+        $('#queryItemInfo').innerHTML = `
+          <strong>Query Item:</strong> ${selectedItem.name} (${selectedItem.category || 'Unknown'})
+          ${selectedItem.images && selectedItem.images.length > 0 ? `<br><img src="${selectedItem.images[0].url}" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #ddd; margin-top: 8px;">` : ''}
+        `
+
+        log(`Loaded query item: ${selectedItem.name}`)
+      } catch (e) {
+        console.error('Load query item error:', e)
+        log(`Error: ${e.message}`)
+        alert(`Error: ${e.message}`)
+      }
+    }
+
+    // Encrypt query vector
+    $('#btnEncryptQuery').onclick = async () => {
+      try {
+        if (!seal || !context || !publicKey) throw new Error('Initialize SEAL and generate keys first')
+        if (!queryItem) throw new Error('Load query item first')
+
+        log('Encrypting query vector...')
+
+        const encryptor = seal.Encryptor(context, publicKey)
+        const pt = encoder.encode(queryItem.embedding, scale)
+        const ct = encryptor.encrypt(pt)
+        const ctStr = ct.save()
+
+        let ctBytes = new Uint8Array(ctStr.length)
+        for (let i = 0; i < ctStr.length; i++) {
+          ctBytes[i] = ctStr.charCodeAt(i)
+        }
+        queryItem.ciphertext = ctBytes
+
+        $('#encryptQueryStatus').textContent = 'encrypted ✓'
+        $('#encryptQueryStatus').className = 'ok'
+        log(`Query encrypted. Size: ${ctBytes.length} bytes`)
+      } catch (e) {
+        console.error('Encryption error:', e)
+        $('#encryptQueryStatus').textContent = 'failed'
+        $('#encryptQueryStatus').className = 'err'
+        log(`Encryption error: ${e.message}`)
+      }
+    }
+
+    // Search database with encrypted query
+    $('#btnSearchDatabase').onclick = async () => {
+      try {
+        if (!seal || !context || !secretKey) throw new Error('Initialize SEAL and keys first')
+        if (!queryItem?.ciphertext) throw new Error('Encrypt query vector first')
+
+        log('Fetching all database items...')
+        const dbItems = await fetchClosetItems()
+
+        if (dbItems.length === 0) {
+          throw new Error('No items in database')
+        }
+
+        log(`Searching against ${dbItems.length} items...`)
+        $('#searchStatus').textContent = 'searching...'
+        $('#searchStatus').className = 'warn'
+
+        // Load encrypted query
+        let queryCtStr = ''
+        for (let i = 0; i < queryItem.ciphertext.length; i++) {
+          queryCtStr += String.fromCharCode(queryItem.ciphertext[i])
+        }
+        const queryCt = seal.CipherText()
+        queryCt.load(context, queryCtStr)
+
+        const evaluator = seal.Evaluator(context)
+        const decryptor = seal.Decryptor(context, secretKey)
+
+        // Results array
+        const results = []
+
+        // For each database item, compute similarity
+        for (const dbItem of dbItems) {
+          try {
+            // Fetch embedding
+            const dbEmbedding = await fetchEmbedding(dbItem.id)
+
+            if (dbEmbedding.length !== 512) {
+              console.warn(`Skipping ${dbItem.name}: wrong dimension`)
+              continue
+            }
+
+            // Encode plaintext database vector
+            const dbVector = new Float64Array(dbEmbedding)
+            const dbPlaintext = encoder.encode(dbVector, scale)
+
+            // Multiply encrypted query by plaintext database vector (element-wise)
+            const productCt = seal.CipherText()
+            evaluator.multiplyPlain(queryCt, dbPlaintext, productCt)
+
+            // Decrypt the product
+            const productPt = decryptor.decrypt(productCt)
+            const productArr = encoder.decode(productPt)
+
+            // Sum to get dot product
+            let dotProduct = 0
+            for (let i = 0; i < 512; i++) {
+              dotProduct += productArr[i]
+            }
+
+            results.push({
+              item: dbItem,
+              score: dotProduct
+            })
+
+          } catch (e) {
+            console.error(`Error processing ${dbItem.name}:`, e)
+          }
+        }
+
+        // Sort by score (highest first)
+        results.sort((a, b) => b.score - a.score)
+
+        // Display top 5
+        const top5 = results.slice(0, 5)
+        const resultsText = {
+          queryItem: queryItem.item.name,
+          totalSearched: dbItems.length,
+          topResults: top5.map((r, idx) => ({
+            rank: idx + 1,
+            name: r.item.name,
+            category: r.item.category || 'Unknown',
+            similarity: r.score.toFixed(6),
+            isQueryItself: r.item.id === queryItem.item.id
+          }))
+        }
+
+        $('#searchResults').textContent = JSON.stringify(resultsText, null, 2)
+        $('#searchStatus').textContent = `found top ${top5.length} ✓`
+        $('#searchStatus').className = 'ok'
+
+        log(`Search complete. Compared against ${dbItems.length} items. Top result: ${top5[0].item.name} (${top5[0].score.toFixed(6)})`)
+      } catch (e) {
+        console.error('Search error:', e)
+        $('#searchStatus').textContent = 'failed'
+        $('#searchStatus').className = 'err'
+        log(`Search error: ${e.message}`)
+      }
+    }
+  </script>
+</body>
+</html>
