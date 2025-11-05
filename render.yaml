@@ -36,6 +36,14 @@ services:
     healthCheckPath: /up
     autoDeploy: true # Auto-deploy on git push
 
+  # Redis for caching and background jobs
+  - type: redis
+    name: raincoat-redis
+    region: ohio
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
 databases:
   # PostgreSQL Database with pgvector support
   - name: raincoat-db
@@ -44,9 +52,3 @@ databases:
     region: ohio
     ipAllowList: [] # Empty = allow all (Render services can connect)
     postgresMajorVersion: 16
-
-  # Redis for caching and background jobs
-  - name: raincoat-redis
-    plan: free
-    region: ohio
-    ipAllowList: []
