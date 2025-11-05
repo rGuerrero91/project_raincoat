@@ -184,7 +184,7 @@ class ApiClient {
   async uploadEmbedding(itemId: number, embedding: number[]) {
     return this.request(`/api/v1/clothing_pieces/${itemId}/embedding`, {
       method: 'POST',
-      body: JSON.stringify({ embedding }),
+      body: JSON.stringify({ vector_data: embedding }),
     });
   }
 
