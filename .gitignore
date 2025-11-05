@@ -5,7 +5,7 @@ notes_and_test_data/test_images_2/
 notes_and_test_data/processed_images
 
 # Ignore model + weights
-raincoat_api/public/models/
+raincoat_api/public/models/*
 
 scripts/model_extractions/test_datasets
 scripts/model_extractions/datasets

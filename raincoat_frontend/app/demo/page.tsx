@@ -49,7 +49,13 @@ export default function DemoPage() {
   const [currentStep, setCurrentStep] = useState<DemoStep>("welcome");
   const [closetItems, setClosetItems] = useState<ClothingItem[]>([]);
   const [currentItem, setCurrentItem] = useState<ClothingItem | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    id?: number;
+  } | null>(null);
 
   const nextStep = () => {
     const steps: DemoStep[] = [
@@ -244,6 +250,7 @@ export default function DemoPage() {
         return (
           <LocationScreen
             onNext={(location) => {
+              console.log('Location set for demo:', location);
               setSelectedLocation(location);
               nextStep();
             }}
@@ -251,13 +258,13 @@ export default function DemoPage() {
         );
 
       case "weather":
-        return <WeatherScreen location={selectedLocation} onNext={nextStep} />;
+        return <WeatherScreen location={selectedLocation || { city: 'San Francisco', country: 'United States' }} onNext={nextStep} />;
 
       case "recommendations":
         return (
           <RecommendationsScreen
             items={closetItems}
-            location={selectedLocation}
+            location={selectedLocation || { city: 'San Francisco' }}
             onNext={nextStep}
           />
         );

@@ -62,19 +62,80 @@ export default function RecommendationsScreen({
         if (response.success && response.data) {
           console.log('Recommendations received:', response.data);
 
-          if (response.data.weather) {
-            const w = response.data.weather;
-            setWeatherInfo(`${w.temperature}°F, ${w.condition}`);
+          // Handle weather info
+          const weatherData = response.data.weather;
+          if (weatherData) {
+            const temp = weatherData.temperature_f || 68;
+            const condition = weatherData.condition_text || 'Partly Cloudy';
+            setWeatherInfo(`${temp}°F, ${condition}`);
           }
 
-          if (response.data.recommendations && response.data.recommendations.length > 0) {
-            const mappedOutfits = response.data.recommendations.map((rec: any, index: number) => ({
-              name: rec.name || `Outfit ${index + 1}`,
-              itemCount: rec.item_count || items.length,
-              reason: rec.reason || rec.description || 'Weather appropriate',
-              items: Array.from({ length: Math.min(items.length, 2) }, (_, i) => i),
-            }));
-            setOutfits(mappedOutfits);
+          // Handle recommendations from backend
+          const recs = response.data.recommendations;
+          if (recs && recs.suggested_pieces && recs.suggested_pieces.length > 0) {
+            console.log('Suggested pieces:', recs.suggested_pieces);
+
+            // Group suggested pieces into outfit recommendations
+            const suggestedPieces = recs.suggested_pieces;
+
+            // Create outfit groupings based on categories
+            const outfitGroups: { [key: string]: any[] } = {};
+
+            suggestedPieces.forEach((piece: any) => {
+              const category = piece.category || 'other';
+              if (!outfitGroups[category]) {
+                outfitGroups[category] = [];
+              }
+              outfitGroups[category].push(piece);
+            });
+
+            // Create outfit recommendations
+            const generatedOutfits: Outfit[] = [];
+
+            // Try to create balanced outfits
+            if (suggestedPieces.length > 0) {
+              // Create a few outfit combinations
+              const descriptors = recs.descriptors || [];
+              const tempCategory = recs.temperature_category || 'mild';
+
+              // Outfit 1: First few pieces
+              generatedOutfits.push({
+                name: 'Weather Perfect',
+                itemCount: Math.min(3, suggestedPieces.length),
+                reason: `Ideal for ${tempCategory} weather with ${descriptors.join(', ')} conditions`,
+                items: Array.from({ length: Math.min(items.length, 2) }, (_, i) => i),
+              });
+
+              // Outfit 2: If we have enough pieces
+              if (suggestedPieces.length > 2) {
+                generatedOutfits.push({
+                  name: 'Comfortable Choice',
+                  itemCount: Math.min(2, suggestedPieces.length),
+                  reason: `Great for ${descriptors.join(' and ')} conditions`,
+                  items: Array.from({ length: Math.min(items.length, 2) }, (_, i) => i),
+                });
+              }
+
+              // Outfit 3: Another combination
+              if (suggestedPieces.length > 4) {
+                generatedOutfits.push({
+                  name: 'Stylish & Practical',
+                  itemCount: 3,
+                  reason: `Matches the ${tempCategory} temperature perfectly`,
+                  items: Array.from({ length: Math.min(items.length, 2) }, (_, i) => i),
+                });
+              }
+            }
+
+            if (generatedOutfits.length > 0) {
+              setOutfits(generatedOutfits);
+            } else {
+              console.warn('No outfits generated from suggested pieces');
+              setError('Using demo recommendations');
+            }
+          } else {
+            console.warn('No suggested pieces in recommendations');
+            setError('Using demo recommendations');
           }
         } else {
           console.warn('Recommendations API returned no data, using fallback');
