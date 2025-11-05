@@ -9,8 +9,8 @@ bundle install
 # bundle exec rake assets:precompile
 # bundle exec rake assets:clean
 
-# Run database migrations
-bundle exec rake db:migrate
+# Run database migrations for all databases (primary, cache, queue, cable)
+bundle exec rails db:prepare
 
 # Enable pgvector extension
 bundle exec rails runner "ActiveRecord::Base.connection.execute('CREATE EXTENSION IF NOT EXISTS vector')"
