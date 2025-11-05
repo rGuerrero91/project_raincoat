@@ -49,5 +49,4 @@ databases:
   - name: raincoat-redis
     plan: starter
     region: ohio
-    maxmemoryPolicy: allkeys-lru # Eviction policy for cache
     ipAllowList: []
