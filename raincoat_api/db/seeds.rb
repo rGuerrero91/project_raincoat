@@ -28,13 +28,13 @@ rudy_user = User.create!(
 )
 
 test_user = User.create!(
-  name: "Test User",
+  name: "Test User2",
   email: "test@example.com"
 )
 
 demo_user = User.create!(
   name: "Demo User", 
-  email: "demo@example.com"
+  email: "demo@sample.com"
 )
 
 puts "Created #{User.count} users"
@@ -51,38 +51,38 @@ test_user.clothing_pieces.create!([
     brand: "Uniqlo",
     colors: ["blue", "navy"],
     materials: ["cotton"],
-    ai_tags: { "style": "casual", "fit": "regular", "sleeve": "short" },
-    user_tags: { "occasions": ["casual", "weekend"], "season": "summer" }
+    ai_tags: ["casual", "regular", "short-sleeve", "summer"],
+    user_tags: ["casual", "weekend", "summer"]
   },
   {
-    name: "White Button-Down Shirt", 
+    name: "White Button-Down Shirt",
     description: "Crisp white dress shirt for professional settings",
     category: "tops",
     brand: "Brooks Brothers",
     colors: ["white"],
     materials: ["cotton"],
-    ai_tags: { "style": "formal", "fit": "tailored", "collar": "spread" },
-    user_tags: { "occasions": ["work", "formal"], "season": "all" }
+    ai_tags: ["formal", "tailored", "spread-collar", "dress-shirt"],
+    user_tags: ["work", "formal", "all-season"]
   },
   {
     name: "Red Wool Sweater",
-    description: "Cozy red merino wool pullover sweater", 
+    description: "Cozy red merino wool pullover sweater",
     category: "tops",
     brand: "J.Crew",
     colors: ["red", "burgundy"],
     materials: ["wool", "merino"],
-    ai_tags: { "style": "casual", "fit": "relaxed", "warmth": "high" },
-    user_tags: { "occasions": ["casual", "date"], "season": "winter" }
+    ai_tags: ["casual", "relaxed", "warm", "pullover"],
+    user_tags: ["casual", "date", "winter"]
   },
   {
     name: "Black Hoodie",
     description: "Comfortable black cotton hoodie with kangaroo pocket",
-    category: "tops", 
+    category: "tops",
     brand: "Nike",
     colors: ["black"],
     materials: ["cotton", "polyester"],
-    ai_tags: { "style": "athletic", "fit": "loose", "hood": true },
-    user_tags: { "occasions": ["gym", "casual"], "season": "fall" }
+    ai_tags: ["athletic", "loose", "hooded", "casual"],
+    user_tags: ["gym", "casual", "fall"]
   }
 ])
 
@@ -95,18 +95,18 @@ test_user.clothing_pieces.create!([
     brand: "Levi's",
     colors: ["blue", "indigo"],
     materials: ["denim", "cotton"],
-    ai_tags: { "style": "casual", "fit": "straight", "wash": "dark" },
-    user_tags: { "occasions": ["casual", "everyday"], "season": "all" }
+    ai_tags: ["casual", "straight-fit", "dark-wash", "denim"],
+    user_tags: ["casual", "everyday", "all-season"]
   },
   {
     name: "Black Dress Pants",
     description: "Formal black trousers for business attire",
     category: "bottoms",
-    brand: "Hugo Boss", 
+    brand: "Hugo Boss",
     colors: ["black"],
     materials: ["wool", "polyester"],
-    ai_tags: { "style": "formal", "fit": "tailored", "pleat": false },
-    user_tags: { "occasions": ["work", "formal"], "season": "all" }
+    ai_tags: ["formal", "tailored", "flat-front", "dress-pants"],
+    user_tags: ["work", "formal", "all-season"]
   },
   {
     name: "Khaki Chinos",
@@ -115,8 +115,8 @@ test_user.clothing_pieces.create!([
     brand: "Dockers",
     colors: ["tan", "khaki"],
     materials: ["cotton"],
-    ai_tags: { "style": "casual", "fit": "slim", "length": "regular" },
-    user_tags: { "occasions": ["casual", "weekend"], "season": "spring" }
+    ai_tags: ["casual", "slim-fit", "regular-length", "chinos"],
+    user_tags: ["casual", "weekend", "spring"]
   }
 ])
 
@@ -129,18 +129,18 @@ test_user.clothing_pieces.create!([
     brand: "Burberry",
     colors: ["navy", "blue"],
     materials: ["wool", "cashmere"],
-    ai_tags: { "style": "formal", "fit": "tailored", "warmth": "high" },
-    user_tags: { "occasions": ["work", "formal"], "season": "winter" }
+    ai_tags: ["formal", "tailored", "warm", "overcoat"],
+    user_tags: ["work", "formal", "winter"]
   },
   {
     name: "Denim Jacket",
-    description: "Light blue denim jacket, vintage style", 
+    description: "Light blue denim jacket, vintage style",
     category: "outerwear",
     brand: "Wrangler",
     colors: ["blue", "light blue"],
     materials: ["denim", "cotton"],
-    ai_tags: { "style": "casual", "fit": "regular", "vintage": true },
-    user_tags: { "occasions": ["casual", "weekend"], "season": "spring" }
+    ai_tags: ["casual", "regular-fit", "vintage", "denim-jacket"],
+    user_tags: ["casual", "weekend", "spring"]
   }
 ])
 
@@ -153,18 +153,18 @@ test_user.clothing_pieces.create!([
     brand: "Adidas",
     colors: ["white"],
     materials: ["leather", "rubber"],
-    ai_tags: { "style": "casual", "type": "sneaker", "sole": "rubber" },
-    user_tags: { "occasions": ["casual", "gym"], "season": "all" }
+    ai_tags: ["casual", "sneaker", "rubber-sole", "athletic"],
+    user_tags: ["casual", "gym", "all-season"]
   },
   {
     name: "Black Dress Shoes",
     description: "Formal black leather oxford shoes",
-    category: "shoes", 
+    category: "shoes",
     brand: "Cole Haan",
     colors: ["black"],
     materials: ["leather"],
-    ai_tags: { "style": "formal", "type": "oxford", "toe": "cap" },
-    user_tags: { "occasions": ["work", "formal"], "season": "all" }
+    ai_tags: ["formal", "oxford", "cap-toe", "dress-shoes"],
+    user_tags: ["work", "formal", "all-season"]
   }
 ])
 
@@ -177,18 +177,18 @@ test_user.clothing_pieces.create!([
     brand: "Coach",
     colors: ["brown", "cognac"],
     materials: ["leather"],
-    ai_tags: { "style": "classic", "buckle": "silver", "width": "standard" },
-    user_tags: { "occasions": ["work", "casual"], "season": "all" }
+    ai_tags: ["classic", "silver-buckle", "standard-width", "leather-belt"],
+    user_tags: ["work", "casual", "all-season"]
   },
   {
     name: "Black Wool Beanie",
     description: "Warm black wool beanie for cold weather",
     category: "accessories",
-    brand: "Patagonia", 
+    brand: "Patagonia",
     colors: ["black"],
     materials: ["wool"],
-    ai_tags: { "style": "casual", "warmth": "high", "fit": "snug" },
-    user_tags: { "occasions": ["casual", "outdoor"], "season": "winter" }
+    ai_tags: ["casual", "warm", "snug-fit", "winter-hat"],
+    user_tags: ["casual", "outdoor", "winter"]
   }
 ])
 
@@ -201,18 +201,18 @@ demo_user.clothing_pieces.create!([
     brand: "Champion",
     colors: ["gray"],
     materials: ["cotton"],
-    ai_tags: { "style": "casual", "fit": "relaxed" },
-    user_tags: { "occasions": ["casual"], "season": "fall" }
+    ai_tags: ["casual", "relaxed-fit", "sweatshirt"],
+    user_tags: ["casual", "fall"]
   },
   {
     name: "Blue Jeans",
     description: "Medium wash blue denim jeans",
-    category: "bottoms", 
+    category: "bottoms",
     brand: "Gap",
     colors: ["blue"],
     materials: ["denim"],
-    ai_tags: { "style": "casual", "wash": "medium" },
-    user_tags: { "occasions": ["everyday"], "season": "all" }
+    ai_tags: ["casual", "medium-wash", "denim"],
+    user_tags: ["everyday", "all-season"]
   }
 ])
 
@@ -224,38 +224,38 @@ rudy_user.clothing_pieces.create!([
     brand: "Uniqlo",
     colors: ["blue", "navy"],
     materials: ["cotton"],
-    ai_tags: { "style": "casual", "fit": "regular", "sleeve": "short" },
-    user_tags: { "occasions": ["casual", "weekend"], "season": "summer" }
+    ai_tags: ["casual", "regular", "short-sleeve", "summer"],
+    user_tags: ["casual", "weekend", "summer"]
   },
   {
-    name: "White Button-Down Shirt", 
+    name: "White Button-Down Shirt",
     description: "Crisp white dress shirt for professional settings",
     category: "tops",
     brand: "Brooks Brothers",
     colors: ["white"],
     materials: ["cotton"],
-    ai_tags: { "style": "formal", "fit": "tailored", "collar": "spread" },
-    user_tags: { "occasions": ["work", "formal"], "season": "all" }
+    ai_tags: ["formal", "tailored", "spread-collar", "dress-shirt"],
+    user_tags: ["work", "formal", "all-season"]
   },
   {
     name: "Red Wool Sweater",
-    description: "Cozy red merino wool pullover sweater", 
+    description: "Cozy red merino wool pullover sweater",
     category: "tops",
     brand: "J.Crew",
     colors: ["red", "burgundy"],
     materials: ["wool", "merino"],
-    ai_tags: { "style": "casual", "fit": "relaxed", "warmth": "high" },
-    user_tags: { "occasions": ["casual", "date"], "season": "winter" }
+    ai_tags: ["casual", "relaxed", "warm", "pullover"],
+    user_tags: ["casual", "date", "winter"]
   },
   {
     name: "Black Hoodie",
     description: "Comfortable black cotton hoodie with kangaroo pocket",
-    category: "tops", 
+    category: "tops",
     brand: "Nike",
     colors: ["black"],
     materials: ["cotton", "polyester"],
-    ai_tags: { "style": "athletic", "fit": "loose", "hood": true },
-    user_tags: { "occasions": ["gym", "casual"], "season": "fall" }
+    ai_tags: ["athletic", "loose", "hooded", "casual"],
+    user_tags: ["gym", "casual", "fall"]
   }
 ])
 
@@ -268,18 +268,18 @@ rudy_user.clothing_pieces.create!([
     brand: "Levi's",
     colors: ["blue", "indigo"],
     materials: ["denim", "cotton"],
-    ai_tags: { "style": "casual", "fit": "straight", "wash": "dark" },
-    user_tags: { "occasions": ["casual", "everyday"], "season": "all" }
+    ai_tags: ["casual", "straight-fit", "dark-wash", "denim"],
+    user_tags: ["casual", "everyday", "all-season"]
   },
   {
     name: "Black Dress Pants",
     description: "Formal black trousers for business attire",
     category: "bottoms",
-    brand: "Hugo Boss", 
+    brand: "Hugo Boss",
     colors: ["black"],
     materials: ["wool", "polyester"],
-    ai_tags: { "style": "formal", "fit": "tailored", "pleat": false },
-    user_tags: { "occasions": ["work", "formal"], "season": "all" }
+    ai_tags: ["formal", "tailored", "flat-front", "dress-pants"],
+    user_tags: ["work", "formal", "all-season"]
   },
   {
     name: "Khaki Chinos",
@@ -288,8 +288,8 @@ rudy_user.clothing_pieces.create!([
     brand: "Dockers",
     colors: ["tan", "khaki"],
     materials: ["cotton"],
-    ai_tags: { "style": "casual", "fit": "slim", "length": "regular" },
-    user_tags: { "occasions": ["casual", "weekend"], "season": "spring" }
+    ai_tags: ["casual", "slim-fit", "regular-length", "chinos"],
+    user_tags: ["casual", "weekend", "spring"]
   }
 ])
 
@@ -302,18 +302,18 @@ rudy_user.clothing_pieces.create!([
     brand: "Burberry",
     colors: ["navy", "blue"],
     materials: ["wool", "cashmere"],
-    ai_tags: { "style": "formal", "fit": "tailored", "warmth": "high" },
-    user_tags: { "occasions": ["work", "formal"], "season": "winter" }
+    ai_tags: ["formal", "tailored", "warm", "overcoat"],
+    user_tags: ["work", "formal", "winter"]
   },
   {
     name: "Denim Jacket",
-    description: "Light blue denim jacket, vintage style", 
+    description: "Light blue denim jacket, vintage style",
     category: "outerwear",
     brand: "Wrangler",
     colors: ["blue", "light blue"],
     materials: ["denim", "cotton"],
-    ai_tags: { "style": "casual", "fit": "regular", "vintage": true },
-    user_tags: { "occasions": ["casual", "weekend"], "season": "spring" }
+    ai_tags: ["casual", "regular-fit", "vintage", "denim-jacket"],
+    user_tags: ["casual", "weekend", "spring"]
   }
 ])
 
@@ -326,18 +326,18 @@ rudy_user.clothing_pieces.create!([
     brand: "Adidas",
     colors: ["white"],
     materials: ["leather", "rubber"],
-    ai_tags: { "style": "casual", "type": "sneaker", "sole": "rubber" },
-    user_tags: { "occasions": ["casual", "gym"], "season": "all" }
+    ai_tags: ["casual", "sneaker", "rubber-sole", "athletic"],
+    user_tags: ["casual", "gym", "all-season"]
   },
   {
     name: "Black Dress Shoes",
     description: "Formal black leather oxford shoes",
-    category: "shoes", 
+    category: "shoes",
     brand: "Cole Haan",
     colors: ["black"],
     materials: ["leather"],
-    ai_tags: { "style": "formal", "type": "oxford", "toe": "cap" },
-    user_tags: { "occasions": ["work", "formal"], "season": "all" }
+    ai_tags: ["formal", "oxford", "cap-toe", "dress-shoes"],
+    user_tags: ["work", "formal", "all-season"]
   }
 ])
 
@@ -350,18 +350,18 @@ rudy_user.clothing_pieces.create!([
     brand: "Coach",
     colors: ["brown", "cognac"],
     materials: ["leather"],
-    ai_tags: { "style": "classic", "buckle": "silver", "width": "standard" },
-    user_tags: { "occasions": ["work", "casual"], "season": "all" }
+    ai_tags: ["classic", "silver-buckle", "standard-width", "leather-belt"],
+    user_tags: ["work", "casual", "all-season"]
   },
   {
     name: "Black Wool Beanie",
     description: "Warm black wool beanie for cold weather",
     category: "accessories",
-    brand: "Patagonia", 
+    brand: "Patagonia",
     colors: ["black"],
     materials: ["wool"],
-    ai_tags: { "style": "casual", "warmth": "high", "fit": "snug" },
-    user_tags: { "occasions": ["casual", "outdoor"], "season": "winter" }
+    ai_tags: ["casual", "warm", "snug-fit", "winter-hat"],
+    user_tags: ["casual", "outdoor", "winter"]
   }
 ])
 
