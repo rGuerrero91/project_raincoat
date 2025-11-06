@@ -41,17 +41,22 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
           console.log('Weather data received:', response.data);
 
           // Handle the actual API response format
-          const weatherInfo = response.data.weather || response.data;
-          const locationInfo = response.data.location || {};
+          const weatherSnapshot = response.data.weather;
 
-          const iconComponent = getWeatherIcon(weatherInfo.condition_text || weatherInfo.condition || '');
-          const temperature = weatherInfo.temperature_f || weatherInfo.temperature || 68;
-          const condition = weatherInfo.condition_text || weatherInfo.condition || 'Partly Cloudy';
+          // Support both new format (weather snapshot) and legacy format
+          const conditionText = weatherSnapshot?.condition_text || response.data.condition || '';
+          const temperatureF = weatherSnapshot?.temperature_f || response.data.temperature || 68;
+          const humidity = weatherSnapshot?.humidity || response.data.humidity;
+          const windKph = weatherSnapshot?.wind_kph || response.data.wind_speed;
+
+          const iconComponent = getWeatherIcon(conditionText);
+          const temperature = temperatureF;
+          const condition = conditionText || 'Partly Cloudy';
 
           // Build details string
           const details = [
-            weatherInfo.humidity ? `Humidity: ${weatherInfo.humidity}%` : null,
-            weatherInfo.wind_kph ? `Wind: ${weatherInfo.wind_kph} km/h` : null,
+            humidity ? `Humidity: ${humidity}%` : null,
+            windKph ? `Wind: ${windKph} km/h` : null,
           ]
             .filter(Boolean)
             .join(', ') || 'Light breeze, low humidity';
