@@ -1,6 +1,6 @@
 // API client for Rails backend communication
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -86,8 +86,8 @@ class ApiClient {
     this.baseUrl = baseUrl;
 
     // Load session from localStorage if available
-    if (typeof window !== 'undefined') {
-      this.sessionId = localStorage.getItem('raincoat_session_id');
+    if (typeof window !== "undefined") {
+      this.sessionId = localStorage.getItem("raincoat_session_id");
     }
   }
 
@@ -98,31 +98,31 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
 
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
     };
 
     // Add demo user authentication for demo mode
     // Backend accepts: Authorization: Bearer <email>
-    headers['Authorization'] = 'Bearer demo@example.com';
+    headers["Authorization"] = "Bearer demo@sample.com";
 
     // Add session ID if available
     if (this.sessionId) {
-      headers['X-Session-Id'] = this.sessionId;
+      headers["X-Session-Id"] = this.sessionId;
     }
 
     try {
       const response = await fetch(url, {
         ...options,
         headers,
-        credentials: 'include',
+        credentials: "include",
       });
 
       // Store session ID from response if present
-      const newSessionId = response.headers.get('X-Session-Id');
-      if (newSessionId && typeof window !== 'undefined') {
+      const newSessionId = response.headers.get("X-Session-Id");
+      if (newSessionId && typeof window !== "undefined") {
         this.sessionId = newSessionId;
-        localStorage.setItem('raincoat_session_id', newSessionId);
+        localStorage.setItem("raincoat_session_id", newSessionId);
       }
 
       const data = await response.json();
@@ -130,7 +130,7 @@ class ApiClient {
       if (!response.ok) {
         return {
           success: false,
-          error: data.error || 'An error occurred',
+          error: data.error || "An error occurred",
         };
       }
 
@@ -139,32 +139,32 @@ class ApiClient {
         data: data.data || data,
       };
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error("API request failed:", error);
       return {
         success: false,
-        error: 'Network error occurred',
+        error: "Network error occurred",
       };
     }
   }
 
   // Authentication
   async signup(email: string, password: string) {
-    return this.request('/signup', {
-      method: 'POST',
+    return this.request("/signup", {
+      method: "POST",
       body: JSON.stringify({ user: { email, password } }),
     });
   }
 
   async login(email: string, password: string) {
-    return this.request('/login', {
-      method: 'POST',
+    return this.request("/login", {
+      method: "POST",
       body: JSON.stringify({ user: { email, password } }),
     });
   }
 
   // Clothing Items
   async getClothingItems() {
-    return this.request('/api/v1/clothing_pieces');
+    return this.request("/api/v1/clothing_pieces");
   }
 
   async createClothingItem(data: {
@@ -175,26 +175,28 @@ class ApiClient {
     colors?: string[];
     materials?: string[];
   }) {
-    return this.request('/api/v1/clothing_pieces', {
-      method: 'POST',
+    return this.request("/api/v1/clothing_pieces", {
+      method: "POST",
       body: JSON.stringify({ clothing_piece: data }),
     });
   }
 
   async uploadEmbedding(itemId: number, embedding: number[]) {
     return this.request(`/api/v1/clothing_pieces/${itemId}/embedding`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ vector_data: embedding }),
     });
   }
 
   async getSimilarItems(itemId: number, limit: number = 10) {
-    return this.request(`/api/v1/clothing_pieces/${itemId}/similar?limit=${limit}`);
+    return this.request(
+      `/api/v1/clothing_pieces/${itemId}/similar?limit=${limit}`
+    );
   }
 
   // Locations
   async getLocations() {
-    return this.request('/api/v1/locations');
+    return this.request("/api/v1/locations");
   }
 
   async createLocation(data: {
@@ -206,34 +208,38 @@ class ApiClient {
     longitude: number;
     is_default?: boolean;
   }) {
-    return this.request('/api/v1/locations', {
-      method: 'POST',
+    return this.request("/api/v1/locations", {
+      method: "POST",
       body: JSON.stringify({ location: data }),
     });
   }
 
   async searchLocation(query: string) {
-    return this.request(`/api/v1/locations/search?q=${encodeURIComponent(query)}`);
+    return this.request(
+      `/api/v1/locations/search?q=${encodeURIComponent(query)}`
+    );
   }
 
   async setDefaultLocation(locationId: number) {
     return this.request(`/api/v1/locations/${locationId}/set_default`, {
-      method: 'POST',
+      method: "POST",
     });
   }
 
   // Weather
   async getCurrentWeather() {
-    return this.request<CurrentWeatherResponse>('/api/v1/weather/current');
+    return this.request<CurrentWeatherResponse>("/api/v1/weather/current");
   }
 
   async getWeatherRecommendations() {
-    return this.request<WeatherRecommendationsResponse>('/api/v1/weather/recommendations');
+    return this.request<WeatherRecommendationsResponse>(
+      "/api/v1/weather/recommendations"
+    );
   }
 
   async refreshWeather() {
-    return this.request('/api/v1/weather/refresh', {
-      method: 'POST',
+    return this.request("/api/v1/weather/refresh", {
+      method: "POST",
     });
   }
 }
