@@ -65,19 +65,20 @@ class YOLODetector {
   }
 
   private async _doInitialize() {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    console.log('[YOLO] Initializing detector from', API_URL);
+    // Use CDN URL for models, fallback to API URL if not set
+    const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    console.log('[YOLO] Initializing detector from', CDN_URL);
 
     try {
       // Load configuration
-      const configResponse = await fetch(`${API_URL}/models/yolo_config.json`);
+      const configResponse = await fetch(`${CDN_URL}/models/yolo_config.json`);
       this.config = await configResponse.json();
       console.log('[YOLO] Config loaded:', this.config?.model_info?.name);
 
       // Load ONNX model with same settings as U2-Net/FashionCLIP
       console.log('[YOLO] Loading ONNX model...');
       this.session = await ort.InferenceSession.create(
-        `${API_URL}/models/yolo_raincoat.onnx`,
+        `${CDN_URL}/models/yolo_raincoat.onnx`,
         {
           executionProviders: ['wasm'],
           graphOptimizationLevel: 'all'
