@@ -17,4 +17,7 @@ class ModelTestsController < ApplicationController
     @clothing_piece = ClothingPiece.new
   end
 
+  def seal
+  end
+
 end
