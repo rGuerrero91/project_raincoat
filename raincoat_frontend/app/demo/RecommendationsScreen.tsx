@@ -70,71 +70,46 @@ export default function RecommendationsScreen({
             setWeatherInfo(`${temp}°F, ${condition}`);
           }
 
-          // Handle recommendations from backend
-          const recs = response.data.recommendations;
-          if (recs && recs.suggested_pieces && recs.suggested_pieces.length > 0) {
-            console.log('Suggested pieces:', recs.suggested_pieces);
+          // Handle outfits from backend (new structure)
+          const backendOutfits = response.data.outfits;
+          if (backendOutfits && backendOutfits.length > 0) {
+            console.log('Backend outfits:', backendOutfits);
 
-            // Group suggested pieces into outfit recommendations
-            const suggestedPieces = recs.suggested_pieces;
+            // Convert backend outfit format to frontend format
+            const generatedOutfits: Outfit[] = backendOutfits.map((outfit: any, index: number) => {
+              // Count items in the outfit
+              const itemsInOutfit = Object.values(outfit.items || {});
+              const itemCount = itemsInOutfit.length;
 
-            // Create outfit groupings based on categories
-            const outfitGroups: { [key: string]: any[] } = {};
-
-            suggestedPieces.forEach((piece: any) => {
-              const category = piece.category || 'other';
-              if (!outfitGroups[category]) {
-                outfitGroups[category] = [];
-              }
-              outfitGroups[category].push(piece);
-            });
-
-            // Create outfit recommendations
-            const generatedOutfits: Outfit[] = [];
-
-            // Try to create balanced outfits
-            if (suggestedPieces.length > 0) {
-              // Create a few outfit combinations
-              const descriptors = recs.descriptors || [];
-              const tempCategory = recs.temperature_category || 'mild';
-
-              // Outfit 1: First few pieces
-              generatedOutfits.push({
-                name: 'Weather Perfect',
-                itemCount: Math.min(3, suggestedPieces.length),
-                reason: `Ideal for ${tempCategory} weather with ${descriptors.join(', ')} conditions`,
-                items: Array.from({ length: Math.min(items.length, 2) }, (_, i) => i),
+              // Create item indices for items that exist in parent items array
+              const itemIndices: number[] = [];
+              itemsInOutfit.forEach((item: any) => {
+                if (item && item.id) {
+                  // Find matching item in parent items array by ID
+                  const matchIndex = items.findIndex((i) => i.id === item.id);
+                  if (matchIndex >= 0) {
+                    itemIndices.push(matchIndex);
+                  }
+                }
               });
 
-              // Outfit 2: If we have enough pieces
-              if (suggestedPieces.length > 2) {
-                generatedOutfits.push({
-                  name: 'Comfortable Choice',
-                  itemCount: Math.min(2, suggestedPieces.length),
-                  reason: `Great for ${descriptors.join(' and ')} conditions`,
-                  items: Array.from({ length: Math.min(items.length, 2) }, (_, i) => i),
-                });
-              }
-
-              // Outfit 3: Another combination
-              if (suggestedPieces.length > 4) {
-                generatedOutfits.push({
-                  name: 'Stylish & Practical',
-                  itemCount: 3,
-                  reason: `Matches the ${tempCategory} temperature perfectly`,
-                  items: Array.from({ length: Math.min(items.length, 2) }, (_, i) => i),
-                });
-              }
-            }
+              return {
+                name: `Outfit ${index + 1}`,
+                itemCount: itemCount,
+                reason: outfit.description || 'Perfect for today\'s weather',
+                items: itemIndices.length > 0 ? itemIndices : [0], // Fallback to first item if no matches
+              };
+            });
 
             if (generatedOutfits.length > 0) {
+              console.log('Generated outfits for display:', generatedOutfits);
               setOutfits(generatedOutfits);
             } else {
-              console.warn('No outfits generated from suggested pieces');
+              console.warn('No outfits could be generated from backend data');
               setError('Using demo recommendations');
             }
           } else {
-            console.warn('No suggested pieces in recommendations');
+            console.warn('No outfits in response');
             setError('Using demo recommendations');
           }
         } else {
