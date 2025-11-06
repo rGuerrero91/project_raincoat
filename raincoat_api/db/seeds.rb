@@ -367,25 +367,51 @@ rudy_user.clothing_pieces.create!([
 
 puts "Created #{ClothingPiece.count} clothing pieces"
 
-# Generate sample embeddings for some pieces (random vectors for testing)
+# Generate sample embeddings using realistic, deterministic vectors
 puts "Generating sample embeddings..."
 
-sample_pieces = ClothingPiece.limit(10)
-sample_pieces.each_with_index do |piece, index|
-  # Generate deterministic but varied random vectors
-  Random.srand(index + 1000) # Use seed for consistency
-  vector_data = Array.new(512) { rand(-1.0..1.0).round(4) }
-  
+# Load pre-generated embeddings from fixture (if available)
+pregenerated_embeddings = EmbeddingGenerator.load_from_fixture('embeddings') || EmbeddingGenerator.load_from_fixture('sample_embeddings')
+
+ClothingPiece.find_each do |piece|
+  # Try to find matching pre-generated embedding
+  embedding_data = pregenerated_embeddings[piece.name]
+
+  if embedding_data
+    # Use pre-generated embedding
+    vector_data = embedding_data[:vector_data]
+    model_version = embedding_data[:model_version]
+    preprocessing_metadata = embedding_data[:preprocessing_metadata]
+    puts "  ✅ Using pre-generated embedding for: #{piece.name}"
+  else
+    # Generate new embedding based on item attributes
+    vector_data = EmbeddingGenerator.generate_for_item(
+      name: piece.name,
+      category: piece.category,
+      colors: piece.colors || [],
+      materials: piece.materials || []
+    )
+    model_version = "fashionclip-2.0"
+    preprocessing_metadata = {
+      generated_method: "deterministic_seed",
+      attributes_used: ["name", "category", "colors", "materials"]
+    }
+    puts "  🔄 Generated new embedding for: #{piece.name}"
+  end
+
   piece.create_clothing_embedding!(
     vector_data: vector_data,
-    model_version: "tinyclip-1.0",
-    # confidence_score: rand(0.7..0.95).round(3)
+    model_version: model_version,
+    preprocessing_metadata: preprocessing_metadata
   )
-  
-  puts "  Generated embedding for: #{piece.name}"
 end
 
 puts "Created #{ClothingEmbedding.count} embeddings"
+puts ""
+puts "📊 Embedding Statistics:"
+puts "  Pre-generated: #{pregenerated_embeddings.count}"
+puts "  Newly generated: #{ClothingEmbedding.count - pregenerated_embeddings.count}"
+puts "  Total: #{ClothingEmbedding.count}"
 
 # Create locations for users
 puts "Creating locations..."

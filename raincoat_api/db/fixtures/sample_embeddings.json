@@ -1,0 +1,111 @@
+{
+  "generated_at": "2025-01-15T12:00:00Z",
+  "model_version": "fashionclip-2.0",
+  "description": "Pre-generated embeddings for seed data - created with deterministic algorithm for consistency",
+  "embeddings": [
+    {
+      "item_name": "Blue Cotton T-Shirt",
+      "category": "tops",
+      "seed_key": "blue_tshirt_001",
+      "colors": ["blue", "navy"],
+      "materials": ["cotton"],
+      "description": "Casual blue t-shirt embedding - clustered with other casual blue tops"
+    },
+    {
+      "item_name": "White Button-Down Shirt",
+      "category": "tops",
+      "seed_key": "white_shirt_001",
+      "colors": ["white"],
+      "materials": ["cotton"],
+      "description": "Formal white shirt embedding - clustered with dress shirts"
+    },
+    {
+      "item_name": "Red Wool Sweater",
+      "category": "tops",
+      "seed_key": "red_sweater_001",
+      "colors": ["red", "burgundy"],
+      "materials": ["wool", "merino"],
+      "description": "Warm sweater embedding - clustered with knitwear"
+    },
+    {
+      "item_name": "Black Hoodie",
+      "category": "tops",
+      "seed_key": "black_hoodie_001",
+      "colors": ["black"],
+      "materials": ["cotton", "polyester"],
+      "description": "Athletic hoodie embedding - clustered with casual wear"
+    },
+    {
+      "item_name": "Dark Wash Jeans",
+      "category": "bottoms",
+      "seed_key": "dark_jeans_001",
+      "colors": ["blue", "indigo"],
+      "materials": ["denim", "cotton"],
+      "description": "Classic jeans embedding - clustered with denim"
+    },
+    {
+      "item_name": "Black Dress Pants",
+      "category": "bottoms",
+      "seed_key": "dress_pants_001",
+      "colors": ["black"],
+      "materials": ["wool", "polyester"],
+      "description": "Formal pants embedding - clustered with dress wear"
+    },
+    {
+      "item_name": "Khaki Chinos",
+      "category": "bottoms",
+      "seed_key": "khaki_chinos_001",
+      "colors": ["tan", "khaki"],
+      "materials": ["cotton"],
+      "description": "Smart casual chinos embedding - between casual and formal"
+    },
+    {
+      "item_name": "Navy Wool Coat",
+      "category": "outerwear",
+      "seed_key": "navy_coat_001",
+      "colors": ["navy", "blue"],
+      "materials": ["wool", "cashmere"],
+      "description": "Formal coat embedding - clustered with tailored outerwear"
+    },
+    {
+      "item_name": "Denim Jacket",
+      "category": "outerwear",
+      "seed_key": "denim_jacket_001",
+      "colors": ["blue", "light blue"],
+      "materials": ["denim", "cotton"],
+      "description": "Casual jacket embedding - clustered with denim and casual wear"
+    },
+    {
+      "item_name": "White Sneakers",
+      "category": "shoes",
+      "seed_key": "white_sneakers_001",
+      "colors": ["white"],
+      "materials": ["leather", "rubber"],
+      "description": "Casual sneakers embedding - clustered with athletic/casual footwear"
+    },
+    {
+      "item_name": "Black Dress Shoes",
+      "category": "shoes",
+      "seed_key": "black_shoes_001",
+      "colors": ["black"],
+      "materials": ["leather"],
+      "description": "Formal shoes embedding - clustered with dress footwear"
+    },
+    {
+      "item_name": "Brown Leather Belt",
+      "category": "accessories",
+      "seed_key": "brown_belt_001",
+      "colors": ["brown", "cognac"],
+      "materials": ["leather"],
+      "description": "Classic belt embedding - accessory cluster"
+    },
+    {
+      "item_name": "Black Wool Beanie",
+      "category": "accessories",
+      "seed_key": "black_beanie_001",
+      "colors": ["black"],
+      "materials": ["wool"],
+      "description": "Winter accessory embedding - warm weather accessories cluster"
+    }
+  ]
+}
