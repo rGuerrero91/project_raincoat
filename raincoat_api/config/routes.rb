@@ -28,6 +28,7 @@ Rails.application.routes.draw do
     get 'u2net', to: 'u2net'
     get 'fashionclip', to: 'fashionclip'
     get 'pipeline', to: 'pipeline'
+    get 'seal', to: 'seal'
   end
   get '/ai_models/similarity_comparison', to: 'ai_models#similarity_comparison'
   
