@@ -97,15 +97,34 @@ class Api::V1::WeatherController < Api::V1::BaseController
     pieces = current_user.clothing_pieces.includes(:clothing_embedding)
 
     matching_pieces = pieces.select do |piece|
-      tags = (piece.ai_tags.values.flatten + piece.user_tags.values.flatten).map(&:to_s).map(&:downcase)
+      # Extract tags from both ai_tags and user_tags (handle nil and both hash/array formats)
+      ai_tags_values = extract_tag_values(piece.ai_tags)
+      user_tags_values = extract_tag_values(piece.user_tags)
+      tags = (ai_tags_values + user_tags_values).map(&:to_s).map(&:downcase)
 
       # Check if any descriptor matches tags
       descriptors.any? { |descriptor| tags.include?(descriptor.downcase) } ||
-      tags.include?(temperature_category)
+      tags.include?(temperature_category.to_s.downcase)
     end
 
     # Return top 20 matches
     matching_pieces.first(20)
+  end
+
+  def extract_tag_values(tag_data)
+    return [] if tag_data.nil?
+
+    case tag_data
+    when Hash
+      # If it's a hash, get all values and flatten arrays
+      tag_data.values.flatten
+    when Array
+      # If it's already an array, just flatten it
+      tag_data.flatten
+    else
+      # If it's something else, convert to array and process again
+      extract_tag_values([tag_data])
+    end
   end
 
   def serialize_weather_snapshot(snapshot)

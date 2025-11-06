@@ -6,17 +6,47 @@ class ClothingEmbedding < ApplicationRecord
   validates :model_version, presence: true
   # Note: vector_data validation is handled by the database schema (limit: 512)
   
-  def similar_embeddings(limit: 10)
+  def similar_embeddings(limit: 10, category: nil, min_similarity: 0.0, colors: nil, materials: nil)
     return [] unless vector_data.present?
-    
-    # Use pgvector's cosine distance operator
-    ClothingEmbedding
+
+    # Base query with pgvector's cosine distance operator
+    query = ClothingEmbedding
       .joins(:clothing_piece)
       .where.not(id: id)
       .where(clothing_pieces: { user_id: clothing_piece.user_id })
+
+    # Filter by category if specified
+    query = query.where(clothing_pieces: { category: category }) if category.present?
+
+    # Filter by colors (JSON array contains any of the specified colors)
+    if colors.present?
+      color_conditions = colors.map { |color| "clothing_pieces.colors @> ?::jsonb" }
+      query = query.where(color_conditions.join(' OR '), *colors.map { |c| [c].to_json })
+    end
+
+    # Filter by materials (JSON array contains any of the specified materials)
+    if materials.present?
+      material_conditions = materials.map { |material| "clothing_pieces.materials @> ?::jsonb" }
+      query = query.where(material_conditions.join(' OR '), *materials.map { |m| [m].to_json })
+    end
+
+    # Order by similarity and apply limit
+    results = query
       .order(Arel.sql("vector_data <=> '#{vector_data}'"))
-      .limit(limit)
+      .limit(limit * 2)  # Fetch more for filtering
       .includes(:clothing_piece)
+
+    # Filter by minimum similarity threshold if specified
+    if min_similarity > 0.0
+      results = results.select do |embedding|
+        similarity = similarity_to(embedding)
+        similarity >= min_similarity
+      end.first(limit)
+    else
+      results = results.first(limit)
+    end
+
+    results
   end
   
   # Get similarity score between two embeddings (Do not ask me why this works, I had the AI help me with this one)

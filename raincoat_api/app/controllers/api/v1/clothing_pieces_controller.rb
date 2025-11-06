@@ -100,25 +100,30 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
     unless @clothing_piece.clothing_embedding
       return render_error('No embedding available for this clothing piece')
     end
-    
+
+    # Parse query parameters
     limit = [params[:limit]&.to_i || 10, 50].min # Max 50 results
-    similar_pieces = @clothing_piece.similar_pieces(limit: limit)
-    
+    filters = build_similarity_filters
+
+    similar_pieces = @clothing_piece.similar_pieces(limit: limit, **filters)
+
     render json: {
       success: true,
       data: {
         source_piece: serialize_clothing_piece(@clothing_piece),
-        similar_pieces: similar_pieces.map do |piece, similarity|
+        similar_pieces: similar_pieces.map do |result|
           {
-            piece: serialize_clothing_piece(piece),
-            similarity_score: similarity,
-            similarity_percentage: "#{similarity}%"
+            piece: serialize_clothing_piece(result[:piece]),
+            similarity_score: result[:similarity_score],
+            similarity_percentage: "#{result[:similarity_score]}%",
+            distance_metric: result[:distance_metric]
           }
         end
       },
       meta: {
         total_found: similar_pieces.length,
-        search_limit: limit
+        search_limit: limit,
+        filters_applied: filters.keys
       }
     }
   end
@@ -200,5 +205,29 @@ class Api::V1::ClothingPiecesController < Api::V1::BaseController
       # Note: We don't include the actual vector_data in API responses by default
       # for performance reasons. It can be requested separately if needed.
     }
+  end
+
+  def build_similarity_filters
+    filters = {}
+
+    # Category filter
+    filters[:category] = params[:category] if params[:category].present?
+
+    # Minimum similarity threshold (0-100)
+    if params[:min_similarity].present?
+      filters[:min_similarity] = params[:min_similarity].to_f.clamp(0.0, 100.0)
+    end
+
+    # Color filters (comma-separated or array)
+    if params[:colors].present?
+      filters[:colors] = params[:colors].is_a?(Array) ? params[:colors] : params[:colors].split(',').map(&:strip)
+    end
+
+    # Material filters (comma-separated or array)
+    if params[:materials].present?
+      filters[:materials] = params[:materials].is_a?(Array) ? params[:materials] : params[:materials].split(',').map(&:strip)
+    end
+
+    filters
   end
 end
