@@ -91,11 +91,12 @@ class ONNXProcessor {
   async loadModels() {
     if (this.modelsLoaded) return;
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    // Use CDN URL for models, fallback to API URL if not set
+    const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
     const useCache = typeof window !== "undefined" && window.modelCache;
 
     try {
-      console.log("[ONNX] Loading models from", API_URL);
+      console.log("[ONNX] Loading models from", CDN_URL);
 
       if (useCache) {
         console.log("[ONNX] Using IndexedDB cache for persistent storage");
@@ -105,7 +106,7 @@ class ONNXProcessor {
       // Load U2-Net for background removal
       if (useCache) {
         const u2netBuffer = await window.modelCache!.loadONNXModel(
-          `${API_URL}/models/u2net.onnx`
+          `${CDN_URL}/models/u2net.onnx`
         );
         this.u2netSession = await ort.InferenceSession.create(
           u2netBuffer,
@@ -113,7 +114,7 @@ class ONNXProcessor {
         );
       } else {
         this.u2netSession = await ort.InferenceSession.create(
-          `${API_URL}/models/u2net.onnx`,
+          `${CDN_URL}/models/u2net.onnx`,
           { executionProviders: ["wasm"] }
         );
       }
@@ -122,7 +123,7 @@ class ONNXProcessor {
       // Load FashionCLIP image encoder
       if (useCache) {
         const fashionClipBuffer = await window.modelCache!.loadONNXModel(
-          `${API_URL}/models/fashionclip_image_encoder.onnx`
+          `${CDN_URL}/models/fashionclip_image_encoder.onnx`
         );
         this.fashionClipSession = await ort.InferenceSession.create(
           fashionClipBuffer,
@@ -130,7 +131,7 @@ class ONNXProcessor {
         );
       } else {
         this.fashionClipSession = await ort.InferenceSession.create(
-          `${API_URL}/models/fashionclip_image_encoder.onnx`,
+          `${CDN_URL}/models/fashionclip_image_encoder.onnx`,
           { executionProviders: ["wasm"] }
         );
       }
@@ -139,10 +140,10 @@ class ONNXProcessor {
       // Load label embeddings
       if (useCache) {
         this.labelEmbeddings = await window.modelCache!.loadJSON(
-          `${API_URL}/models/label_embeddings.json`
+          `${CDN_URL}/models/label_embeddings.json`
         );
       } else {
-        const response = await fetch(`${API_URL}/models/label_embeddings.json`);
+        const response = await fetch(`${CDN_URL}/models/label_embeddings.json`);
         this.labelEmbeddings = await response.json();
       }
       console.log(
