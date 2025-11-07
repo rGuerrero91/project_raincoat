@@ -186,6 +186,18 @@ class ONNXProcessor {
       onProgress?.("Analyzing item...");
       const embedding = await this.generateEmbedding(img);
 
+      // Validate embedding quality to prevent garbage tags
+      const embeddingMagnitude = Math.sqrt(
+        embedding.reduce((sum, val) => sum + val * val, 0)
+      );
+
+      if (embeddingMagnitude < 0.1) {
+        console.warn(`[ONNX] Embedding magnitude too low: ${embeddingMagnitude.toFixed(4)}`);
+        throw new Error('Failed to generate valid embedding - image may be blank or corrupted. Please try uploading the photo again.');
+      }
+
+      console.log(`[ONNX] Embedding magnitude: ${embeddingMagnitude.toFixed(3)}`);
+
       // Step 4: Generate tags
       onProgress?.("Generating tags...");
       const tags = this.generateTags(embedding);
@@ -205,10 +217,14 @@ class ONNXProcessor {
   private async loadImage(file: File): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => {
-        // Resize image to reduce computational overhead
-        const resized = this.resizeImage(img, MAX_IMAGE_SIZE);
-        resolve(resized);
+      img.onload = async () => {
+        try {
+          // Resize image to reduce computational overhead
+          const resized = await this.resizeImage(img, MAX_IMAGE_SIZE);
+          resolve(resized);
+        } catch (error) {
+          reject(error);
+        }
       };
       img.onerror = () => reject(new Error("Failed to load image"));
       img.src = URL.createObjectURL(file);
@@ -219,10 +235,10 @@ class ONNXProcessor {
    * Resize image to fit within maxSize while maintaining aspect ratio
    * This significantly reduces computational overhead for U2-Net processing
    */
-  private resizeImage(
+  private async resizeImage(
     img: HTMLImageElement,
     maxSize: number
-  ): HTMLImageElement {
+  ): Promise<HTMLImageElement> {
     const { width, height } = img;
 
     // If image is already small enough, return as-is
@@ -242,26 +258,29 @@ class ONNXProcessor {
       newWidth = Math.round((width / height) * maxSize);
     }
 
-    // Create resized image
-    const canvas = document.createElement("canvas");
-    canvas.width = newWidth;
-    canvas.height = newHeight;
-    const ctx = canvas.getContext("2d")!;
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+    // Create resized image with proper async handling to avoid race condition
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+      const ctx = canvas.getContext("2d")!;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
-    // Convert canvas to image
-    const resizedImg = new Image();
-    resizedImg.src = canvas.toDataURL("image/png");
-    resizedImg.width = newWidth;
-    resizedImg.height = newHeight;
-
-    console.log(
-      `[ONNX] Resized image from ${width}x${height} to ${newWidth}x${newHeight} for processing`
-    );
-
-    return resizedImg;
+      // Convert canvas to image and wait for it to load
+      const resizedImg = new Image();
+      resizedImg.onload = () => {
+        console.log(
+          `[ONNX] Resized image from ${width}x${height} to ${newWidth}x${newHeight} for processing`
+        );
+        resolve(resizedImg);
+      };
+      resizedImg.onerror = () => {
+        reject(new Error("Failed to resize image - canvas conversion failed"));
+      };
+      resizedImg.src = canvas.toDataURL("image/png");
+    });
   }
 
   private async removeBackground(img: HTMLImageElement): Promise<string> {
@@ -306,6 +325,18 @@ class ONNXProcessor {
 
     const outputName = this.u2netSession.outputNames[0];
     const mask = outputs[outputName].data as Float32Array;
+
+    // Validate mask has meaningful content (not blank/corrupted)
+    const nonZeroCount = Array.from(mask).filter(v => v > 0.1).length;
+    const nonZeroPercentage = (nonZeroCount / mask.length) * 100;
+
+    if (nonZeroCount < mask.length * 0.01) {
+      // Less than 1% of mask is non-zero - likely failed to detect object
+      console.warn(`[ONNX] U2-Net mask appears empty (${nonZeroPercentage.toFixed(2)}% non-zero)`);
+      throw new Error('Failed to detect object in image - mask is empty. Please ensure the photo clearly shows a clothing item.');
+    }
+
+    console.log(`[ONNX] U2-Net mask coverage: ${nonZeroPercentage.toFixed(1)}%`);
 
     // Apply mask to original image
     const result = this.applyMask(img, mask, inputSize, inputSize);
@@ -427,7 +458,17 @@ class ONNXProcessor {
 
     // Sort by similarity and take top 10
     similarities.sort((a, b) => b.score - a.score);
-    return similarities.slice(0, 10);
+    const topTags = similarities.slice(0, 10);
+
+    // Log warning if confidence is suspiciously low across all tags
+    if (topTags.length > 0 && topTags[0].score < 0.3) {
+      console.warn(
+        `[ONNX] Tag confidence suspiciously low (best: ${topTags[0].score.toFixed(3)}). ` +
+        `Top tags: ${topTags.slice(0, 3).map(t => `${t.label} (${t.score.toFixed(2)})`).join(', ')}`
+      );
+    }
+
+    return topTags;
   }
 
   private cosineSimilarity(a: number[], b: number[]): number {
