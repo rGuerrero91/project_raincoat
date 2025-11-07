@@ -272,12 +272,18 @@ export default function ProductPage() {
                     ))}
                   </div> */}
                   <div className="mt-2 text-center">
-                   <Link
+                    {/* <Link
                     href="/demo"
                     className="inline-flex items-center justify-center py-[12px] px-[16px] rounded-full bg-transparent text-[var(--ink)] no-underline font-semibold text-[17px] transition-all duration-200 border border-[rgba(212,168,154,0.4)] cursor-pointer hover:bg-[rgba(212,168,154,0.08)]"
                   >
                     Try the demo
-                  </Link>
+                  </Link> */}
+                    <Link
+                      href=""
+                      className="inline-flex items-center justify-center py-[12px] px-[16px] rounded-full bg-transparent text-[var(--ink)] no-underline font-semibold text-[17px] transition-all duration-200 border border-[rgba(212,168,154,0.4)] cursor-pointer hover:bg-[rgba(212,168,154,0.08)]"
+                    >
+                      Demo coming soon!
+                    </Link>
                   </div>
                 </div>
               </div>
