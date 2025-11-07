@@ -34,14 +34,29 @@ export interface ClothingPiece {
   images?: string[];
 }
 
+export interface Outfit {
+  description: string;
+  items: {
+    [slot: string]: ClothingPiece;
+  };
+  style_tags?: string[];
+}
+
 export interface WeatherRecommendationsResponse {
   weather?: WeatherSnapshot;
+  outfits?: Outfit[];
+  meta?: {
+    items_available: number;
+    items_by_category: {
+      [category: string]: number;
+    };
+  };
+  // Legacy format support
   recommendations?: {
     descriptors?: string[];
     temperature_category?: string;
     suggested_pieces?: ClothingPiece[];
   };
-  // Legacy format support
   weather_legacy?: WeatherInfo;
   recommendations_legacy?: WeatherRecommendation[];
 }
