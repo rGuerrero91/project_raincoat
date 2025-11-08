@@ -11,6 +11,9 @@ class ModelCache {
   }
 
   async initialize() {
+    // Check storage quota before initializing
+    await this.checkStorageQuota();
+
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
@@ -34,6 +37,51 @@ class ModelCache {
         }
       };
     });
+  }
+
+  /**
+   * Check storage quota availability
+   * Throws error if insufficient storage for models
+   */
+  async checkStorageQuota() {
+    if (!navigator.storage || !navigator.storage.estimate) {
+      console.warn("[Cache] Storage API not available - quota check skipped");
+      return { available: true, quotaMB: 0, usageMB: 0, availableMB: 0 };
+    }
+
+    try {
+      const estimate = await navigator.storage.estimate();
+      const quotaMB = (estimate.quota || 0) / (1024 * 1024);
+      const usageMB = (estimate.usage || 0) / (1024 * 1024);
+      const availableMB = quotaMB - usageMB;
+
+      // All models require ~522MB total
+      const requiredMB = 550; // Add buffer for overhead
+
+      console.log(`[Cache] Storage: ${availableMB.toFixed(0)}MB available of ${quotaMB.toFixed(0)}MB total (using ${usageMB.toFixed(0)}MB, need ${requiredMB}MB)`);
+
+      if (availableMB < requiredMB) {
+        const error = new Error(
+          `Insufficient storage space for AI models.\n\n` +
+          `Required: ~${requiredMB}MB\n` +
+          `Available: ${availableMB.toFixed(0)}MB\n\n` +
+          `Please free up space by:\n` +
+          `- Clearing browser cache and data\n` +
+          `- Removing unused files/apps\n` +
+          `- Checking storage in Settings`
+        );
+        error.name = 'QuotaExceededError';
+        throw error;
+      }
+
+      return { available: true, quotaMB, usageMB, availableMB };
+    } catch (err) {
+      if (err.name === 'QuotaExceededError') {
+        throw err; // Re-throw quota errors
+      }
+      console.warn("[Cache] Failed to check storage quota:", err);
+      return { available: false, quotaMB: 0, usageMB: 0, availableMB: 0 };
+    }
   }
 
   async getModel(url) {
@@ -74,7 +122,27 @@ class ModelCache {
         resolve();
       };
 
-      request.onerror = () => reject(request.error);
+      request.onerror = (event) => {
+        const error = event.target.error;
+
+        // Handle quota exceeded errors with user-friendly message
+        if (error.name === 'QuotaExceededError') {
+          const friendlyError = new Error(
+            `Storage quota exceeded while caching model.\n\n` +
+            `The browser ran out of storage space while saving this AI model.\n\n` +
+            `Solutions:\n` +
+            `- Clear browser cache and site data\n` +
+            `- Free up device storage\n` +
+            `- Use a different browser with more available quota\n\n` +
+            `Note: The demo will still work but models won't be cached for offline use.`
+          );
+          friendlyError.name = 'QuotaExceededError';
+          console.error('[Cache] Quota exceeded:', friendlyError.message);
+          reject(friendlyError);
+        } else {
+          reject(error);
+        }
+      };
     });
   }
 
@@ -133,8 +201,19 @@ class ModelCache {
     const response = await fetch(url);
     const arrayBuffer = await response.arrayBuffer();
 
-    // Store in cache
-    await this.setModel(url, arrayBuffer);
+    // Try to store in cache, but don't fail if quota exceeded
+    try {
+      await this.setModel(url, arrayBuffer);
+    } catch (err) {
+      if (err.name === 'QuotaExceededError') {
+        console.warn(`[Cache] Could not cache model due to quota limits - will fetch on each use`);
+        console.warn(`[Cache] ${err.message}`);
+        // Continue without caching - model is still loaded in memory
+      } else {
+        // For other errors, log but continue
+        console.error(`[Cache] Failed to cache model:`, err);
+      }
+    }
 
     // Return raw ArrayBuffer - caller will create session
     return arrayBuffer;
@@ -184,10 +263,24 @@ class ModelCache {
     const modelCount = await this._getCount("models");
     const jsonCount = await this._getCount("json");
 
+    // Get storage quota info
+    let storageInfo = { quotaMB: 0, usageMB: 0, availableMB: 0 };
+    if (navigator.storage && navigator.storage.estimate) {
+      try {
+        const estimate = await navigator.storage.estimate();
+        storageInfo.quotaMB = (estimate.quota || 0) / (1024 * 1024);
+        storageInfo.usageMB = (estimate.usage || 0) / (1024 * 1024);
+        storageInfo.availableMB = storageInfo.quotaMB - storageInfo.usageMB;
+      } catch (e) {
+        console.warn("[Cache] Failed to get storage estimate:", e);
+      }
+    }
+
     return {
       models: modelCount,
       json: jsonCount,
       total: modelCount + jsonCount,
+      storage: storageInfo,
     };
   }
 

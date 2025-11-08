@@ -27,6 +27,7 @@ interface PlatformInfo {
   isLowMemoryDevice: boolean;
   estimatedMemoryMB: number;
   supportsWASMSIMD: boolean;
+  supportsWebGPU: boolean;
 }
 
 function detectPlatform(): PlatformInfo {
@@ -62,6 +63,11 @@ function detectPlatform(): PlatformInfo {
   // Assume support on modern browsers, but we'll test it and fallback if needed
   const supportsWASMSIMD = !isIOS || checkWASMSIMDSupport();
 
+  // WebGPU support detection
+  // WebGPU is available in Chrome 113+, Edge 113+, and Safari 18+ (iOS 18+)
+  // On iOS 17.x, it's behind a feature flag
+  const supportsWebGPU = checkWebGPUSupport();
+
   return {
     isIOS,
     isSafari,
@@ -69,6 +75,7 @@ function detectPlatform(): PlatformInfo {
     isLowMemoryDevice,
     estimatedMemoryMB,
     supportsWASMSIMD,
+    supportsWebGPU,
   };
 }
 
@@ -80,6 +87,21 @@ function checkWASMSIMDSupport(): boolean {
       0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11
     ]);
     return WebAssembly.validate(simdTest);
+  } catch (e) {
+    return false;
+  }
+}
+
+function checkWebGPUSupport(): boolean {
+  try {
+    // Check if navigator.gpu exists (WebGPU API entry point)
+    if (typeof navigator === "undefined" || !('gpu' in navigator)) {
+      return false;
+    }
+
+    // WebGPU is available (but actual adapter may not be available)
+    // ONNX Runtime Web will handle adapter request failures gracefully
+    return true;
   } catch (e) {
     return false;
   }
@@ -105,6 +127,95 @@ function checkStorageQuota(): Promise<{ available: boolean; quotaMB: number; usa
   }).catch(() => {
     return { available: false, quotaMB: 0, usageMB: 0 };
   });
+}
+
+/**
+ * Check for memory pressure indicators
+ *
+ * Returns an object indicating current memory status:
+ * - level: 'low' | 'medium' | 'high' | 'critical'
+ * - usedJSHeapMB: Approximate JS heap usage (if available)
+ * - recommendations: Suggested actions based on memory pressure
+ */
+function checkMemoryPressure(): { level: string; usedJSHeapMB: number; recommendations: string[] } {
+  // Default response for environments without memory API
+  const defaultResult = {
+    level: 'unknown',
+    usedJSHeapMB: 0,
+    recommendations: []
+  };
+
+  if (typeof window === "undefined" || typeof performance === "undefined") {
+    return defaultResult;
+  }
+
+  try {
+    // Check for Performance Memory API (Chrome/Edge only)
+    // @ts-ignore - memory is non-standard
+    const memory = (performance as any).memory;
+
+    if (!memory) {
+      // Memory API not available (Safari, Firefox)
+      // Use platform heuristics instead
+      if (PLATFORM_INFO.isIOS || PLATFORM_INFO.isLowMemoryDevice) {
+        return {
+          level: 'medium',
+          usedJSHeapMB: 0,
+          recommendations: [
+            'Low-memory device detected',
+            'Using conservative memory settings',
+            'Models will load individually to avoid OOM'
+          ]
+        };
+      }
+      return defaultResult;
+    }
+
+    // Calculate memory metrics
+    const usedJSHeapMB = memory.usedJSHeapSize / (1024 * 1024);
+    const totalJSHeapMB = memory.totalJSHeapSize / (1024 * 1024);
+    const heapLimitMB = memory.jsHeapSizeLimit / (1024 * 1024);
+    const usagePercent = (usedJSHeapMB / heapLimitMB) * 100;
+
+    // Determine memory pressure level
+    let level: string;
+    let recommendations: string[] = [];
+
+    if (usagePercent < 50) {
+      level = 'low';
+      recommendations = ['Memory usage normal', 'All optimizations available'];
+    } else if (usagePercent < 70) {
+      level = 'medium';
+      recommendations = [
+        'Moderate memory usage',
+        'Using lazy model loading',
+        'Canvas cleanup enforced'
+      ];
+    } else if (usagePercent < 85) {
+      level = 'high';
+      recommendations = [
+        'High memory usage detected',
+        'Consider closing other browser tabs',
+        'Background removal may use lower quality',
+        'Aggressive canvas cleanup enabled'
+      ];
+    } else {
+      level = 'critical';
+      recommendations = [
+        'Critical memory pressure!',
+        'Close other browser tabs immediately',
+        'Reduce image sizes',
+        'Consider using a desktop browser'
+      ];
+    }
+
+    console.log(`[ONNX] Memory pressure: ${level} (${usagePercent.toFixed(1)}% of ${heapLimitMB.toFixed(0)}MB limit, using ${usedJSHeapMB.toFixed(0)}MB)`);
+
+    return { level, usedJSHeapMB, recommendations };
+  } catch (e) {
+    console.warn('[ONNX] Failed to check memory pressure:', e);
+    return defaultResult;
+  }
 }
 
 /**
@@ -181,6 +292,7 @@ if (typeof window !== "undefined") {
   ort.env.logLevel = "error"; // Only show errors, not warnings
 
   console.log(`[ONNX] WASM configuration: SIMD=${ort.env.wasm.simd}, threads=${ort.env.wasm.numThreads}`);
+  console.log(`[ONNX] Execution providers: ${EXECUTION_PROVIDERS.join(' → ')} (WebGPU support: ${PLATFORM_INFO.supportsWebGPU})`);
 
   // Suppress console warnings from ONNX Runtime WASM
   const originalWarn = console.warn;
@@ -209,8 +321,11 @@ export interface ProcessingResult {
 // ============================================================================
 
 // Execution providers with fallback support
-// Use WASM on all platforms, with CPU fallback for graceful degradation
-const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] = ["wasm", "cpu"];
+// WebGPU is the fastest when available (Chrome 113+, Edge 113+, Safari 18+)
+// Falls back to WASM, then CPU for maximum compatibility
+const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] = PLATFORM_INFO.supportsWebGPU
+  ? ["webgpu", "wasm", "cpu"]
+  : ["wasm", "cpu"];
 
 // Configuration for image processing
 const MAX_IMAGE_SIZE = 400; // Maximum width/height for processing (reduce computational overhead)
@@ -300,6 +415,13 @@ class ONNXProcessor {
       const useCache = typeof window !== "undefined" && window.modelCache;
 
       try {
+        // Check memory pressure before loading large model
+        const memoryStatus = checkMemoryPressure();
+        if (memoryStatus.level === 'critical') {
+          console.warn('[ONNX] Critical memory pressure detected before loading U2-Net!');
+          memoryStatus.recommendations.forEach(rec => console.warn(`  - ${rec}`));
+        }
+
         console.log("[ONNX] Loading U2-Net model (168 MB)...");
 
         // Wrap model loading with timeout
@@ -366,6 +488,13 @@ class ONNXProcessor {
       const useCache = typeof window !== "undefined" && window.modelCache;
 
       try {
+        // Check memory pressure before loading large model
+        const memoryStatus = checkMemoryPressure();
+        if (memoryStatus.level === 'critical' || memoryStatus.level === 'high') {
+          console.warn('[ONNX] High memory pressure detected before loading FashionCLIP!');
+          memoryStatus.recommendations.forEach(rec => console.warn(`  - ${rec}`));
+        }
+
         console.log("[ONNX] Loading FashionCLIP model (335 MB)...");
 
         // Wrap model loading with timeout
@@ -708,6 +837,12 @@ class ONNXProcessor {
 
     const totalTime = performance.now() - startTime;
     console.log(`[ONNX] U2-Net: ${totalTime.toFixed(0)}ms total (inference: ${inferenceTime.toFixed(0)}ms, input: ${inputSize}x${inputSize})`);
+
+    // Check memory pressure after intensive operation
+    const memoryStatus = checkMemoryPressure();
+    if (memoryStatus.level === 'high' || memoryStatus.level === 'critical') {
+      console.warn(`[ONNX] Memory pressure after background removal: ${memoryStatus.level}`);
+    }
 
     return result;
   }
