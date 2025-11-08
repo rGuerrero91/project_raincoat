@@ -85,10 +85,81 @@ That combination can cause:
 
 ---
 
-### 5. **Testing Approach**
+### 5. **Implemented Solutions (As of 2025)**
 
-* Use Safari’s “Web Inspector” → “Timelines” → “Memory” to watch heap growth.
+The Raincoat frontend now includes comprehensive iOS/Safari compatibility fixes:
+
+#### ✅ **iOS Detection & Platform-Aware Configuration**
+- Automatic detection of iOS/Safari/mobile browsers
+- WASM SIMD capability testing (falls back gracefully on iOS < 14.5)
+- Execution provider fallback array: `["wasm", "cpu"]` for graceful degradation
+- Platform-specific configuration:
+  - iOS: 256×256 U2-Net input (vs 320×320 desktop)
+  - Mobile: "low" quality mode, Desktop: "medium" quality mode
+  - Mobile: 320px max image size, Desktop: 400px max
+
+#### ✅ **Lazy Loading Strategy**
+- **Models load individually on-demand** (not all at once)
+- Individual loading methods: `loadU2Net()`, `loadFashionClip()`, `loadLabelEmbeddings()`
+- Prevents exceeding ~512MB WASM heap by avoiding simultaneous 503MB model load
+- Progress indicators show: "Loading background removal model...", "Loading image analysis model...", etc.
+- Desktop users benefit from faster initial load, mobile users avoid OOM crashes
+
+#### ✅ **Storage Quota Checks**
+- Before caching models in IndexedDB, checks available storage quota
+- User-friendly error messages if insufficient space (requires ~550MB)
+- Prevents silent failures when IndexedDB quota is exhausted
+
+#### ✅ **Memory Management Optimizations**
+1. **Blob URLs instead of Data URLs**
+   - All `canvas.toDataURL()` replaced with `canvas.toBlob()` + `URL.createObjectURL()`
+   - Reduces memory pressure by 2-3x (blob URLs reference memory, data URLs duplicate it as base64)
+   - Automatic cleanup with `URL.revokeObjectURL()` after use
+
+2. **Explicit Canvas Cleanup**
+   - After operations, canvas dimensions reset: `canvas.width = 0; canvas.height = 0`
+   - Helps iOS Safari release canvas contexts and avoid context limit
+   - All 5+ canvas creation points now have explicit cleanup
+
+3. **Object URL Cleanup**
+   - All `URL.createObjectURL()` calls paired with `URL.revokeObjectURL()`
+   - Prevents memory leaks from accumulating blob references
+
+#### ✅ **RequestAnimationFrame Yielding**
+- Pixel-by-pixel operations in `applyMask()` now process in chunks (50 rows at a time)
+- Yields to browser via `requestAnimationFrame()` between chunks (iOS/mobile only)
+- Prevents iOS "unresponsive script" warnings and tab suspension
+- Desktop bypasses yielding for maximum performance
+
+#### ✅ **User-Friendly Error Messages**
+- Out-of-memory errors: "Unable to load model due to memory constraints. Try closing other browser tabs and reload."
+- Storage quota errors: Shows available vs required space
+- Generic failures: Context-specific messages (background removal, image analysis, label data)
+- All errors catch common iOS issues (memory, allocation, storage, quota)
+
+#### ✅ **No Preloading on Mobile**
+- `preloadModels()` deprecated for low-memory devices
+- WelcomeScreen no longer triggers preload (was loading 503MB on demo start)
+- Models load exactly when needed during `processImage()` workflow
+
+#### **Implementation Files**
+- [onnx-processor.ts](../../../raincoat_frontend/lib/onnx-processor.ts) - Core ONNX processing with iOS fixes
+- [WelcomeScreen.tsx](../../../raincoat_frontend/app/demo/WelcomeScreen.tsx) - Removed preload trigger
+- [ProcessingScreen.tsx](../../../raincoat_frontend/app/demo/ProcessingScreen.tsx) - Uses lazy loading (unchanged)
+
+---
+
+### 6. **Testing Approach**
+
+* Use Safari's "Web Inspector" → "Timelines" → "Memory" to watch heap growth.
 * Simulate constrained devices with `--js-flags="--max-old-space-size=256"` in a desktop environment to catch OOM early.
 * Benchmark memory and latency for both backends (`wasm` vs `webgpu`) on each device class (A14, A15, A16 chips differ in limits).
+* **iOS Testing Checklist:**
+  - [ ] Model load completes without page reload (check console for "loaded successfully" logs)
+  - [ ] Background removal processes without crash (watch memory timeline)
+  - [ ] Embedding generation completes (check for valid embedding magnitude)
+  - [ ] Multiple image processing sessions work without slowdown
+  - [ ] Blob URLs cleaned up (check `chrome://blob-internals` or memory timeline)
+  - [ ] Storage quota respected (check IndexedDB size in DevTools)
 
 ---
