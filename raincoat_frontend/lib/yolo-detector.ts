@@ -126,6 +126,10 @@ class YOLODetector {
     const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
     const pixels = imageData.data;
 
+    // Explicit canvas cleanup after getImageData
+    canvas.width = 0;
+    canvas.height = 0;
+
     // Convert to float32 tensor [1, 3, 640, 640] normalized to [0, 1]
     const float32Data = new Float32Array(3 * targetSize * targetSize);
 
@@ -262,8 +266,10 @@ class YOLODetector {
 
   /**
    * Crop image to bounding box with padding
+   *
+   * Uses Blob URLs instead of Data URLs to reduce memory pressure (2-3x savings)
    */
-  cropToBbox(image: HTMLImageElement, bbox: YOLODetection['bbox'], paddingPercent: number = 0.05): string {
+  async cropToBbox(image: HTMLImageElement, bbox: YOLODetection['bbox'], paddingPercent: number = 0.05): Promise<string> {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
 
@@ -283,7 +289,24 @@ class YOLODetector {
       0, 0, width, height
     );
 
-    return canvas.toDataURL('image/png');
+    // Use toBlob instead of toDataURL to reduce memory pressure
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Failed to create blob from canvas"));
+          return;
+        }
+
+        // Create blob URL instead of data URL (much more memory efficient)
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Explicit canvas cleanup for iOS
+        canvas.width = 0;
+        canvas.height = 0;
+
+        resolve(blobUrl);
+      }, 'image/png');
+    });
   }
 
   /**
