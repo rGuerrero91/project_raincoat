@@ -10,12 +10,14 @@ interface WelcomeScreenProps {
 
 export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
   const handleStartDemo = () => {
-    // Start preloading heavy AI models in background
-    // FashionCLIP (335MB) + U2-Net (168MB) will load while user goes through initial screens
-    console.log('[Demo] Starting model preload in background...');
-    onnxProcessor.preloadModels().catch((err) => {
-      console.warn('[Demo] Model preload failed, will load on-demand:', err);
-    });
+    // Note: Model preloading is now handled lazily on-demand within onnxProcessor
+    // On iOS/mobile devices, preloading all models at once (503MB) can exceed
+    // the ~512MB WASM heap limit and cause crashes. Models are now loaded
+    // individually only when needed.
+    //
+    // On desktop, preloadModels() is safe but also deprecated in favor of lazy loading.
+    // The processor will handle loading efficiently based on device capabilities.
+    console.log('[Demo] Models will load on-demand during processing (iOS-optimized lazy loading)');
 
     onNext();
   };
