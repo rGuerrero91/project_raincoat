@@ -278,10 +278,14 @@ if (typeof window !== "undefined") {
 // ONNX Runtime Configuration (Platform-Aware)
 // ============================================================================
 
-// Configure ONNX Runtime - WASM files copied from Rails to Next.js /public/
+// Configure ONNX Runtime - WASM files served from CDN/API endpoint
 if (typeof window !== "undefined") {
-  // Serve from Next.js public directory (correct MIME types)
-  ort.env.wasm.wasmPaths = "/";
+  // Get CDN URL from environment or fall back to localhost
+  const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+  // Serve WASM files from CDN - they're in /js/onnx/ directory
+  // Required files: ort-wasm.wasm (9.5MB) and ort-wasm-simd.wasm (10MB)
+  ort.env.wasm.wasmPaths = `${CDN_URL}/js/onnx/`;
 
   // Configure WASM settings based on platform capabilities
   ort.env.wasm.numThreads = 1; // Always single-threaded (iOS doesn't support true multithreading)
@@ -291,6 +295,7 @@ if (typeof window !== "undefined") {
   // Suppress ONNX Runtime warnings to prevent Next.js dev overlay spam
   ort.env.logLevel = "error"; // Only show errors, not warnings
 
+  console.log(`[ONNX] WASM paths: ${ort.env.wasm.wasmPaths}`);
   console.log(`[ONNX] WASM configuration: SIMD=${ort.env.wasm.simd}, threads=${ort.env.wasm.numThreads}`);
 
   // Suppress console warnings from ONNX Runtime WASM
