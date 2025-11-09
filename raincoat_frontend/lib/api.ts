@@ -257,6 +257,35 @@ class ApiClient {
       method: "POST",
     });
   }
+
+  // Outfits
+  async generateOutfits() {
+    return this.request<{
+      weather: WeatherSnapshot;
+      recommendations: Outfit[];
+      available_items: { [category: string]: number };
+    }>("/api/v1/outfits/generate", {
+      method: "POST",
+    });
+  }
+
+  async getOutfits() {
+    return this.request("/api/v1/outfits");
+  }
+
+  async saveOutfit(outfit: {
+    description: string;
+    items: { [slot: string]: number | { id: number } };
+    style_tags?: string[];
+    weather_temperature?: number;
+    weather_condition?: string;
+    season?: string;
+  }) {
+    return this.request("/api/v1/outfits", {
+      method: "POST",
+      body: JSON.stringify({ outfit }),
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

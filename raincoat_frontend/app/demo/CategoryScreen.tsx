@@ -47,9 +47,12 @@ export default function CategoryScreen({
     const matchingDetection = allDetections.find(det => det.category === selectedCategory);
 
     if (matchingDetection) {
-      const newCroppedUrl = yoloDetector.cropToBbox(originalImage, matchingDetection.bbox, 0.05);
-      setCurrentCroppedUrl(newCroppedUrl);
-      console.log('[CategoryScreen] Updated crop preview for category:', selectedCategory);
+      // cropToBbox is now async, so we need to await it
+      (async () => {
+        const newCroppedUrl = await yoloDetector.cropToBbox(originalImage, matchingDetection.bbox, 0.05);
+        setCurrentCroppedUrl(newCroppedUrl);
+        console.log('[CategoryScreen] Updated crop preview for category:', selectedCategory);
+      })();
     } else if (croppedImageUrl) {
       setCurrentCroppedUrl(croppedImageUrl);
     }

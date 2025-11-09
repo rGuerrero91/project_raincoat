@@ -1,23 +1,59 @@
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
-import { Umbrella } from 'lucide-react';
+import { Umbrella, AlertCircle, Wifi, HardDrive } from 'lucide-react';
 import onnxProcessor from '@/lib/onnx-processor';
+import { useState, useEffect } from 'react';
 
 interface WelcomeScreenProps {
   onNext: () => void;
 }
 
-export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
-  const handleStartDemo = () => {
-    // Start preloading heavy AI models in background
-    // FashionCLIP (335MB) + U2-Net (168MB) will load while user goes through initial screens
-    console.log('[Demo] Starting model preload in background...');
-    onnxProcessor.preloadModels().catch((err) => {
-      console.warn('[Demo] Model preload failed, will load on-demand:', err);
-    });
+// Detect if user is on mobile device
+function isMobileDevice(): boolean {
+  return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
 
+export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [hasConsented, setHasConsented] = useState(false);
+
+  useEffect(() => {
+    // Check if user has already consented in this session
+    const consent = sessionStorage.getItem('raincoat-demo-consent');
+    if (consent === 'true') {
+      setHasConsented(true);
+    }
+  }, []);
+
+  const handleStartDemo = () => {
+    // Note: Model preloading is now handled lazily on-demand within onnxProcessor
+    // On iOS/mobile devices, preloading all models at once (503MB) can exceed
+    // the ~512MB WASM heap limit and cause crashes. Models are now loaded
+    // individually only when needed.
+    //
+    // On desktop, preloadModels() is safe but also deprecated in favor of lazy loading.
+    // The processor will handle loading efficiently based on device capabilities.
+    console.log('[Demo] Models will load on-demand during processing (iOS-optimized lazy loading)');
+
+    // Show consent modal for mobile users who haven't consented yet
+    if (isMobileDevice() && !hasConsented) {
+      setShowConsentModal(true);
+    } else {
+      onNext();
+    }
+  };
+
+  const handleConsent = () => {
+    // Store consent in sessionStorage
+    sessionStorage.setItem('raincoat-demo-consent', 'true');
+    setHasConsented(true);
+    setShowConsentModal(false);
     onNext();
+  };
+
+  const handleDecline = () => {
+    setShowConsentModal(false);
   };
 
   return (
@@ -54,6 +90,53 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
           </p>
         </div>
       </Card>
+
+      {/* Mobile Consent Modal */}
+      {showConsentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card padding="lg" className="max-w-md w-full">
+            <div className="text-center mb-6">
+              <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold mb-2">Data Usage Notice</h3>
+            </div>
+
+            <div className="space-y-4 text-left mb-6">
+              <div className="flex items-start gap-3">
+                <HardDrive className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold">Storage Required</p>
+                  <p className="text-sm text-neutral-medium">AI models require ~500MB of storage space on your device.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Wifi className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold">Data Download</p>
+                  <p className="text-sm text-neutral-medium">We recommend using WiFi to avoid mobile data charges. Models download once and are cached for future use.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Umbrella className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold">Privacy First</p>
+                  <p className="text-sm text-neutral-medium">All processing happens locally on your device. Your photos never leave your phone.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Button variant="primary" fullWidth onClick={handleConsent}>
+                Continue with Demo
+              </Button>
+              <Button variant="secondary" fullWidth onClick={handleDecline}>
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </Container>
   );
 }

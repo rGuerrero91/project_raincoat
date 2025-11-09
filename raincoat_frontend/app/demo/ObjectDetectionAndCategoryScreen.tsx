@@ -140,11 +140,11 @@ export default function ObjectDetectionAndCategoryScreen({
     };
   }, [imageElement]);
 
-  const handleCategorySelect = (category: string) => {
+  const handleCategorySelect = async (category: string) => {
     setSelectedCategory(category);
     const detection = bestByCategory[category];
     if (detection && imageElement) {
-      const cropped = yoloDetector.cropToBbox(
+      const cropped = await yoloDetector.cropToBbox(
         imageElement,
         detection.bbox,
         0.05

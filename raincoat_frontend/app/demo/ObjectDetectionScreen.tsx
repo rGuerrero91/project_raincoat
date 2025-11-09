@@ -114,12 +114,12 @@ export default function ObjectDetectionScreen({
     };
   }, [imageFile]);
 
-  const handleSelectDetection = (detection: YOLODetection) => {
+  const handleSelectDetection = async (detection: YOLODetection) => {
     if (!imageElement) return;
 
     console.log("[ObjectDetectionScreen] User selected:", detection.category);
 
-    const croppedUrl = yoloDetector.cropToBbox(
+    const croppedUrl = await yoloDetector.cropToBbox(
       imageElement,
       detection.bbox,
       0.05

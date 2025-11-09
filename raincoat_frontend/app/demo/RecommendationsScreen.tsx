@@ -56,11 +56,11 @@ export default function RecommendationsScreen({
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        console.log('Fetching weather recommendations from API...');
-        const response = await apiClient.getWeatherRecommendations();
+        console.log('Generating outfit recommendations from API...');
+        const response = await apiClient.generateOutfits();
 
         if (response.success && response.data) {
-          console.log('Recommendations received:', response.data);
+          console.log('Outfit recommendations received:', response.data);
 
           // Handle weather info
           const weatherData = response.data.weather;
@@ -70,26 +70,38 @@ export default function RecommendationsScreen({
             setWeatherInfo(`${temp}°F, ${condition}`);
           }
 
-          // Handle outfits from backend (new structure)
-          const backendOutfits = response.data.outfits;
+          // Handle outfits from backend
+          const backendOutfits = response.data.recommendations;
           if (backendOutfits && backendOutfits.length > 0) {
             console.log('Backend outfits:', backendOutfits);
 
             // Convert backend outfit format to frontend format
             const generatedOutfits: Outfit[] = backendOutfits.map((outfit: any, index: number) => {
-              // Count items in the outfit
-              const itemsInOutfit = Object.values(outfit.items || {});
-              const itemCount = itemsInOutfit.length;
+              // Get the outfit slots and items
+              const outfitItems = outfit.items || {};
+              const itemSlots = Object.keys(outfitItems);
+              const itemCount = itemSlots.length;
 
-              // Create item indices for items that exist in parent items array
+              // Match items by category to local items
               const itemIndices: number[] = [];
-              itemsInOutfit.forEach((item: any) => {
-                if (item && item.id) {
-                  // Find matching item in parent items array by ID
-                  const matchIndex = items.findIndex((i) => i.id === item.id);
-                  if (matchIndex >= 0) {
-                    itemIndices.push(matchIndex);
-                  }
+              itemSlots.forEach((slot: string) => {
+                // Map slot to category (top->tops, bottom->bottoms, etc.)
+                const categoryMap: { [key: string]: string } = {
+                  'top': 'tops',
+                  'bottom': 'bottoms',
+                  'shoes': 'shoes',
+                  'outerwear': 'outerwear',
+                  'accessories': 'accessories'
+                };
+                const category = categoryMap[slot] || slot;
+
+                // Find a matching item by category
+                const matchIndex = items.findIndex(
+                  (item) => item.category === category
+                );
+
+                if (matchIndex >= 0 && !itemIndices.includes(matchIndex)) {
+                  itemIndices.push(matchIndex);
                 }
               });
 
@@ -113,11 +125,11 @@ export default function RecommendationsScreen({
             setError('Using demo recommendations');
           }
         } else {
-          console.warn('Recommendations API returned no data, using fallback');
+          console.warn('Outfit generation API returned no data, using fallback');
           setError('Using demo recommendations');
         }
       } catch (err) {
-        console.error('Failed to fetch recommendations:', err);
+        console.error('Failed to generate outfits:', err);
         setError('Using demo recommendations');
       } finally {
         setIsLoading(false);
