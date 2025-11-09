@@ -40,6 +40,7 @@ function detectPlatform(): PlatformInfo {
       isLowMemoryDevice: false,
       estimatedMemoryMB: 2048,
       supportsWASMSIMD: true,
+      supportsWebGPU: false, // Will be detected client-side
     };
   }
 
@@ -173,7 +174,6 @@ function checkMemoryPressure(): { level: string; usedJSHeapMB: number; recommend
 
     // Calculate memory metrics
     const usedJSHeapMB = memory.usedJSHeapSize / (1024 * 1024);
-    const totalJSHeapMB = memory.totalJSHeapSize / (1024 * 1024);
     const heapLimitMB = memory.jsHeapSizeLimit / (1024 * 1024);
     const usagePercent = (usedJSHeapMB / heapLimitMB) * 100;
 
@@ -292,7 +292,6 @@ if (typeof window !== "undefined") {
   ort.env.logLevel = "error"; // Only show errors, not warnings
 
   console.log(`[ONNX] WASM configuration: SIMD=${ort.env.wasm.simd}, threads=${ort.env.wasm.numThreads}`);
-  console.log(`[ONNX] Execution providers: ${EXECUTION_PROVIDERS.join(' → ')} (WebGPU support: ${PLATFORM_INFO.supportsWebGPU})`);
 
   // Suppress console warnings from ONNX Runtime WASM
   const originalWarn = console.warn;
@@ -326,6 +325,11 @@ export interface ProcessingResult {
 const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] = PLATFORM_INFO.supportsWebGPU
   ? ["webgpu", "wasm", "cpu"]
   : ["wasm", "cpu"];
+
+// Log execution providers after definition
+if (typeof window !== "undefined") {
+  console.log(`[ONNX] Execution providers: ${EXECUTION_PROVIDERS.join(' → ')} (WebGPU support: ${PLATFORM_INFO.supportsWebGPU})`);
+}
 
 // Configuration for image processing
 const MAX_IMAGE_SIZE = 400; // Maximum width/height for processing (reduce computational overhead)
