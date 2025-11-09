@@ -320,23 +320,23 @@ export interface ProcessingResult {
 // ============================================================================
 
 // Execution providers with fallback support
-// WebGPU is the fastest when available (Chrome 113+, Edge 113+, Safari 18+)
-// Falls back to WASM, then CPU for maximum compatibility
-const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] = PLATFORM_INFO.supportsWebGPU
-  ? ["webgpu", "wasm", "cpu"]
-  : ["wasm", "cpu"];
+// Currently using WASM for universal compatibility
+// Note: WebGPU support will be added in a future update after testing
+// ONNX Runtime Web only supports "webgpu" and "wasm" execution providers
+const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] = ["wasm"];
 
 // Log execution providers after definition
 if (typeof window !== "undefined") {
-  console.log(`[ONNX] Execution providers: ${EXECUTION_PROVIDERS.join(' → ')} (WebGPU support: ${PLATFORM_INFO.supportsWebGPU})`);
+  console.log(`[ONNX] Execution providers: ${EXECUTION_PROVIDERS.join(' → ')} (WebGPU detected but not enabled: ${PLATFORM_INFO.supportsWebGPU})`);
 }
 
 // Configuration for image processing
 const MAX_IMAGE_SIZE = 400; // Maximum width/height for processing (reduce computational overhead)
 
 // U2-Net Configuration - Trade-off between speed and quality
-// iOS devices: reduce input size to save memory
-const U2NET_INPUT_SIZE = PLATFORM_INFO.isIOS ? 256 : 320; // iOS: 256x256, Desktop: 320x320
+// Note: U2-Net model is trained for 320×320 input - cannot be changed without retraining
+// For iOS memory optimization, model quantization (FP16/INT8) is the recommended approach
+const U2NET_INPUT_SIZE = 320; // Fixed at 320×320 as required by the model
 const U2NET_QUALITY_MODE = PLATFORM_INFO.isMobile ? "low" : "medium"; // Mobile: faster, Desktop: better quality
 const USE_FAST_MASK_APPLICATION = true; // Use optimized mask application (faster, slight quality loss)
 
@@ -427,6 +427,7 @@ class ONNXProcessor {
         }
 
         console.log("[ONNX] Loading U2-Net model (168 MB)...");
+        console.log("[ONNX] Using execution providers:", JSON.stringify(EXECUTION_PROVIDERS));
 
         // Wrap model loading with timeout
         await withTimeout(
