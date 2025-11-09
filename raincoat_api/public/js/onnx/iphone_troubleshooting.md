@@ -92,8 +92,8 @@ The Raincoat frontend now includes comprehensive iOS/Safari compatibility fixes:
 #### ✅ **iOS Detection & Platform-Aware Configuration**
 - Automatic detection of iOS/Safari/mobile browsers
 - WASM SIMD capability testing (falls back gracefully on iOS < 14.5)
-- **WebGPU support detection** - Automatically uses WebGPU on Chrome 113+, Edge 113+, Safari 18+
-- Execution provider fallback array: `["webgpu", "wasm", "cpu"]` (WebGPU only if supported)
+- **WebGPU support detection** - Detection implemented, activation pending further testing
+- Execution provider: `["wasm"]` (universal compatibility, WebGPU to be enabled in future update)
 - Platform-specific configuration:
   - iOS: 256×256 U2-Net input (vs 320×320 desktop)
   - Mobile: "low" quality mode, Desktop: "medium" quality mode
