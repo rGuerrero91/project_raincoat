@@ -1,11 +1,11 @@
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
-import { Plus } from 'lucide-react';
-import { ClothingItem } from './page';
+import { Plus, ExternalLink } from 'lucide-react';
+import { ClothingPiece } from './page';
 
 interface ClosetScreenProps {
-  items: ClothingItem[];
+  items: ClothingPiece[];
   onNext: () => void;
   onAddMore: () => void;
 }
@@ -26,36 +26,59 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
       {/* Items Grid */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         {items.map((item, index) => (
-          <Card
+          <a
             key={index}
-            padding="sm"
-            hover
-            className="cursor-pointer"
+            href={item.id ? `demo/items/${item.id}` : '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`block ${!item.id ? 'pointer-events-none' : ''}`}
           >
-            <div className="aspect-square rounded-2xl overflow-hidden bg-neutral-light mb-3 shadow-soft">
-              <img
-                src={item.processedImage || item.image}
-                alt={`Item ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-1.5 min-h-[32px]">
-              {item.tags.slice(0, 3).map((tag, tagIndex) => (
-                <span
-                  key={tagIndex}
-                  className="text-xs bg-primary-light text-primary px-2.5 py-1 rounded-full font-medium"
-                >
-                  {tag}
-                </span>
-              ))}
-              {item.tags.length > 3 && (
-                <span className="text-xs text-neutral-medium px-2.5 py-1">
-                  +{item.tags.length - 3}
-                </span>
+            <Card
+              padding="sm"
+              hover
+              className="cursor-pointer h-full relative group"
+            >
+              {/* External Link Icon */}
+              {item.id && (
+                <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-white rounded-full p-1.5 shadow-md">
+                    <ExternalLink className="w-4 h-4 text-primary" />
+                  </div>
+                </div>
               )}
-            </div>
-          </Card>
+
+              <div className="aspect-square rounded-2xl overflow-hidden bg-neutral-light mb-3 shadow-soft">
+                <img
+                  src={item.processedImage || item.image}
+                  alt={`Item ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 min-h-[32px]">
+                {item.tags.slice(0, 3).map((tag, tagIndex) => (
+                  <span
+                    key={tagIndex}
+                    className="text-xs bg-primary-light text-primary px-2.5 py-1 rounded-full font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))}
+                {item.tags.length > 3 && (
+                  <span className="text-xs text-neutral-medium px-2.5 py-1">
+                    +{item.tags.length - 3}
+                  </span>
+                )}
+              </div>
+
+              {/* Category Badge */}
+              {item.category && (
+                <div className="mt-2 text-xs text-neutral-medium capitalize">
+                  {item.category}
+                </div>
+              )}
+            </Card>
+          </a>
         ))}
 
         {/* Add More Card */}
