@@ -31,7 +31,7 @@ export type DemoStep =
   | "recommendations"
   | "complete";
 
-export interface ClothingItem {
+export interface ClothingPiece {
   id?: number;
   image: string;
   fileObject?: File; // Store original File for ONNX processing
@@ -47,8 +47,8 @@ export interface ClothingItem {
 
 export default function DemoPage() {
   const [currentStep, setCurrentStep] = useState<DemoStep>("welcome");
-  const [closetItems, setClosetItems] = useState<ClothingItem[]>([]);
-  const [currentItem, setCurrentItem] = useState<ClothingItem | null>(null);
+  const [closetItems, setClosetItems] = useState<ClothingPiece[]>([]);
+  const [currentItem, setCurrentItem] = useState<ClothingPiece | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{
     city: string;
     country: string;
@@ -90,12 +90,12 @@ export default function DemoPage() {
     setCurrentStep(step);
   };
 
-  const addItemToCloset = async (item: ClothingItem) => {
+  const addItemToCloset = async (item: ClothingPiece) => {
     try {
       console.log("Saving item to backend...", item);
 
       // Create clothing item in backend
-      const response = await apiClient.createClothingItem({
+      const response = await apiClient.createClothingPiece({
         category: item.category,
         ai_tags: item.tags,
         user_tags: item.tags,

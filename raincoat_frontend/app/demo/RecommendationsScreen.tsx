@@ -5,11 +5,11 @@ import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import { Shirt, Lightbulb, Check } from 'lucide-react';
-import { ClothingItem } from './page';
+import { ClothingPiece } from './page';
 import apiClient from '@/lib/api';
 
 interface RecommendationsScreenProps {
-  items: ClothingItem[];
+  items: ClothingPiece[];
   location: { city: string };
   weather: {
     temperature_c: number;

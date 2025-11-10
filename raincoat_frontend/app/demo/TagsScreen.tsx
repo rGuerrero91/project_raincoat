@@ -5,10 +5,10 @@ import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import Tag from '@/components/Tag';
-import { ClothingItem } from './page';
+import { ClothingPiece } from './page';
 
 interface TagsScreenProps {
-  item: ClothingItem;
+  item: ClothingPiece;
   onNext: (tags: string[]) => void;
 }
 
