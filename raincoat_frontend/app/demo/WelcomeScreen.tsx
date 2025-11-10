@@ -1,7 +1,7 @@
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
-import { Umbrella, AlertCircle, Wifi, HardDrive } from 'lucide-react';
+import { Umbrella, AlertCircle, Wifi, HardDrive, Smartphone } from 'lucide-react';
 import onnxProcessor from '@/lib/onnx-processor';
 import { useState, useEffect } from 'react';
 
@@ -12,6 +12,11 @@ interface WelcomeScreenProps {
 // Detect if user is on mobile device
 function isMobileDevice(): boolean {
   return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+// Detect if user is on iOS device
+function isIOSDevice(): boolean {
+  return /iPhone|iPad|iPod/.test(navigator.userAgent);
 }
 
 export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
@@ -101,6 +106,21 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
             </div>
 
             <div className="space-y-4 text-left mb-6">
+              {/* iOS-specific warning */}
+              {isIOSDevice() && (
+                <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <Smartphone className="w-5 h-5 text-amber-600 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-amber-900">iPhone/iPad Notice</p>
+                    <p className="text-sm text-amber-800">
+                      This demo is currently experiencing compatibility issues on iOS devices.
+                      You may encounter crashes or performance problems. For the best experience,
+                      please use a desktop browser or Android device.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-start gap-3">
                 <HardDrive className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                 <div>

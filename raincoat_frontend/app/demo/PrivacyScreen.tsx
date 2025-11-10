@@ -27,7 +27,7 @@ export default function PrivacyScreen({ onNext }: PrivacyScreenProps) {
     // Check if models are still loading
     const checkInterval = setInterval(() => {
       if (window.modelCache) {
-        console.log(window.modelCache.getStats());
+        // console.log(window.modelCache.getStats());
         setIsPreloading(false);
       }
     }, 1000);
