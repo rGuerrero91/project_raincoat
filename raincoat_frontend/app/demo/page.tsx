@@ -56,6 +56,13 @@ export default function DemoPage() {
     longitude: number;
     id?: number;
   } | null>(null);
+  const [weatherData, setWeatherData] = useState<{
+    temperature_c: number;
+    temperature_f: number;
+    condition_text: string;
+    humidity?: number;
+    precipitation_mm?: number;
+  } | null>(null);
 
   const nextStep = () => {
     const steps: DemoStep[] = [
@@ -258,13 +265,22 @@ export default function DemoPage() {
         );
 
       case "weather":
-        return <WeatherScreen location={selectedLocation || { city: 'San Francisco', country: 'United States' }} onNext={nextStep} />;
+        return (
+          <WeatherScreen
+            location={selectedLocation || { city: 'San Francisco', country: 'United States' }}
+            onNext={(weather) => {
+              setWeatherData(weather);
+              nextStep();
+            }}
+          />
+        );
 
       case "recommendations":
         return (
           <RecommendationsScreen
             items={closetItems}
             location={selectedLocation || { city: 'San Francisco' }}
+            weather={weatherData}
             onNext={nextStep}
           />
         );
@@ -277,6 +293,7 @@ export default function DemoPage() {
               setClosetItems([]);
               setCurrentItem(null);
               setSelectedLocation(null);
+              setWeatherData(null);
             }}
           />
         );

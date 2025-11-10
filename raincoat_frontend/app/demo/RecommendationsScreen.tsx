@@ -11,6 +11,13 @@ import apiClient from '@/lib/api';
 interface RecommendationsScreenProps {
   items: ClothingItem[];
   location: { city: string };
+  weather: {
+    temperature_c: number;
+    temperature_f: number;
+    condition_text: string;
+    humidity?: number;
+    precipitation_mm?: number;
+  } | null;
   onNext: () => void;
 }
 
@@ -46,6 +53,7 @@ const fallbackOutfits: Outfit[] = [
 export default function RecommendationsScreen({
   items,
   location,
+  weather,
   onNext,
 }: RecommendationsScreenProps) {
   const [outfits, setOutfits] = useState<Outfit[]>(fallbackOutfits);
@@ -57,7 +65,8 @@ export default function RecommendationsScreen({
     const fetchRecommendations = async () => {
       try {
         console.log('Generating outfit recommendations from API...');
-        const response = await apiClient.generateOutfits();
+        console.log('Weather data:', weather);
+        const response = await apiClient.generateOutfits(weather);
 
         if (response.success && response.data) {
           console.log('Outfit recommendations received:', response.data);

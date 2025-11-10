@@ -8,7 +8,13 @@ import apiClient from '@/lib/api';
 
 interface WeatherScreenProps {
   location: { city: string; country: string };
-  onNext: () => void;
+  onNext: (weather: {
+    temperature_c: number;
+    temperature_f: number;
+    condition_text: string;
+    humidity?: number;
+    precipitation_mm?: number;
+  }) => void;
 }
 
 interface WeatherData {
@@ -46,8 +52,10 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
           // Support both new format (weather snapshot) and legacy format
           const conditionText = weatherSnapshot?.condition_text || response.data.condition || '';
           const temperatureF = weatherSnapshot?.temperature_f || response.data.temperature || 68;
+          const temperatureC = weatherSnapshot?.temperature_c || ((temperatureF - 32) * 5) / 9;
           const humidity = weatherSnapshot?.humidity || response.data.humidity;
           const windKph = weatherSnapshot?.wind_kph || response.data.wind_speed;
+          const precipitationMm = weatherSnapshot?.precipitation_mm || 0;
 
           const iconComponent = getWeatherIcon(conditionText);
           const temperature = temperatureF;
@@ -67,18 +75,48 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
             iconComponent,
             details,
           });
+
+          // Pass weather data to next screen after delay
+          setTimeout(() => {
+            onNext({
+              temperature_c: temperatureC,
+              temperature_f: temperatureF,
+              condition_text: condition,
+              humidity,
+              precipitation_mm: precipitationMm,
+            });
+          }, 2500);
         } else {
           console.warn('Weather API returned no data, using fallback');
           setError('Using demo weather data');
+
+          // Pass fallback weather data
+          setTimeout(() => {
+            onNext({
+              temperature_c: 20,
+              temperature_f: 68,
+              condition_text: 'Partly Cloudy',
+              humidity: 50,
+              precipitation_mm: 0,
+            });
+          }, 2500);
         }
       } catch (err) {
         console.error('Failed to fetch weather:', err);
         setError('Using demo weather data');
+
+        // Pass fallback weather data
+        setTimeout(() => {
+          onNext({
+            temperature_c: 20,
+            temperature_f: 68,
+            condition_text: 'Partly Cloudy',
+            humidity: 50,
+            precipitation_mm: 0,
+          });
+        }, 2500);
       } finally {
         setIsLoading(false);
-        setTimeout(() => {
-          onNext();
-        }, 2500);
       }
     };
 

@@ -259,13 +259,22 @@ class ApiClient {
   }
 
   // Outfits
-  async generateOutfits() {
+  async generateOutfits(weather?: {
+    temperature_c: number;
+    temperature_f?: number;
+    condition_text: string;
+    humidity?: number;
+    precipitation_mm?: number;
+  } | null) {
+    const body = weather ? { weather } : {};
+
     return this.request<{
       weather: WeatherSnapshot;
       recommendations: Outfit[];
       available_items: { [category: string]: number };
     }>("/api/v1/outfits/generate", {
       method: "POST",
+      body: JSON.stringify(body),
     });
   }
 
