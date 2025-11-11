@@ -16,6 +16,11 @@ Outfit.destroy_all
 WeatherSnapshot.destroy_all
 Location.destroy_all
 ClothingEmbedding.destroy_all
+
+# Delete Active Storage attachments and blobs directly to avoid enqueuing purge jobs
+ActiveStorage::Attachment.where(record_type: 'ClothingPiece').delete_all
+ActiveStorage::Blob.where.missing(:attachments).delete_all
+
 ClothingPiece.destroy_all
 User.destroy_all
 
