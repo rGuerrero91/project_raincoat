@@ -40,9 +40,29 @@ class Api::V1::OutfitsController < ApplicationController
 
     outfit_recommendations = stylist.generate_outfits
 
+    # Serialize outfits with full clothing piece data including images
+    serialized_outfits = outfit_recommendations.map do |outfit|
+      serialized_items = {}
+
+      outfit["items"]&.each do |slot, item_name|
+        # Find the clothing piece by name
+        piece = items_by_category.values.flatten.find { |p| p.name == item_name }
+
+        if piece
+          serialized_items[slot] = serialize_clothing_piece(piece)
+        end
+      end
+
+      {
+        description: outfit["description"],
+        items: serialized_items,
+        style_tags: outfit["style_tags"]
+      }
+    end
+
     render json: {
       weather: weather_data,
-      recommendations: outfit_recommendations,
+      recommendations: serialized_outfits,
       available_items: items_by_category.transform_values(&:count)
     }
   rescue => e
@@ -181,5 +201,21 @@ class Api::V1::OutfitsController < ApplicationController
       style_tags: [],
       metadata: {}
     )
+  end
+
+  def serialize_clothing_piece(piece)
+    {
+      id: piece.id,
+      name: piece.name,
+      description: piece.description,
+      category: piece.category,
+      brand: piece.brand,
+      colors: piece.colors,
+      materials: piece.materials,
+      ai_tags: piece.ai_tags,
+      user_tags: piece.user_tags,
+      has_embedding: piece.clothing_embedding.present?,
+      images: piece.images.attached? ? piece.images.map { |img| url_for(img) } : []
+    }
   end
 end

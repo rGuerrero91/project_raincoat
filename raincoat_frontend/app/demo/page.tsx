@@ -33,7 +33,9 @@ export type DemoStep =
 
 export interface ClothingPiece {
   id?: number;
+  name?: string; // From backend
   image: string;
+  images?: string[]; // From backend - array of image URLs
   fileObject?: File; // Store original File for ONNX processing
   croppedImage?: string; // YOLO-cropped image URL (before processing)
   processedImage?: string; // Background-removed image URL

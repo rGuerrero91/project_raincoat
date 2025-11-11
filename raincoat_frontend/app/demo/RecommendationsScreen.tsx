@@ -91,26 +91,25 @@ export default function RecommendationsScreen({
               const itemSlots = Object.keys(outfitItems);
               const itemCount = itemSlots.length;
 
-              // Match items by category to local items
+              // Add backend items to the local items array and track their indices
               const itemIndices: number[] = [];
               itemSlots.forEach((slot: string) => {
-                // Map slot to category (top->tops, bottom->bottoms, etc.)
-                const categoryMap: { [key: string]: string } = {
-                  'top': 'tops',
-                  'bottom': 'bottoms',
-                  'shoes': 'shoes',
-                  'outerwear': 'outerwear',
-                  'accessories': 'accessories'
-                };
-                const category = categoryMap[slot] || slot;
+                const backendItem = outfitItems[slot];
 
-                // Find a matching item by category
-                const matchIndex = items.findIndex(
-                  (item) => item.category === category
-                );
+                if (backendItem) {
+                  // Convert backend item to ClothingPiece format
+                  const clothingPiece: ClothingPiece = {
+                    id: backendItem.id,
+                    name: backendItem.name,
+                    category: backendItem.category,
+                    image: backendItem.images && backendItem.images.length > 0 ? backendItem.images[0] : '',
+                    images: backendItem.images || [], // Array of image URLs from backend
+                    tags: [...(backendItem.ai_tags || []), ...(backendItem.user_tags || [])]
+                  };
 
-                if (matchIndex >= 0 && !itemIndices.includes(matchIndex)) {
-                  itemIndices.push(matchIndex);
+                  // Add to items array and track index
+                  items.push(clothingPiece);
+                  itemIndices.push(items.length - 1);
                 }
               });
 
@@ -206,18 +205,30 @@ export default function RecommendationsScreen({
             <div className="flex gap-2 mb-3 overflow-x-auto">
               {outfit.items.map((itemIndex) => {
                 const item = items[itemIndex];
-                return item ? (
+                if (!item) return null;
+                // Get image URL - prioritize processed image, then regular image, then backend images array
+                const imageUrl = item.processedImage ||
+                                item.image ||
+                                (item.images && item.images.length > 0 ? item.images[0] : null);
+
+                return (
                   <div
                     key={itemIndex}
                     className="w-20 h-20 rounded-xl overflow-hidden bg-neutral-light flex-shrink-0"
                   >
-                    <img
-                      src={item.processedImage || item.image}
-                      alt={`Item ${itemIndex + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={item.name || `Item ${itemIndex + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Shirt className="w-8 h-8 text-neutral-medium" strokeWidth={1.5} />
+                      </div>
+                    )}
                   </div>
-                ) : null;
+                );
               })}
               {/* Placeholder for missing items */}
               {Array(outfit.itemCount - outfit.items.length)
