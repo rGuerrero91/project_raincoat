@@ -412,8 +412,9 @@ image_mapping = {
 processed_images_dir = Rails.root.join('db', 'seed_images', 'processed')
 
 # Temporarily disable Active Storage analysis to avoid SolidQueue dependency
-# We'll use perform_enqueued_jobs to suppress job enqueueing
-ActiveJob::Base.queue_adapter = ActiveJob::QueueAdapters::InlineAdapter.new
+# Use TestAdapter which allows us to disable job execution
+require 'active_job/queue_adapters/test_adapter'
+ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.queue_adapter.perform_enqueued_jobs = false
 
 ClothingPiece.find_each do |piece|
