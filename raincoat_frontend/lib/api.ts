@@ -28,10 +28,17 @@ export interface ClothingPiece {
   brand?: string;
   colors?: string[];
   materials?: string[];
-  ai_tags?: any;
-  user_tags?: any;
+  ai_tags?: string[];
+  user_tags?: string[];
   has_embedding?: boolean;
-  images?: string[];
+  images?: { url: string; filename: string; id: number; content_type: string }[];
+  embedding?: {
+    id: number;
+    model_version: string;
+    vector_dimensions: number;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface Outfit {
@@ -178,11 +185,11 @@ class ApiClient {
   }
 
   // Clothing Items
-  async getClothingItems() {
+  async getClothingPieces() {
     return this.request("/api/v1/clothing_pieces");
   }
 
-  async createClothingItem(data: {
+  async createClothingPiece(data: {
     name?: string;
     category: string;
     ai_tags?: any;
@@ -203,10 +210,36 @@ class ApiClient {
     });
   }
 
+  async getClothingPiece(itemId: number) {
+    return this.request<ClothingPiece>(`/api/v1/clothing_pieces/${itemId}`);
+  }
+
   async getSimilarItems(itemId: number, limit: number = 10) {
-    return this.request(
+    return this.request<{
+      source_piece: ClothingPiece;
+      similar_pieces: Array<{
+        piece: ClothingPiece;
+        similarity_score: number;
+        similarity_percentage: string;
+        distance_metric: string;
+      }>;
+    }>(
       `/api/v1/clothing_pieces/${itemId}/similar?limit=${limit}`
     );
+  }
+
+  async getItemEmbedding(itemId: number) {
+    return this.request<{
+      clothing_piece_id: number;
+      embedding: {
+        id: number;
+        vector_data: number[];
+        model_version: string;
+        preprocessing_metadata: any;
+        vector_dimensions: number;
+        created_at: string;
+      };
+    }>(`/api/v1/clothing_pieces/${itemId}/embedding`);
   }
 
   // Locations
