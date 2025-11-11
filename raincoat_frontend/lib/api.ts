@@ -242,8 +242,17 @@ class ApiClient {
   }
 
   // Weather
-  async getCurrentWeather() {
-    return this.request<CurrentWeatherResponse>("/api/v1/weather/current");
+  async getCurrentWeather(city?: string, country?: string) {
+    const params = new URLSearchParams();
+    if (city) params.append('city', city);
+    if (country) params.append('country', country);
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `/api/v1/weather/current?${queryString}`
+      : "/api/v1/weather/current";
+
+    return this.request<CurrentWeatherResponse>(url);
   }
 
   async getWeatherRecommendations() {

@@ -114,15 +114,21 @@ class Api::V1::OutfitsController < ApplicationController
   def fetch_weather_data
     # Check if weather data is provided in params
     if params[:weather].present?
-      return params[:weather].permit(:temperature_c, :condition_text, :humidity, :precipitation_mm).to_h
+      return params[:weather].permit(:temperature_c, :temperature_f, :condition_text, :humidity, :precipitation_mm).to_h
     end
 
     # Otherwise, fetch from user's default location
     location = @user.default_location
 
     if location
-      latest_weather = location.weather_snapshots.order(recorded_at: :desc).first
+      # Only use cached weather if it's less than 6 hours old
+      six_hours_ago = 6.hours.ago
+      latest_weather = location.weather_snapshots
+                               .where('recorded_at > ?', six_hours_ago)
+                               .order(recorded_at: :desc)
+                               .first
 
+      # If we have fresh cached weather, use it
       if latest_weather
         {
           temperature_c: latest_weather.temperature_c,
@@ -132,8 +138,22 @@ class Api::V1::OutfitsController < ApplicationController
           precipitation_mm: latest_weather.precipitation_mm
         }
       else
-        # Default weather if no data available
-        { temperature_c: 20, condition_text: "Clear", humidity: 50, precipitation_mm: 0 }
+        # Otherwise fetch fresh weather from API
+        weather_service = WeatherService.new
+        snapshot = weather_service.fetch_current_weather(location)
+
+        if snapshot
+          {
+            temperature_c: snapshot.temperature_c,
+            temperature_f: snapshot.temperature_f,
+            condition_text: snapshot.condition_text,
+            humidity: snapshot.humidity,
+            precipitation_mm: snapshot.precipitation_mm
+          }
+        else
+          # Fallback to default weather if API fails
+          { temperature_c: 20, condition_text: "Clear", humidity: 50, precipitation_mm: 0 }
+        end
       end
     else
       # Default weather if no location
