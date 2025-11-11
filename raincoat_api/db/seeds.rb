@@ -42,6 +42,21 @@ puts "Created #{User.count} users"
 # Create clothing pieces for test user
 puts "Creating clothing pieces..."
 
+# Helper method to create a placeholder image
+def create_placeholder_image(color, category)
+  # Create a simple SVG placeholder image
+  svg_content = <<~SVG
+    <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+      <rect width="400" height="400" fill="#{color}"/>
+      <text x="50%" y="50%" font-family="Arial" font-size="24" fill="white" text-anchor="middle" dy=".3em">#{category.titleize}</text>
+    </svg>
+  SVG
+
+  # Create a StringIO object to simulate a file
+  require 'stringio'
+  StringIO.new(svg_content)
+end
+
 # Tops
 test_user.clothing_pieces.create!([
   {
@@ -367,6 +382,72 @@ rudy_user.clothing_pieces.create!([
 
 puts "Created #{ClothingPiece.count} clothing pieces"
 
+# Attach images to clothing pieces
+puts "Attaching images to clothing pieces..."
+
+# Map piece names to processed image filenames
+image_mapping = {
+  "Blue Cotton T-Shirt" => "blue-cotton-t-shirt.png",
+  "White Button-Down Shirt" => "white-button-down-shirt.png",
+  "Red Wool Sweater" => "red-wool-sweater.png",
+  "Black Hoodie" => "black-hoodie.png",
+  "Dark Wash Jeans" => "dark-wash-jeans.png",
+  "Black Dress Pants" => "black-dress-pants.png",
+  "Khaki Chinos" => "khaki-chinos.png",
+  "Navy Wool Coat" => "navy-wool-coat.png",
+  "Denim Jacket" => "denim-jacket.png",
+  "White Sneakers" => "white-sneakers.png",
+  "Black Dress Shoes" => "black-dress-shoes.png",
+  "Brown Leather Belt" => "brown-leather-belt.png",
+  "Black Wool Beanie" => "black-wool-beanie.png",
+  "Gray Sweatshirt" => "gray-sweatshirt.png",
+  "Blue Jeans" => "blue-jeans.png"
+}
+
+processed_images_dir = Rails.root.join('db', 'seed_images', 'processed')
+
+ClothingPiece.find_each do |piece|
+  image_filename = image_mapping[piece.name]
+
+  if image_filename
+    image_path = processed_images_dir.join(image_filename)
+
+    if File.exist?(image_path)
+      # Attach the processed image
+      piece.images.attach(
+        io: File.open(image_path),
+        filename: image_filename,
+        content_type: "image/png"
+      )
+      puts "Attached image: #{piece.name}"
+    else
+      # Fallback to SVG placeholder if processed image not found
+      puts "Image not found for #{piece.name}, using placeholder"
+      primary_color = piece.colors&.first || "#CCCCCC"
+
+      color_map = {
+        "blue" => "#4A90E2", "navy" => "#001F3F", "white" => "#FFFFFF",
+        "red" => "#E74C3C", "burgundy" => "#8B0000", "black" => "#2C3E50",
+        "gray" => "#95A5A6", "grey" => "#95A5A6", "tan" => "#D2B48C",
+        "khaki" => "#C3B091", "indigo" => "#4B0082", "brown" => "#8B4513",
+        "cognac" => "#9A463D", "light blue" => "#ADD8E6"
+      }
+
+      hex_color = color_map[primary_color.downcase] || primary_color
+      image_io = create_placeholder_image(hex_color, piece.category)
+      piece.images.attach(
+        io: image_io,
+        filename: "#{piece.name.parameterize}.svg",
+        content_type: "image/svg+xml"
+      )
+    end
+  else
+    puts "No mapping found for: #{piece.name}"
+  end
+end
+
+puts "Attached images to #{ClothingPiece.count} pieces"
+
 # Generate sample embeddings using realistic, deterministic vectors
 puts "Generating sample embeddings..."
 
@@ -382,7 +463,7 @@ ClothingPiece.find_each do |piece|
     vector_data = embedding_data[:vector_data]
     model_version = embedding_data[:model_version]
     preprocessing_metadata = embedding_data[:preprocessing_metadata]
-    puts "  ✅ Using pre-generated embedding for: #{piece.name}"
+    puts "Using pre-generated embedding for: #{piece.name}"
   else
     # Generate new embedding based on item attributes
     vector_data = EmbeddingGenerator.generate_for_item(
@@ -396,7 +477,7 @@ ClothingPiece.find_each do |piece|
       generated_method: "deterministic_seed",
       attributes_used: ["name", "category", "colors", "materials"]
     }
-    puts "  🔄 Generated new embedding for: #{piece.name}"
+    puts "Generated new embedding for: #{piece.name}"
   end
 
   piece.create_clothing_embedding!(
@@ -408,7 +489,7 @@ end
 
 puts "Created #{ClothingEmbedding.count} embeddings"
 puts ""
-puts "📊 Embedding Statistics:"
+puts "Embedding Statistics:"
 puts "  Pre-generated: #{pregenerated_embeddings.count}"
 puts "  Newly generated: #{ClothingEmbedding.count - pregenerated_embeddings.count}"
 puts "  Total: #{ClothingEmbedding.count}"
