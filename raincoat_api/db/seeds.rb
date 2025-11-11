@@ -411,10 +411,10 @@ image_mapping = {
 
 processed_images_dir = Rails.root.join('db', 'seed_images', 'processed')
 
-# Disable Active Storage analysis during seeding to avoid SolidQueue dependency
-ActiveStorage.logger = Logger.new(nil) # Suppress Active Storage logs
-Rails.application.config.active_storage.queues.analysis = nil
-Rails.application.config.active_storage.queues.purge = nil
+# Temporarily disable Active Storage analysis to avoid SolidQueue dependency
+# We'll use perform_enqueued_jobs to suppress job enqueueing
+ActiveJob::Base.queue_adapter = ActiveJob::QueueAdapters::InlineAdapter.new
+ActiveJob::Base.queue_adapter.perform_enqueued_jobs = false
 
 ClothingPiece.find_each do |piece|
   image_filename = image_mapping[piece.name]
@@ -423,13 +423,12 @@ ClothingPiece.find_each do |piece|
     image_path = processed_images_dir.join(image_filename)
 
     if File.exist?(image_path)
-      # Create blob and attachment manually to avoid job enqueueing
-      blob = ActiveStorage::Blob.create_and_upload!(
+      # Attach without triggering analyze job
+      piece.images.attach(
         io: File.open(image_path),
         filename: image_filename,
         content_type: "image/png"
       )
-      piece.images.attach(blob)
       puts "Attached image: #{piece.name}"
     else
       # Fallback to SVG placeholder if processed image not found
@@ -447,12 +446,11 @@ ClothingPiece.find_each do |piece|
       hex_color = color_map[primary_color.downcase] || primary_color
       image_io = create_placeholder_image(hex_color, piece.category)
 
-      blob = ActiveStorage::Blob.create_and_upload!(
+      piece.images.attach(
         io: image_io,
         filename: "#{piece.name.parameterize}.svg",
         content_type: "image/svg+xml"
       )
-      piece.images.attach(blob)
     end
   else
     puts "No mapping found for: #{piece.name}"
