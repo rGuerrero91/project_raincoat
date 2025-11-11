@@ -134,7 +134,15 @@ class Api::V1::OutfitsController < ApplicationController
   def fetch_weather_data
     # Check if weather data is provided in params
     if params[:weather].present?
-      return params[:weather].permit(:temperature_c, :temperature_f, :condition_text, :humidity, :precipitation_mm).to_h
+      weather_params = params[:weather].permit(:temperature_c, :temperature_f, :condition_text, :humidity, :precipitation_mm)
+      # Convert string params to numeric types (required in Ruby 3.4+)
+      return {
+        temperature_c: weather_params[:temperature_c].to_f,
+        temperature_f: weather_params[:temperature_f]&.to_f,
+        condition_text: weather_params[:condition_text],
+        humidity: weather_params[:humidity]&.to_i,
+        precipitation_mm: weather_params[:precipitation_mm]&.to_f
+      }
     end
 
     # Otherwise, fetch from user's default location
