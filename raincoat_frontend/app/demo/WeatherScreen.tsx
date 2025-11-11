@@ -41,7 +41,7 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
     const fetchWeather = async () => {
       try {
         console.log('Fetching weather from API...');
-        const response = await apiClient.getCurrentWeather();
+        const response = await apiClient.getCurrentWeather(location.city, location.country);
 
         if (response.success && response.data) {
           console.log('Weather data received:', response.data);

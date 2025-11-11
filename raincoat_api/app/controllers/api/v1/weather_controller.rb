@@ -1,12 +1,44 @@
 class Api::V1::WeatherController < Api::V1::BaseController
 
   # GET /api/v1/weather/current
-  # Returns weather for user's default location
+  # Returns weather for user's default location, or specified city/country
+  # Params: city (optional), country (optional)
   def current
-    location = current_user.default_location
+    # If city/country params provided, find or use that location
+    if params[:city].present?
+      location = current_user.locations.find_by(
+        city: params[:city],
+        country: params[:country]
+      )
 
-    unless location
-      return render_error('No default location set. Please create a location first.')
+      # If location doesn't exist in user's locations, still try to fetch weather
+      unless location
+        # Use WeatherService directly with city/country
+        weather_service = WeatherService.new
+        snapshot = weather_service.fetch_weather_by_city(params[:city], params[:country])
+
+        if snapshot
+          return render json: {
+            success: true,
+            data: {
+              location: {
+                city: params[:city],
+                country: params[:country]
+              },
+              weather: serialize_weather_snapshot(snapshot)
+            }
+          }
+        else
+          return render_error('Failed to fetch weather data for specified location')
+        end
+      end
+    else
+      # Use default location
+      location = current_user.default_location
+
+      unless location
+        return render_error('No default location set. Please create a location first.')
+      end
     end
 
     cache_service = WeatherCacheService.new
@@ -128,21 +160,37 @@ class Api::V1::WeatherController < Api::V1::BaseController
   end
 
   def serialize_weather_snapshot(snapshot)
-    {
-      id: snapshot.id,
-      temperature_c: snapshot.temperature_c,
-      temperature_f: snapshot.temperature_f,
-      feels_like_c: snapshot.feels_like_c,
-      condition_text: snapshot.condition_text,
-      condition_icon_url: snapshot.condition_icon_url,
-      humidity: snapshot.humidity,
-      wind_kph: snapshot.wind_kph,
-      precipitation_mm: snapshot.precipitation_mm,
-      fashion_descriptors: snapshot.fashion_descriptors,
-      temperature_category: snapshot.temperature_category,
-      recorded_at: snapshot.recorded_at,
-      is_fresh: snapshot.fresh?
-    }
+    # Handle both WeatherSnapshot models and hash responses
+    if snapshot.is_a?(Hash)
+      {
+        temperature_c: snapshot[:temperature_c],
+        temperature_f: snapshot[:temperature_f],
+        feels_like_c: snapshot[:feels_like_c],
+        condition_text: snapshot[:condition_text],
+        condition_icon_url: snapshot[:condition_icon_url],
+        humidity: snapshot[:humidity],
+        wind_kph: snapshot[:wind_kph],
+        precipitation_mm: snapshot[:precipitation_mm],
+        recorded_at: snapshot[:recorded_at],
+        fresh: snapshot[:fresh]
+      }
+    else
+      {
+        id: snapshot.id,
+        temperature_c: snapshot.temperature_c,
+        temperature_f: snapshot.temperature_f,
+        feels_like_c: snapshot.feels_like_c,
+        condition_text: snapshot.condition_text,
+        condition_icon_url: snapshot.condition_icon_url,
+        humidity: snapshot.humidity,
+        wind_kph: snapshot.wind_kph,
+        precipitation_mm: snapshot.precipitation_mm,
+        fashion_descriptors: snapshot.fashion_descriptors,
+        temperature_category: snapshot.temperature_category,
+        recorded_at: snapshot.recorded_at,
+        fresh: snapshot.fresh?
+      }
+    end
   end
 
   def serialize_clothing_piece(piece)

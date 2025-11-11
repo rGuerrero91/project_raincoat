@@ -42,6 +42,47 @@ class WeatherService
     user.locations.map { |location| fetch_current_weather(location) }.compact
   end
 
+  # Fetch weather by city name (without requiring a Location record)
+  # @param city [String] City name
+  # @param country [String, nil] Optional country name for disambiguation
+  # @return [Hash] Weather data hash (not a WeatherSnapshot model)
+  def fetch_weather_by_city(city, country = nil)
+    query = country.present? ? "#{city}, #{country}" : city
+
+    response = self.class.get('/current.json',
+      query: {
+        key: @api_key,
+        q: query,
+        aqi: 'no'
+      }
+    )
+
+    if response.success?
+      data = response.parsed_response
+      current = data['current']
+
+      # Return a hash with weather data (similar to WeatherSnapshot structure)
+      {
+        temperature_c: current['temp_c'],
+        temperature_f: current['temp_f'],
+        feels_like_c: current['feelslike_c'],
+        condition_text: current['condition']['text'],
+        condition_icon_url: current['condition']['icon'],
+        humidity: current['humidity'],
+        wind_kph: current['wind_kph'],
+        precipitation_mm: current['precip_mm'],
+        recorded_at: Time.zone.parse(data['location']['localtime']),
+        fresh: true
+      }
+    else
+      Rails.logger.error "WeatherAPI error for #{query}: #{response.code} - #{response.message}"
+      nil
+    end
+  rescue StandardError => e
+    Rails.logger.error "Weather fetch error for #{query}: #{e.message}"
+    nil
+  end
+
   # Search for location by name (for user setup)
   # @param query [String] City name or coordinates
   # @return [Array<Hash>] Array of location results
