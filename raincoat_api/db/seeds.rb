@@ -413,11 +413,11 @@ ClothingPiece.find_each do |piece|
     image_path = processed_images_dir.join(image_filename)
 
     if File.exist?(image_path)
-      # Attach the processed image
       piece.images.attach(
         io: File.open(image_path),
         filename: image_filename,
-        content_type: "image/png"
+        content_type: "image/png",
+        identify: false  # Skip automatic analysis to avoid SolidQueue dependency
       )
       puts "Attached image: #{piece.name}"
     else
@@ -438,7 +438,8 @@ ClothingPiece.find_each do |piece|
       piece.images.attach(
         io: image_io,
         filename: "#{piece.name.parameterize}.svg",
-        content_type: "image/svg+xml"
+        content_type: "image/svg+xml",
+        identify: false
       )
     end
   else
