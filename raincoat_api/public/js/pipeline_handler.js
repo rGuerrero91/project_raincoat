@@ -201,7 +201,7 @@ class PipelineHandler {
     };
 
     // Set the category field automatically
-    const categoryField = document.getElementById("clothing_piece_category");
+    const categoryField = document.getElementById("clothing_item_category");
     if (categoryField) {
       categoryField.value = categoryMap[detection.category] || detection.category;
       console.log("[Upload] Auto-set category to:", categoryField.value);
@@ -443,7 +443,7 @@ class PipelineHandler {
   async autoTag(imageEmbedding) {
     const similarities = {};
     const selectedCategory = document.getElementById(
-      "clothing_piece_category"
+      "clothing_item_category"
     ).value;
 
     // Category-relevant label patterns 

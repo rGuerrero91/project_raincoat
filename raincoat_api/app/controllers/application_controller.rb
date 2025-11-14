@@ -4,7 +4,7 @@ class ApplicationController < ActionController::Base
   
   def index
     if current_user
-      redirect_to clothing_pieces_path
+      redirect_to clothing_items_path
     else
       redirect_to signup_path
     end

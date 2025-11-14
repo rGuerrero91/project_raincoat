@@ -954,7 +954,7 @@
       closetItemsDiv.innerHTML = '<div class="loading-closet">Loading closet items...</div>';
 
       try {
-        const response = await fetch('/api/v1/clothing_pieces');
+        const response = await fetch('/api/v1/clothing_items');
         const data = await response.json();
 
         if (data.success) {
@@ -1009,7 +1009,7 @@
 
       try {
         // Fetch full item details including embedding if available
-        const response = await fetch(`/api/v1/clothing_pieces/${item.id}`);
+        const response = await fetch(`/api/v1/clothing_items/${item.id}`);
         const data = await response.json();
 
         if (!data.success) {
@@ -1037,7 +1037,7 @@
             if (fullItem.has_embedding) {
               try {
                 // Fetch the embedding vector
-                const embeddingResponse = await fetch(`/api/v1/clothing_pieces/${item.id}/embedding`);
+                const embeddingResponse = await fetch(`/api/v1/clothing_items/${item.id}/embedding`);
                 const embeddingData = await embeddingResponse.json();
 
                 if (embeddingData.success && embeddingData.data.embedding && embeddingData.data.embedding.vector_data) {

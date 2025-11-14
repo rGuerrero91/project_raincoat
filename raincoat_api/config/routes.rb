@@ -11,15 +11,15 @@ Rails.application.routes.draw do
   get '/logout', to: 'sessions#destroy'
   
   # Main closet interface
-  resources :clothing_pieces, path: 'closet' do
+  resources :clothing_items, path: 'closet' do
     member do
       post 'upload_embedding'  # For POC: manual embedding upload
       get 'similar'           # Show similar items
     end
   end
-  get 'clothing_pieces/new', to: 'clothing_pieces#new', as: 'new_clothing_piece'
+  get 'clothing_items/new', to: 'clothing_items#new', as: 'new_clothing_item'
 
-  # get '/closet/search', to: 'clothing_pieces#search', as: 'search_clothing_pieces'
+  # get '/closet/search', to: 'clothing_items#search', as: 'search_clothing_items'
 
   # get 'model_tests/yolo', to: 'model_tests#yolo'
   # Test pages for AI models
@@ -34,11 +34,11 @@ Rails.application.routes.draw do
   
   namespace :api do
     namespace :v1 do
-      resources :clothing_pieces, only: [:show, :create, :index] do
+      resources :clothing_items, only: [:show, :create, :index] do
         member do
-          get 'embedding', to: 'clothing_pieces#get_embedding'      # GET /api/v1/clothing_pieces/:id/embedding
-          post 'embedding', to: 'clothing_pieces#save_embedding'    # POST /api/v1/clothing_pieces/:id/embedding
-          get 'similar'         # GET /api/v1/clothing_pieces/:id/similar
+          get 'embedding', to: 'clothing_items#get_embedding'      # GET /api/v1/clothing_items/:id/embedding
+          post 'embedding', to: 'clothing_items#save_embedding'    # POST /api/v1/clothing_items/:id/embedding
+          get 'similar'         # GET /api/v1/clothing_items/:id/similar
         end
       end
 

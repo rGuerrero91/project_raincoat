@@ -14,7 +14,7 @@ class ModelTestsController < ApplicationController
   end
 
   def pipeline
-    @clothing_piece = ClothingPiece.new
+    @clothing_item = ClothingItem.new
   end
 
   def seal

@@ -1,7 +1,7 @@
 class Outfit < ApplicationRecord
   belongs_to :user
   has_many :outfit_items, dependent: :destroy
-  has_many :clothing_pieces, through: :outfit_items
+  has_many :clothing_items, through: :outfit_items
 
   # Scopes
   scope :for_weather, ->(condition) { where(weather_condition: condition) }
@@ -18,7 +18,7 @@ class Outfit < ApplicationRecord
       include: {
         outfit_items: {
           include: {
-            clothing_piece: {
+            clothing_item: {
               methods: [:image_url],
               only: [:id, :name, :category, :colors, :materials, :ai_tags, :user_tags]
             }
@@ -29,8 +29,8 @@ class Outfit < ApplicationRecord
   end
 
   def items_by_slot
-    outfit_items.includes(:clothing_piece).group_by(&:slot).transform_values do |items|
-      items.map(&:clothing_piece)
+    outfit_items.includes(:clothing_item).group_by(&:slot).transform_values do |items|
+      items.map(&:clothing_item)
     end
   end
 end

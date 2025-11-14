@@ -7,7 +7,7 @@ Raincoat is a privacy first, Machine learning powered, weather based outfit reco
 - **Client-Side Processing**: All image processing happens locally - your photos never leave your device
 - **Smart Auto-Tagging**: AI-powered clothing categorization, color detection, and automatic tagging
 - **Weather-Based Recommendations**: Hybrid AI + rule-based outfit suggestions tailored to weather conditions
-- **Smart Closet Management**: Upload and organize clothing pieces with intelligent similarity search
+- **Smart Closet Management**: Upload and organize clothing items with intelligent similarity search
 - **Closet Collections**: Create custom collections (Work, Casual, Travel, etc.)
 - **Outfit Creation**: Build and save favorite outfits with intelligent category constraints
 - **Multi-Location Support**: Manage closets for different locations
@@ -152,7 +152,7 @@ rvm use 3.4.5
 7. **Access the application**
    - Next.js Frontend: http://localhost:3001
    - Rails API: http://localhost:3000
-   - Rails Test Page: http://localhost:3000/clothing_pieces/new
+   - Rails Test Page: http://localhost:3000/clothing_items/new
    - PostgreSQL: localhost:5432
    - Redis: localhost:6379
 
@@ -316,8 +316,8 @@ Output files are copied to `raincoat_api/public/models/` and served via CDN.
 
 - **Users**: Authentication and profile management
 - **Locations**: Multiple location support for weather
-- **Closets**: Custom collections of clothing pieces
-- **ClothingPieces**: Individual closet items with AI embeddings and tags
+- **Closets**: Custom collections of clothing items
+- **ClothingItems**: Individual closet items with AI embeddings and tags
   - `ai_tags` (JSON): Auto-generated tags from image similarity
   - `user_tags` (JSON): User-added manual tags
   - `colors`, `materials`, `weather_suitability` (JSON): Structured attributes
@@ -487,17 +487,17 @@ REDIS_URL=<production-redis-url>
 ### Closet Management
 
 - `GET /closet` - List user's clothing items
-- `GET /clothing_pieces/new` - Rails test page (with AI processing)
+- `GET /clothing_items/new` - Rails test page (with AI processing)
 - `POST /closet` - Create clothing item (with embedding)
 - `GET /closet/:id` - Show clothing item details
 - `GET /closet/:id/similar` - Find similar items
 
 ### API v1 (JSON) - Used by Next.js Frontend
 
-- `GET /api/v1/clothing_pieces` - List items
-- `POST /api/v1/clothing_pieces` - Create item
-- `POST /api/v1/clothing_pieces/:id/embedding` - Upload embedding
-- `GET /api/v1/clothing_pieces/:id/similar` - Similar items
+- `GET /api/v1/clothing_items` - List items
+- `POST /api/v1/clothing_items` - Create item
+- `POST /api/v1/clothing_items/:id/embedding` - Upload embedding
+- `GET /api/v1/clothing_items/:id/similar` - Similar items
 - `POST /api/v1/embeddings/search` - Vector similarity search
 - `GET /api/v1/embeddings/stats` - Embedding statistics
 - `GET /api/v1/weather?location=...` - Get weather data

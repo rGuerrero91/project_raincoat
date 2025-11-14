@@ -18,60 +18,60 @@ import {
   Sparkles,
   TrendingUp
 } from 'lucide-react';
-import apiClient, { ClothingPiece } from '@/lib/api';
+import apiClient, { ClothingItem } from '@/lib/api';
 
-interface SimilarPiece {
-  piece: ClothingPiece;
+interface SimilarItem {
+  item: ClothingItem;
   similarity_score: number;
   similarity_percentage: string;
 }
 
-export default function ClothingPieceViewPage() {
+export default function ClothingItemViewPage() {
   const params = useParams();
   const router = useRouter();
-  const pieceId = parseInt(params.id as string);
+  const itemId = parseInt(params.id as string);
 
-  const [piece, setPiece] = useState<ClothingPiece | null>(null);
-  const [similarPieces, setSimilarPieces] = useState<SimilarPiece[]>([]);
+  const [item, setItem] = useState<ClothingItem | null>(null);
+  const [similarItems, setSimilarItems] = useState<SimilarItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showEmbedding, setShowEmbedding] = useState(false);
   const [embeddingData, setEmbeddingData] = useState<number[] | null>(null);
 
   useEffect(() => {
-    const fetchPieceData = async () => {
+    const fetchItemData = async () => {
       try {
-        console.log('Fetching clothing piece:', pieceId);
+        console.log('Fetching clothing item:', itemId);
 
-        // Fetch clothing piece details
-        const pieceResponse = await apiClient.getClothingPiece(pieceId);
+        // Fetch clothing item details
+        const itemResponse = await apiClient.getClothingItem(itemId);
 
-        if (pieceResponse.success && pieceResponse.data) {
-          setPiece(pieceResponse.data);
-          console.log('Clothing piece loaded:', pieceResponse.data);
+        if (itemResponse.success && itemResponse.data) {
+          setItem(itemResponse.data);
+          console.log('Clothing item loaded:', itemResponse.data);
 
-          // Fetch similar pieces if embedding exists
-          if (pieceResponse.data.has_embedding) {
-            const similarResponse = await apiClient.getSimilarItems(pieceId, 5);
+          // Fetch similar items if embedding exists
+          if (itemResponse.data.has_embedding) {
+            const similarResponse = await apiClient.getSimilarItems(itemId, 5);
             if (similarResponse.success && similarResponse.data) {
-              setSimilarPieces(similarResponse.data.similar_pieces || []);
+              setSimilarItems(similarResponse.data.similar_items || []);
             }
           }
         } else {
-          setError('Clothing piece not found');
+          setError('Clothing item not found');
         }
       } catch (err) {
-        console.error('Failed to load clothing piece:', err);
-        setError('Failed to load clothing piece details');
+        console.error('Failed to load clothing item:', err);
+        setError('Failed to load clothing item details');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (pieceId) {
-      fetchPieceData();
+    if (itemId) {
+      fetchItemData();
     }
-  }, [pieceId]);
+  }, [itemId]);
 
   const toggleEmbeddingVector = async () => {
     if (showEmbedding) {
@@ -81,11 +81,11 @@ export default function ClothingPieceViewPage() {
     }
 
     // Fetch and show embedding if not already loaded
-    if (!piece?.has_embedding) return;
+    if (!item?.has_embedding) return;
 
     if (!embeddingData) {
       try {
-        const response = await apiClient.getItemEmbedding(pieceId);
+        const response = await apiClient.getItemEmbedding(itemId);
         if (response.success && response.data?.embedding?.vector_data) {
           setEmbeddingData(response.data.embedding.vector_data);
           setShowEmbedding(true);
@@ -165,17 +165,17 @@ export default function ClothingPieceViewPage() {
           <div className="flex justify-center mb-4 animate-float">
             <Shirt className="w-16 h-16 text-primary" strokeWidth={1.5} />
           </div>
-          <p className="text-neutral-medium">Loading clothing piece...</p>
+          <p className="text-neutral-medium">Loading clothing item...</p>
         </Card>
       </Container>
     );
   }
 
-  if (error || !piece) {
+  if (error || !item) {
     return (
       <Container className="py-8 min-h-screen">
         <Card padding="xl" className="text-center">
-          <p className="text-red-500 mb-4">{error || 'Clothing piece not found'}</p>
+          <p className="text-red-500 mb-4">{error || 'Clothing item not found'}</p>
           <Button variant="secondary" onClick={() => router.back()}>
             Go Back
           </Button>
@@ -184,7 +184,7 @@ export default function ClothingPieceViewPage() {
     );
   }
 
-  const weatherSuitability = getWeatherSuitability([...(piece.ai_tags || []), ...(piece.user_tags || [])]);
+  const weatherSuitability = getWeatherSuitability([...(item.ai_tags || []), ...(item.user_tags || [])]);
 
   return (
     <Container className="py-8 min-h-screen">
@@ -200,10 +200,10 @@ export default function ClothingPieceViewPage() {
         </Button>
 
         <h1 className="text-headline font-bold mb-2">
-          {piece.name || `${piece.category} Piece`}
+          {item.name || `${item.category} Item`}
         </h1>
-        {piece.description && (
-          <p className="text-lg text-neutral-medium">{piece.description}</p>
+        {item.description && (
+          <p className="text-lg text-neutral-medium">{item.description}</p>
         )}
       </div>
 
@@ -212,10 +212,10 @@ export default function ClothingPieceViewPage() {
         {/* Image Card */}
         <Card padding="md">
           <div className="aspect-square bg-neutral-light rounded-xl overflow-hidden mb-4">
-            {piece.images && piece.images.length > 0 ? (
+            {item.images && item.images.length > 0 ? (
               <img
-                src={piece.images[0].url}
-                alt={piece.name || 'Clothing piece'}
+                src={item.images[0].url}
+                alt={item.name || 'Clothing item'}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -229,21 +229,21 @@ export default function ClothingPieceViewPage() {
           <div className="space-y-3">
             <div>
               <p className="text-sm text-neutral-medium mb-1">Category</p>
-              <p className="font-semibold capitalize">{piece.category}</p>
+              <p className="font-semibold capitalize">{item.category}</p>
             </div>
 
-            {piece.brand && (
+            {item.brand && (
               <div>
                 <p className="text-sm text-neutral-medium mb-1">Brand</p>
-                <p className="font-semibold">{piece.brand}</p>
+                <p className="font-semibold">{item.brand}</p>
               </div>
             )}
 
-            {piece.colors && piece.colors.length > 0 && (
+            {item.colors && item.colors.length > 0 && (
               <div>
                 <p className="text-sm text-neutral-medium mb-2">Colors</p>
                 <div className="flex gap-2 flex-wrap">
-                  {piece.colors.map((color, idx) => (
+                  {item.colors.map((color, idx) => (
                     <span
                       key={idx}
                       className="flex items-center gap-2 px-3 py-1.5 bg-neutral-light rounded-full text-sm"
@@ -256,11 +256,11 @@ export default function ClothingPieceViewPage() {
               </div>
             )}
 
-            {piece.materials && piece.materials.length > 0 && (
+            {item.materials && item.materials.length > 0 && (
               <div>
                 <p className="text-sm text-neutral-medium mb-2">Materials</p>
                 <div className="flex gap-2 flex-wrap">
-                  {piece.materials.map((material, idx) => (
+                  {item.materials.map((material, idx) => (
                     <span
                       key={idx}
                       className="px-3 py-1.5 bg-neutral-light rounded-full text-sm"
@@ -277,14 +277,14 @@ export default function ClothingPieceViewPage() {
         {/* Details Card */}
         <div className="space-y-6">
           {/* AI Tags */}
-          {piece.ai_tags && piece.ai_tags.length > 0 && (
+          {item.ai_tags && item.ai_tags.length > 0 && (
             <Card padding="md">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-5 h-5 text-primary" />
                 <h3 className="font-semibold">AI-Generated Tags</h3>
               </div>
               <div className="flex gap-2 flex-wrap">
-                {piece.ai_tags.map((tag, idx) => (
+                {item.ai_tags.map((tag, idx) => (
                   <span
                     key={idx}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-light text-primary rounded-full text-sm font-medium"
@@ -298,14 +298,14 @@ export default function ClothingPieceViewPage() {
           )}
 
           {/* User Tags */}
-          {piece.user_tags && piece.user_tags.length > 0 && (
+          {item.user_tags && item.user_tags.length > 0 && (
             <Card padding="md">
               <div className="flex items-center gap-2 mb-3">
                 <Tag className="w-5 h-5 text-ink" />
                 <h3 className="font-semibold">User Tags</h3>
               </div>
               <div className="flex gap-2 flex-wrap">
-                {piece.user_tags.map((tag, idx) => (
+                {item.user_tags.map((tag, idx) => (
                   <span
                     key={idx}
                     className="px-3 py-1.5 bg-neutral-light rounded-full text-sm"
@@ -339,7 +339,7 @@ export default function ClothingPieceViewPage() {
           </Card>
 
           {/* Embedding Info */}
-          {piece.has_embedding && piece.embedding && (
+          {item.has_embedding && item.embedding && (
             <Card padding="md">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -357,16 +357,16 @@ export default function ClothingPieceViewPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-neutral-medium">Model:</span>
-                  <span className="font-medium">{piece.embedding.model_version}</span>
+                  <span className="font-medium">{item.embedding.model_version}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-medium">Dimensions:</span>
-                  <span className="font-medium">{piece.embedding.vector_dimensions}</span>
+                  <span className="font-medium">{item.embedding.vector_dimensions}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-medium">Created:</span>
                   <span className="font-medium">
-                    {new Date(piece.embedding.created_at).toLocaleDateString()}
+                    {new Date(item.embedding.created_at).toLocaleDateString()}
                   </span>
                 </div>
               </div>
@@ -386,22 +386,22 @@ export default function ClothingPieceViewPage() {
         </div>
       </div>
 
-      {/* Similar Pieces */}
-      {similarPieces.length > 0 && (
+      {/* Similar Items */}
+      {similarItems.length > 0 && (
         <Card padding="md" className="mb-6">
-          <h3 className="text-xl font-semibold mb-4">Similar Pieces</h3>
+          <h3 className="text-xl font-semibold mb-4">Similar Items</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {similarPieces.map((similar) => (
+            {similarItems.map((similar) => (
               <button
-                key={similar.piece.id}
-                onClick={() => router.push(`/items/${similar.piece.id}`)}
+                key={similar.item.id}
+                onClick={() => router.push(`/items/${similar.item.id}`)}
                 className="text-left hover:opacity-80 transition-opacity"
               >
                 <div className="aspect-square bg-neutral-light rounded-lg overflow-hidden mb-2">
-                  {similar.piece.images && similar.piece.images.length > 0 ? (
+                  {similar.item.images && similar.item.images.length > 0 ? (
                     <img
-                      src={similar.piece.images[0].url}
-                      alt={similar.piece.name || 'Similar piece'}
+                      src={similar.item.images[0].url}
+                      alt={similar.item.name || 'Similar item'}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -411,7 +411,7 @@ export default function ClothingPieceViewPage() {
                   )}
                 </div>
                 <p className="text-sm font-medium mb-1 truncate">
-                  {similar.piece.name || similar.piece.category}
+                  {similar.item.name || similar.item.category}
                 </p>
                 <p className="text-xs text-primary font-semibold">
                   {similar.similarity_score.toFixed(0)}% similar

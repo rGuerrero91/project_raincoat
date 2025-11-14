@@ -1,6 +1,6 @@
 class SessionsController < ApplicationController
   def new
-    redirect_to clothing_pieces_path if current_user
+    redirect_to clothing_items_path if current_user
   end
   
   def create
@@ -8,7 +8,7 @@ class SessionsController < ApplicationController
     
     if user
       session[:user_id] = user.id
-      redirect_to clothing_pieces_path, notice: 'Logged in successfully!'
+      redirect_to clothing_items_path, notice: 'Logged in successfully!'
     else
       flash.now[:alert] = 'Invalid email address. Please try again or create an account.'
       render :new, status: :unprocessable_entity

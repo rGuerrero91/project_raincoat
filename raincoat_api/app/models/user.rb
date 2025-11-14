@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  has_many :clothing_pieces, dependent: :destroy
+  has_many :clothing_items, dependent: :destroy
   has_many :locations, dependent: :destroy
   has_many :weather_snapshots, through: :locations
   has_many :outfits, dependent: :destroy

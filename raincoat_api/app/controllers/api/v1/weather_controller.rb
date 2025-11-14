@@ -79,8 +79,8 @@ class Api::V1::WeatherController < Api::V1::BaseController
     # Get fashion descriptors from weather
     descriptors = snapshot.fashion_descriptors
 
-    # Find clothing pieces matching weather conditions
-    recommended_pieces = find_weather_appropriate_clothing(descriptors, snapshot.temperature_category)
+    # Find clothing items matching weather conditions
+    recommended_items = find_weather_appropriate_clothing(descriptors, snapshot.temperature_category)
 
     render json: {
       success: true,
@@ -89,7 +89,7 @@ class Api::V1::WeatherController < Api::V1::BaseController
         recommendations: {
           descriptors: descriptors,
           temperature_category: snapshot.temperature_category,
-          suggested_pieces: recommended_pieces.map { |piece| serialize_clothing_piece(piece) }
+          suggested_items: recommended_items.map { |item| serialize_clothing_item(item) }
         }
       }
     }
@@ -126,12 +126,12 @@ class Api::V1::WeatherController < Api::V1::BaseController
 
   def find_weather_appropriate_clothing(descriptors, temperature_category)
     # Search through user's clothing for matching tags
-    pieces = current_user.clothing_pieces.includes(:clothing_embedding)
+    items = current_user.clothing_items.includes(:clothing_embedding)
 
-    matching_pieces = pieces.select do |piece|
+    matching_items = items.select do |item|
       # Extract tags from both ai_tags and user_tags (handle nil and both hash/array formats)
-      ai_tags_values = extract_tag_values(piece.ai_tags)
-      user_tags_values = extract_tag_values(piece.user_tags)
+      ai_tags_values = extract_tag_values(item.ai_tags)
+      user_tags_values = extract_tag_values(item.user_tags)
       tags = (ai_tags_values + user_tags_values).map(&:to_s).map(&:downcase)
 
       # Check if any descriptor matches tags
@@ -140,7 +140,7 @@ class Api::V1::WeatherController < Api::V1::BaseController
     end
 
     # Return top 20 matches
-    matching_pieces.first(20)
+    matching_items.first(20)
   end
 
   def extract_tag_values(tag_data)
@@ -193,19 +193,19 @@ class Api::V1::WeatherController < Api::V1::BaseController
     end
   end
 
-  def serialize_clothing_piece(piece)
+  def serialize_clothing_item(item)
     {
-      id: piece.id,
-      name: piece.name,
-      description: piece.description,
-      category: piece.category,
-      brand: piece.brand,
-      colors: piece.colors,
-      materials: piece.materials,
-      ai_tags: piece.ai_tags,
-      user_tags: piece.user_tags,
-      has_embedding: piece.clothing_embedding.present?,
-      images: piece.images.attached? ? piece.images.map { |img| url_for(img) } : []
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      category: item.category,
+      brand: item.brand,
+      colors: item.colors,
+      materials: item.materials,
+      ai_tags: item.ai_tags,
+      user_tags: item.user_tags,
+      has_embedding: item.clothing_embedding.present?,
+      images: item.images.attached? ? item.images.map { |img| url_for(img) } : []
     }
   end
 end

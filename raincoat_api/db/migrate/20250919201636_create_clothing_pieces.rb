@@ -1,6 +1,6 @@
-class CreateClothingPieces < ActiveRecord::Migration[8.0]
+class CreateClothingItems < ActiveRecord::Migration[8.0]
   def change
-    create_table :clothing_pieces do |t|
+    create_table :clothing_items do |t|
       t.references :user, null: false, foreign_key: true
       t.string :name
       t.text :description

@@ -678,7 +678,7 @@ POST /api/embeddings { ciphertextB64 }</pre>
 
     // Helper: fetch closet items
     async function fetchClosetItems() {
-      const response = await fetch('/api/v1/clothing_pieces')
+      const response = await fetch('/api/v1/clothing_items')
       const data = await response.json()
       if (!data.success) throw new Error('Failed to fetch closet items')
       return data.data.filter(item => item.has_embedding) // Only items with embeddings
@@ -686,7 +686,7 @@ POST /api/embeddings { ciphertextB64 }</pre>
 
     // Helper: fetch embedding for an item
     async function fetchEmbedding(itemId) {
-      const response = await fetch(`/api/v1/clothing_pieces/${itemId}/embedding`)
+      const response = await fetch(`/api/v1/clothing_items/${itemId}/embedding`)
       const data = await response.json()
       if (!data.success || !data.data.embedding || !data.data.embedding.vector_data) {
         throw new Error('No embedding found for this item')

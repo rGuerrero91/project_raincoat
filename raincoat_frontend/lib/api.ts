@@ -20,7 +20,7 @@ export interface WeatherRecommendation {
   description?: string;
 }
 
-export interface ClothingPiece {
+export interface ClothingItem {
   id: number;
   name?: string;
   description?: string;
@@ -44,7 +44,7 @@ export interface ClothingPiece {
 export interface Outfit {
   description: string;
   items: {
-    [slot: string]: ClothingPiece;
+    [slot: string]: ClothingItem;
   };
   style_tags?: string[];
 }
@@ -62,7 +62,7 @@ export interface WeatherRecommendationsResponse {
   recommendations?: {
     descriptors?: string[];
     temperature_category?: string;
-    suggested_pieces?: ClothingPiece[];
+    suggested_items?: ClothingItem[];
   };
   weather_legacy?: WeatherInfo;
   recommendations_legacy?: WeatherRecommendation[];
@@ -185,11 +185,11 @@ class ApiClient {
   }
 
   // Clothing Items
-  async getClothingPieces() {
-    return this.request("/api/v1/clothing_pieces");
+  async getClothingItems() {
+    return this.request("/api/v1/clothing_items");
   }
 
-  async createClothingPiece(data: {
+  async createClothingItem(data: {
     name?: string;
     category: string;
     ai_tags?: any;
@@ -197,40 +197,40 @@ class ApiClient {
     colors?: string[];
     materials?: string[];
   }) {
-    return this.request("/api/v1/clothing_pieces", {
+    return this.request("/api/v1/clothing_items", {
       method: "POST",
-      body: JSON.stringify({ clothing_piece: data }),
+      body: JSON.stringify({ clothing_item: data }),
     });
   }
 
   async uploadEmbedding(itemId: number, embedding: number[]) {
-    return this.request(`/api/v1/clothing_pieces/${itemId}/embedding`, {
+    return this.request(`/api/v1/clothing_items/${itemId}/embedding`, {
       method: "POST",
       body: JSON.stringify({ vector_data: embedding }),
     });
   }
 
-  async getClothingPiece(itemId: number) {
-    return this.request<ClothingPiece>(`/api/v1/clothing_pieces/${itemId}`);
+  async getClothingItem(itemId: number) {
+    return this.request<ClothingItem>(`/api/v1/clothing_items/${itemId}`);
   }
 
   async getSimilarItems(itemId: number, limit: number = 10) {
     return this.request<{
-      source_piece: ClothingPiece;
-      similar_pieces: Array<{
-        piece: ClothingPiece;
+      source_item: ClothingItem;
+      similar_items: Array<{
+        item: ClothingItem;
         similarity_score: number;
         similarity_percentage: string;
         distance_metric: string;
       }>;
     }>(
-      `/api/v1/clothing_pieces/${itemId}/similar?limit=${limit}`
+      `/api/v1/clothing_items/${itemId}/similar?limit=${limit}`
     );
   }
 
   async getItemEmbedding(itemId: number) {
     return this.request<{
-      clothing_piece_id: number;
+      clothing_item_id: number;
       embedding: {
         id: number;
         vector_data: number[];
@@ -239,7 +239,7 @@ class ApiClient {
         vector_dimensions: number;
         created_at: string;
       };
-    }>(`/api/v1/clothing_pieces/${itemId}/embedding`);
+    }>(`/api/v1/clothing_items/${itemId}/embedding`);
   }
 
   // Locations

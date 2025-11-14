@@ -16,7 +16,7 @@ class Api::V1::EmbeddingsController < Api::V1::BaseController
     # Filter by category
     if category_filter.present?
       similar_embeddings = similar_embeddings.select do |embedding|
-        embedding.clothing_piece.category == category_filter
+        embedding.clothing_item.category == category_filter
       end
     end
     
@@ -26,7 +26,7 @@ class Api::V1::EmbeddingsController < Api::V1::BaseController
       similarity = calculate_similarity_score(vector_data, embedding.vector_data)
       
       {
-        piece: serialize_clothing_piece(embedding.clothing_piece),
+        item: serialize_clothing_item(embedding.clothing_item),
         embedding: serialize_embedding(embedding),
         similarity_score: similarity,
         similarity_percentage: "#{similarity}%"
@@ -49,14 +49,14 @@ class Api::V1::EmbeddingsController < Api::V1::BaseController
   
   # GET /api/v1/embeddings/stats
   def stats
-    embeddings = current_user.clothing_pieces.joins(:clothing_embedding)
+    embeddings = current_user.clothing_items.joins(:clothing_embedding)
 
     stats = {
-      total_pieces: current_user.clothing_pieces.count,
-      pieces_with_embeddings: embeddings.count,
-      embeddings_by_category: embeddings.group('clothing_pieces.category').count,
-      model_versions: ClothingEmbedding.joins(:clothing_piece)
-                                      .where(clothing_pieces: { user_id: current_user.id })
+      total_items: current_user.clothing_items.count,
+      items_with_embeddings: embeddings.count,
+      embeddings_by_category: embeddings.group('clothing_items.category').count,
+      model_versions: ClothingEmbedding.joins(:clothing_item)
+                                      .where(clothing_items: { user_id: current_user.id })
                                       .group(:model_version).count
     }
 
@@ -96,19 +96,19 @@ class Api::V1::EmbeddingsController < Api::V1::BaseController
     (similarity * 100).round(1)
   end
   
-  def serialize_clothing_piece(piece)
+  def serialize_clothing_item(item)
     {
-      id: piece.id,
-      name: piece.name,
-      description: piece.description,
-      category: piece.category,
-      brand: piece.brand,
-      colors: piece.colors,
-      materials: piece.materials,
-      ai_tags: piece.ai_tags,
-      user_tags: piece.user_tags,
-      has_embedding: piece.clothing_embedding.present?,
-      has_images: piece.images.attached?
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      category: item.category,
+      brand: item.brand,
+      colors: item.colors,
+      materials: item.materials,
+      ai_tags: item.ai_tags,
+      user_tags: item.user_tags,
+      has_embedding: item.clothing_embedding.present?,
+      has_images: item.images.attached?
     }
   end
   

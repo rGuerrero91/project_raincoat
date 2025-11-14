@@ -1,7 +1,7 @@
 class ClothingEmbedding < ApplicationRecord
-  belongs_to :clothing_piece
+  belongs_to :clothing_item
 
-  validates :clothing_piece_id, uniqueness: { scope: :model_version }
+  validates :clothing_item_id, uniqueness: { scope: :model_version }
   validates :vector_data, presence: true
   validates :model_version, presence: true
   # Note: vector_data validation is handled by the database schema (limit: 512)
@@ -11,22 +11,22 @@ class ClothingEmbedding < ApplicationRecord
 
     # Base query with pgvector's cosine distance operator
     query = ClothingEmbedding
-      .joins(:clothing_piece)
+      .joins(:clothing_item)
       .where.not(id: id)
-      .where(clothing_pieces: { user_id: clothing_piece.user_id })
+      .where(clothing_items: { user_id: clothing_item.user_id })
 
     # Filter by category if specified
-    query = query.where(clothing_pieces: { category: category }) if category.present?
+    query = query.where(clothing_items: { category: category }) if category.present?
 
     # Filter by colors (JSON array contains any of the specified colors)
     if colors.present?
-      color_conditions = colors.map { |color| "clothing_pieces.colors @> ?::jsonb" }
+      color_conditions = colors.map { |color| "clothing_items.colors @> ?::jsonb" }
       query = query.where(color_conditions.join(' OR '), *colors.map { |c| [c].to_json })
     end
 
     # Filter by materials (JSON array contains any of the specified materials)
     if materials.present?
-      material_conditions = materials.map { |material| "clothing_pieces.materials @> ?::jsonb" }
+      material_conditions = materials.map { |material| "clothing_items.materials @> ?::jsonb" }
       query = query.where(material_conditions.join(' OR '), *materials.map { |m| [m].to_json })
     end
 
@@ -34,7 +34,7 @@ class ClothingEmbedding < ApplicationRecord
     results = query
       .order(Arel.sql("vector_data <=> '#{vector_data}'"))
       .limit(limit * 2)  # Fetch more for filtering
-      .includes(:clothing_piece)
+      .includes(:clothing_item)
 
     # Filter by minimum similarity threshold if specified
     if min_similarity > 0.0
@@ -78,14 +78,14 @@ class ClothingEmbedding < ApplicationRecord
   # Class method to search for similar items by vector
   def self.search_similar(vector_array, user_id, limit: 10)
     return [] unless vector_array&.length == 512
-    
+
     vector_string = "[#{vector_array.join(',')}]"
-    
+
     ClothingEmbedding
-      .joins(:clothing_piece)
-      .where(clothing_pieces: { user_id: user_id })
+      .joins(:clothing_item)
+      .where(clothing_items: { user_id: user_id })
       .order(Arel.sql("vector_data <=> '#{vector_string}'::vector"))
       .limit(limit)
-      .includes(:clothing_piece)
+      .includes(:clothing_item)
   end
 end

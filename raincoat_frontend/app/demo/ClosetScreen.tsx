@@ -2,10 +2,10 @@ import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import { Plus, ExternalLink } from 'lucide-react';
-import { ClothingPiece } from './page';
+import { ClothingItem } from './page';
 
 interface ClosetScreenProps {
-  items: ClothingPiece[];
+  items: ClothingItem[];
   onNext: () => void;
   onAddMore: () => void;
 }

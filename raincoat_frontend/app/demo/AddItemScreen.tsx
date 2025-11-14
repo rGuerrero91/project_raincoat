@@ -39,7 +39,7 @@ export default function AddItemScreen({ onNext }: AddItemScreenProps) {
 
         {/* Subheading */}
         <p className="text-lg text-neutral-medium mb-3 leading-relaxed max-w-xl mx-auto">
-          Add a photo of a clothing item. It can be the piece by itself or a selfie.
+          Add a photo of a clothing item. It can be the item by itself or a selfie.
         </p>
 
         <div className="badge mb-10">

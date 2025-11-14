@@ -66,10 +66,10 @@ namespace :embeddings do
             }
           }
 
-          puts "    ✅ Generated #{embedding_vector.length}-dimensional vector"
+          puts "Generated #{embedding_vector.length}-dimensional vector"
 
         rescue => e
-          puts "    ❌ Error: #{e.message}"
+          puts "Error: #{e.message}"
         end
       end
     end
@@ -78,12 +78,12 @@ namespace :embeddings do
     File.write(output_file, JSON.pretty_generate(embeddings_data))
 
     puts ""
-    puts "✅ Successfully generated #{embeddings_data[:embeddings].count} embeddings"
-    puts "💾 Saved to: #{output_file}"
+    puts "Successfully generated #{embeddings_data[:embeddings].count} embeddings"
+    puts "Saved to: #{output_file}"
     puts ""
-    puts "📝 Next steps:"
-    puts "  1. Review the generated embeddings file"
-    puts "  2. Run: rails db:seed:embeddings to load them into the database"
+    puts "Next steps:"
+    puts "1. Review the generated embeddings file"
+    puts "2. Run: rails db:seed:embeddings to load them into the database"
   end
 
   desc "Load pre-generated embeddings from JSON file into database"
@@ -91,38 +91,38 @@ namespace :embeddings do
     embeddings_file = Rails.root.join('db', 'fixtures', 'embeddings.json')
 
     unless File.exist?(embeddings_file)
-      puts "❌ Error: Embeddings file not found at #{embeddings_file}"
-      puts "📝 Run 'rails embeddings:generate_from_images' first"
+      puts "Error: Embeddings file not found at #{embeddings_file}"
+      puts "Run 'rails embeddings:generate_from_images' first"
       exit 1
     end
 
-    puts "📂 Loading embeddings from: #{embeddings_file}"
+    puts "Loading embeddings from: #{embeddings_file}"
 
     data = JSON.parse(File.read(embeddings_file))
 
-    puts "📊 File info:"
-    puts "  Generated: #{data['generated_at']}"
-    puts "  Model: #{data['model_version']}"
-    puts "  Count: #{data['embeddings'].count}"
+    puts "File info:"
+    puts "Generated: #{data['generated_at']}"
+    puts "Model: #{data['model_version']}"
+    puts "Count: #{data['embeddings'].count}"
     puts ""
 
     loaded_count = 0
     skipped_count = 0
 
     data['embeddings'].each do |embedding_data|
-      # Find or create matching clothing piece by filename
-      piece = ClothingPiece.find_by(
+      # Find or create matching clothing item by filename
+      item = ClothingItem.find_by(
         name: embedding_data['filename'].titleize.gsub('_', ' ')
       )
 
-      if piece.nil?
-        puts "  ⚠️  Skipping #{embedding_data['filename']} - no matching clothing piece found"
+      if item.nil?
+        puts "  ⚠️  Skipping #{embedding_data['filename']} - no matching clothing item found"
         skipped_count += 1
         next
       end
 
       # Create or update embedding
-      ce = piece.clothing_embedding || piece.build_clothing_embedding
+      ce = item.clothing_embedding || item.build_clothing_embedding
 
       ce.assign_attributes(
         vector_data: embedding_data['vector_data'],
@@ -131,17 +131,17 @@ namespace :embeddings do
       )
 
       if ce.save
-        puts "  ✅ Loaded: #{piece.name}"
+        puts "Loaded: #{item.name}"
         loaded_count += 1
       else
-        puts "  ❌ Failed: #{piece.name} - #{ce.errors.full_messages.join(', ')}"
+        puts "Failed: #{item.name} - #{ce.errors.full_messages.join(', ')}"
         skipped_count += 1
       end
     end
 
     puts ""
-    puts "✅ Successfully loaded #{loaded_count} embeddings"
-    puts "⚠️  Skipped #{skipped_count} items"
+    puts "!!! Successfully loaded #{loaded_count} embeddings !!!"
+    puts "---- Skipped #{skipped_count} item ----"
   end
 
   private

@@ -5,7 +5,7 @@ class Api::V1::OutfitsController < ApplicationController
   # GET /api/v1/outfits
   # Get all saved outfits for the user
   def index
-    @outfits = @user.outfits.recent.includes(outfit_items: :clothing_piece)
+    @outfits = @user.outfits.recent.includes(outfit_items: :clothing_item)
 
     # Optional filtering
     if params[:weather_condition].present?
@@ -15,7 +15,7 @@ class Api::V1::OutfitsController < ApplicationController
     render json: @outfits, include: {
       outfit_items: {
         include: {
-          clothing_piece: {
+          clothing_item: {
             methods: [:image_url],
             only: [:id, :name, :category, :colors, :materials, :ai_tags, :user_tags]
           }
@@ -40,16 +40,16 @@ class Api::V1::OutfitsController < ApplicationController
 
     outfit_recommendations = stylist.generate_outfits
 
-    # Serialize outfits with full clothing piece data including images
+    # Serialize outfits with full clothing item data including images
     serialized_outfits = outfit_recommendations.map do |outfit|
       serialized_items = {}
 
       outfit["items"]&.each do |slot, item_name|
-        # Find the clothing piece by name
-        piece = items_by_category.values.flatten.find { |p| p.name == item_name }
+        # Find the clothing item by name
+        item = items_by_category.values.flatten.find { |i| i.name == item_name }
 
-        if piece
-          serialized_items[slot] = serialize_clothing_piece(piece)
+        if item
+          serialized_items[slot] = serialize_clothing_item(item)
         end
       end
 
@@ -79,13 +79,13 @@ class Api::V1::OutfitsController < ApplicationController
     if @outfit.save
       # Add clothing items to the outfit
       if params[:items].present?
-        params[:items].each do |slot, piece_data|
-          piece_id = piece_data.is_a?(Hash) ? piece_data[:id] : piece_data
-          clothing_piece = @user.clothing_pieces.find_by(id: piece_id)
+        params[:items].each do |slot, item_data|
+          item_id = item_data.is_a?(Hash) ? item_data[:id] : item_data
+          clothing_item = @user.clothing_items.find_by(id: item_id)
 
-          if clothing_piece
+          if clothing_item
             @outfit.outfit_items.create!(
-              clothing_piece: clothing_piece,
+              clothing_item: clothing_item,
               slot: slot,
               position: 0
             )
@@ -194,7 +194,7 @@ class Api::V1::OutfitsController < ApplicationController
     items = {}
 
     categories.each do |category|
-      items[category] = @user.clothing_pieces.where(category: category).to_a
+      items[category] = @user.clothing_items.where(category: category).to_a
     end
 
     items
@@ -211,19 +211,19 @@ class Api::V1::OutfitsController < ApplicationController
     )
   end
 
-  def serialize_clothing_piece(piece)
+  def serialize_clothing_item(item)
     {
-      id: piece.id,
-      name: piece.name,
-      description: piece.description,
-      category: piece.category,
-      brand: piece.brand,
-      colors: piece.colors,
-      materials: piece.materials,
-      ai_tags: piece.ai_tags,
-      user_tags: piece.user_tags,
-      has_embedding: piece.clothing_embedding.present?,
-      images: piece.images.attached? ? piece.images.map { |img| url_for(img) } : []
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      category: item.category,
+      brand: item.brand,
+      colors: item.colors,
+      materials: item.materials,
+      ai_tags: item.ai_tags,
+      user_tags: item.user_tags,
+      has_embedding: item.clothing_embedding.present?,
+      images: item.images.attached? ? item.images.map { |img| url_for(img) } : []
     }
   end
 end

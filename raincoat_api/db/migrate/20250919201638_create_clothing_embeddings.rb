@@ -4,7 +4,7 @@ class CreateClothingEmbeddings < ActiveRecord::Migration[7.0]
     enable_extension 'vector'
     
     create_table :clothing_embeddings do |t|
-      t.references :clothing_piece, null: false, foreign_key: true, index: true
+      t.references :clothing_item, null: false, foreign_key: true, index: true
       
       t.vector :vector_data, limit: 512, null: false
       

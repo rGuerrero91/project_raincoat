@@ -116,8 +116,8 @@ The frontend communicates with the Rails API at `http://localhost:3000`:
 ### Key Endpoints
 - `POST /signup` - User registration
 - `POST /login` - User login
-- `GET /api/v1/clothing_pieces` - List closet items
-- `POST /api/v1/clothing_pieces` - Create item
+- `GET /api/v1/clothing_items` - List closet items
+- `POST /api/v1/clothing_items` - Create item
 - `GET /api/v1/locations` - List locations
 - `GET /api/v1/weather/current` - Current weather
 - `GET /api/v1/weather/recommendations` - Outfit suggestions

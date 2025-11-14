@@ -44,17 +44,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_214514) do
   end
 
   create_table "clothing_embeddings", force: :cascade do |t|
-    t.bigint "clothing_piece_id", null: false
+    t.bigint "clothing_item_id", null: false
     t.vector "vector_data", limit: 512, null: false
     t.string "model_version", default: "tinyclip-1.0", null: false
     t.json "preprocessing_metadata"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["clothing_piece_id"], name: "index_clothing_embeddings_on_clothing_piece_id"
+    t.index ["clothing_item_id"], name: "index_clothing_embeddings_on_clothing_item_id"
     t.index ["vector_data"], name: "index_clothing_embeddings_on_vector_data", opclass: :vector_cosine_ops, using: :ivfflat
   end
 
-  create_table "clothing_pieces", force: :cascade do |t|
+  create_table "clothing_items", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "name"
     t.text "description"
@@ -70,8 +70,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_214514) do
     t.datetime "updated_at", null: false
     t.integer "processing_status", default: 0
     t.json "processing_metadata"
-    t.index ["processing_status"], name: "index_clothing_pieces_on_processing_status"
-    t.index ["user_id"], name: "index_clothing_pieces_on_user_id"
+    t.index ["processing_status"], name: "index_clothing_items_on_processing_status"
+    t.index ["user_id"], name: "index_clothing_items_on_user_id"
   end
 
   create_table "locations", force: :cascade do |t|
@@ -94,12 +94,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_214514) do
 
   create_table "outfit_items", force: :cascade do |t|
     t.bigint "outfit_id", null: false
-    t.bigint "clothing_piece_id", null: false
+    t.bigint "clothing_item_id", null: false
     t.string "slot", null: false
     t.integer "position", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["clothing_piece_id"], name: "index_outfit_items_on_clothing_piece_id"
+    t.index ["clothing_item_id"], name: "index_outfit_items_on_clothing_item_id"
     t.index ["outfit_id", "slot"], name: "index_outfit_items_on_outfit_id_and_slot", unique: true
     t.index ["outfit_id"], name: "index_outfit_items_on_outfit_id"
   end
@@ -155,10 +155,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_214514) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "clothing_embeddings", "clothing_pieces"
-  add_foreign_key "clothing_pieces", "users"
+  add_foreign_key "clothing_embeddings", "clothing_items"
+  add_foreign_key "clothing_items", "users"
   add_foreign_key "locations", "users"
-  add_foreign_key "outfit_items", "clothing_pieces"
+  add_foreign_key "outfit_items", "clothing_items"
   add_foreign_key "outfit_items", "outfits"
   add_foreign_key "outfits", "users"
   add_foreign_key "weather_snapshots", "locations"

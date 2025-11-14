@@ -8,7 +8,7 @@ class UsersController < ApplicationController
     
     if @user.save
       session[:user_id] = @user.id
-      redirect_to clothing_pieces_path, notice: 'Account created successfully!'
+      redirect_to clothing_items_path, notice: 'Account created successfully!'
     else
       render :new, status: :unprocessable_entity
     end

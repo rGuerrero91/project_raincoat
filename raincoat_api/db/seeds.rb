@@ -18,10 +18,10 @@ Location.destroy_all
 ClothingEmbedding.destroy_all
 
 # Delete Active Storage attachments and blobs directly to avoid enqueuing purge jobs
-ActiveStorage::Attachment.where(record_type: 'ClothingPiece').delete_all
+ActiveStorage::Attachment.where(record_type: 'ClothingItem').delete_all
 ActiveStorage::Blob.where.missing(:attachments).delete_all
 
-ClothingPiece.destroy_all
+ClothingItem.destroy_all
 User.destroy_all
 
 # Create test users
@@ -44,8 +44,8 @@ demo_user = User.create!(
 
 puts "Created #{User.count} users"
 
-# Create clothing pieces for test user
-puts "Creating clothing pieces..."
+# Create clothing items for test user
+puts "Creating clothing items..."
 
 # Helper method to create a placeholder image
 def create_placeholder_image(color, category)
@@ -63,7 +63,7 @@ def create_placeholder_image(color, category)
 end
 
 # Tops
-test_user.clothing_pieces.create!([
+test_user.clothing_items.create!([
   {
     name: "Blue Cotton T-Shirt",
     description: "Classic navy blue cotton t-shirt, casual wear",
@@ -107,7 +107,7 @@ test_user.clothing_pieces.create!([
 ])
 
 # Bottoms
-test_user.clothing_pieces.create!([
+test_user.clothing_items.create!([
   {
     name: "Dark Wash Jeans",
     description: "Classic dark wash denim jeans, straight fit",
@@ -141,7 +141,7 @@ test_user.clothing_pieces.create!([
 ])
 
 # Outerwear
-test_user.clothing_pieces.create!([
+test_user.clothing_items.create!([
   {
     name: "Navy Wool Coat",
     description: "Classic navy blue wool overcoat for cold weather",
@@ -165,7 +165,7 @@ test_user.clothing_pieces.create!([
 ])
 
 # Shoes
-test_user.clothing_pieces.create!([
+test_user.clothing_items.create!([
   {
     name: "White Sneakers",
     description: "Clean white leather sneakers for everyday wear",
@@ -189,7 +189,7 @@ test_user.clothing_pieces.create!([
 ])
 
 # Accessories
-test_user.clothing_pieces.create!([
+test_user.clothing_items.create!([
   {
     name: "Brown Leather Belt",
     description: "Classic brown leather belt with silver buckle",
@@ -212,8 +212,8 @@ test_user.clothing_pieces.create!([
   }
 ])
 
-# Create some pieces for demo user too
-demo_user.clothing_pieces.create!([
+# Create some items for demo user too
+demo_user.clothing_items.create!([
   {
     name: "Gray Sweatshirt",
     description: "Comfortable gray cotton sweatshirt",
@@ -236,7 +236,7 @@ demo_user.clothing_pieces.create!([
   }
 ])
 
-rudy_user.clothing_pieces.create!([
+rudy_user.clothing_items.create!([
   {
     name: "Blue Cotton T-Shirt",
     description: "Classic navy blue cotton t-shirt, casual wear",
@@ -280,7 +280,7 @@ rudy_user.clothing_pieces.create!([
 ])
 
 # Bottoms
-rudy_user.clothing_pieces.create!([
+rudy_user.clothing_items.create!([
   {
     name: "Dark Wash Jeans",
     description: "Classic dark wash denim jeans, straight fit",
@@ -314,7 +314,7 @@ rudy_user.clothing_pieces.create!([
 ])
 
 # Outerwear
-rudy_user.clothing_pieces.create!([
+rudy_user.clothing_items.create!([
   {
     name: "Navy Wool Coat",
     description: "Classic navy blue wool overcoat for cold weather",
@@ -338,7 +338,7 @@ rudy_user.clothing_pieces.create!([
 ])
 
 # Shoes
-rudy_user.clothing_pieces.create!([
+rudy_user.clothing_items.create!([
   {
     name: "White Sneakers",
     description: "Clean white leather sneakers for everyday wear",
@@ -362,7 +362,7 @@ rudy_user.clothing_pieces.create!([
 ])
 
 # Accessories
-rudy_user.clothing_pieces.create!([
+rudy_user.clothing_items.create!([
   {
     name: "Brown Leather Belt",
     description: "Classic brown leather belt with silver buckle",
@@ -385,12 +385,12 @@ rudy_user.clothing_pieces.create!([
   }
 ])
 
-puts "Created #{ClothingPiece.count} clothing pieces"
+puts "Created #{ClothingItem.count} clothing items"
 
-# Attach images to clothing pieces
-puts "Attaching images to clothing pieces..."
+# Attach images to clothing items
+puts "Attaching images to clothing items..."
 
-# Map piece names to processed image filenames
+# Map item names to processed image filenames
 image_mapping = {
   "Blue Cotton T-Shirt" => "blue-cotton-t-shirt.png",
   "White Button-Down Shirt" => "white-button-down-shirt.png",
@@ -417,24 +417,24 @@ require 'active_job/queue_adapters/test_adapter'
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.queue_adapter.perform_enqueued_jobs = false
 
-ClothingPiece.find_each do |piece|
-  image_filename = image_mapping[piece.name]
+ClothingItem.find_each do |item|
+  image_filename = image_mapping[item.name]
 
   if image_filename
     image_path = processed_images_dir.join(image_filename)
 
     if File.exist?(image_path)
       # Attach without triggering analyze job
-      piece.images.attach(
+      item.images.attach(
         io: File.open(image_path),
         filename: image_filename,
         content_type: "image/png"
       )
-      puts "Attached image: #{piece.name}"
+      puts "Attached image: #{item.name}"
     else
       # Fallback to SVG placeholder if processed image not found
-      puts "Image not found for #{piece.name}, using placeholder"
-      primary_color = piece.colors&.first || "#CCCCCC"
+      puts "Image not found for #{item.name}, using placeholder"
+      primary_color = item.colors&.first || "#CCCCCC"
 
       color_map = {
         "blue" => "#4A90E2", "navy" => "#001F3F", "white" => "#FFFFFF",
@@ -445,20 +445,20 @@ ClothingPiece.find_each do |piece|
       }
 
       hex_color = color_map[primary_color.downcase] || primary_color
-      image_io = create_placeholder_image(hex_color, piece.category)
+      image_io = create_placeholder_image(hex_color, item.category)
 
-      piece.images.attach(
+      item.images.attach(
         io: image_io,
-        filename: "#{piece.name.parameterize}.svg",
+        filename: "#{item.name.parameterize}.svg",
         content_type: "image/svg+xml"
       )
     end
   else
-    puts "No mapping found for: #{piece.name}"
+    puts "No mapping found for: #{item.name}"
   end
 end
 
-puts "Attached images to #{ClothingPiece.count} pieces"
+puts "Attached images to #{ClothingItem.count} items"
 
 # Generate sample embeddings using realistic, deterministic vectors
 puts "Generating sample embeddings..."
@@ -466,33 +466,33 @@ puts "Generating sample embeddings..."
 # Load pre-generated embeddings from fixture (if available)
 pregenerated_embeddings = EmbeddingGenerator.load_from_fixture('embeddings') || EmbeddingGenerator.load_from_fixture('sample_embeddings')
 
-ClothingPiece.find_each do |piece|
+ClothingItem.find_each do |item|
   # Try to find matching pre-generated embedding
-  embedding_data = pregenerated_embeddings[piece.name]
+  embedding_data = pregenerated_embeddings[item.name]
 
   if embedding_data
     # Use pre-generated embedding
     vector_data = embedding_data[:vector_data]
     model_version = embedding_data[:model_version]
     preprocessing_metadata = embedding_data[:preprocessing_metadata]
-    puts "Using pre-generated embedding for: #{piece.name}"
+    puts "Using pre-generated embedding for: #{item.name}"
   else
     # Generate new embedding based on item attributes
     vector_data = EmbeddingGenerator.generate_for_item(
-      name: piece.name,
-      category: piece.category,
-      colors: piece.colors || [],
-      materials: piece.materials || []
+      name: item.name,
+      category: item.category,
+      colors: item.colors || [],
+      materials: item.materials || []
     )
     model_version = "fashionclip-2.0"
     preprocessing_metadata = {
       generated_method: "deterministic_seed",
       attributes_used: ["name", "category", "colors", "materials"]
     }
-    puts "Generated new embedding for: #{piece.name}"
+    puts "Generated new embedding for: #{item.name}"
   end
 
-  piece.create_clothing_embedding!(
+  item.create_clothing_embedding!(
     vector_data: vector_data,
     model_version: model_version,
     preprocessing_metadata: preprocessing_metadata
@@ -576,14 +576,14 @@ end
 
 puts "\n=== Seed Data Summary ==="
 puts "Users: #{User.count}"
-puts "Clothing Pieces: #{ClothingPiece.count}"
+puts "Clothing Items: #{ClothingItem.count}"
 puts "Embeddings: #{ClothingEmbedding.count}"
 puts "Locations: #{Location.count}"
 puts "Weather Snapshots: #{WeatherSnapshot.count}"
 
 puts "\n=== Test Accounts ==="
-puts "Email: test@example.com (#{test_user.clothing_pieces.count} items, #{test_user.locations.count} locations)"
-puts "Email: demo@example.com (#{demo_user.clothing_pieces.count} items, #{demo_user.locations.count} locations)"
-puts "Email: rudy@email.com (#{rudy_user.clothing_pieces.count} items, #{rudy_user.locations.count} locations)"
+puts "Email: test@example.com (#{test_user.clothing_items.count} items, #{test_user.locations.count} locations)"
+puts "Email: demo@example.com (#{demo_user.clothing_items.count} items, #{demo_user.locations.count} locations)"
+puts "Email: rudy@email.com (#{rudy_user.clothing_items.count} items, #{rudy_user.locations.count} locations)"
 
 puts "\nSeed data complete!"

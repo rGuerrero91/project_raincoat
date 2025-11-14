@@ -153,25 +153,25 @@ class StylistModel
 
   def format_items
     formatted = {}
-    @items.each do |category, pieces|
-      formatted[category] = pieces.map do |piece|
+    @items.each do |category, items|
+      formatted[category] = items.map do |item|
         {
-          name: piece.name,
-          colors: piece.colors || [],
-          materials: piece.materials || [],
-          tags: combine_tags(piece)
+          name: item.name,
+          colors: item.colors || [],
+          materials: item.materials || [],
+          tags: combine_tags(item)
         }
       end
     end
     formatted
   end
 
-  def combine_tags(piece)
+  def combine_tags(item)
     tags = []
-    tags += piece.ai_tags.values.flatten if piece.ai_tags.is_a?(Hash)
-    tags += piece.ai_tags if piece.ai_tags.is_a?(Array)
-    tags += piece.user_tags.values.flatten if piece.user_tags.is_a?(Hash)
-    tags += piece.user_tags if piece.user_tags.is_a?(Array)
+    tags += item.ai_tags.values.flatten if item.ai_tags.is_a?(Hash)
+    tags += item.ai_tags if item.ai_tags.is_a?(Array)
+    tags += item.user_tags.values.flatten if item.user_tags.is_a?(Hash)
+    tags += item.user_tags if item.user_tags.is_a?(Array)
     tags.flatten.compact.uniq
   end
 
@@ -298,7 +298,7 @@ class StylistModel
     # Add a second outfit with variety
     if filtered_tops.length > 1 && filtered_bottoms.length > 1 && filtered_shoes.length > 1
       outfits << {
-        "description" => "Alternative look with different pieces for #{temp}°C weather.",
+        "description" => "Alternative look with different items for #{temp}°C weather.",
         "items" => {
           "top" => select_item(filtered_tops, 1)&.name || filtered_tops.first&.name,
           "bottom" => select_item(filtered_bottoms, 1)&.name || filtered_bottoms.first&.name,

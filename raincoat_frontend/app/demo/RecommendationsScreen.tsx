@@ -5,11 +5,11 @@ import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import { Shirt, Lightbulb, Check } from 'lucide-react';
-import { ClothingPiece } from './page';
+import { ClothingItem } from './page';
 import apiClient from '@/lib/api';
 
 interface RecommendationsScreenProps {
-  items: ClothingPiece[];
+  items: ClothingItem[];
   location: { city: string };
   weather: {
     temperature_c: number;
@@ -97,8 +97,8 @@ export default function RecommendationsScreen({
                 const backendItem = outfitItems[slot];
 
                 if (backendItem) {
-                  // Convert backend item to ClothingPiece format
-                  const clothingPiece: ClothingPiece = {
+                  // Convert backend item to ClothingItem format
+                  const clothingItem: ClothingItem = {
                     id: backendItem.id,
                     name: backendItem.name,
                     category: backendItem.category,
@@ -108,7 +108,7 @@ export default function RecommendationsScreen({
                   };
 
                   // Add to items array and track index
-                  items.push(clothingPiece);
+                  items.push(clothingItem);
                   itemIndices.push(items.length - 1);
                 }
               });
