@@ -17,7 +17,7 @@ amazon:
   # All uploaded files will be stored under this path in the bucket
   # Example: 'uploads/clothing' will store files as 'uploads/clothing/abc123.png'
   # Uncomment and set to desired path:
-  # prefix: <%= ENV['S3_PREFIX'] || 'uploads/clothing' %>
+  # prefix: <%= ENV['S3_PREFIX'] || 'clothing/user_uploads' %>
 
 # Remember not to checkin your GCS keyfile to a repository
 # google:

@@ -3,7 +3,7 @@
 ActiveSupport.on_load(:active_storage_blob) do
   # Define the desired prefix, perhaps using an environment variable
   # Ensure the prefix matches what you had in storage.yml
-  S3_PREFIX = ENV['S3_PREFIX'] || 'uploads/clothing'
+  S3_PREFIX = ENV['S3_PREFIX'] || 'clothing/stock_images'
 
   if S3_PREFIX.present?
     # Override the default key method to prepend the prefix
