@@ -1,4 +1,4 @@
-class RenameClothingItemsToClothingItems < ActiveRecord::Migration[8.0]
+class RenameClothingPiecesToClothingItems < ActiveRecord::Migration[8.0]
   def change
     # Rename the table
     rename_table :clothing_pieces, :clothing_items
