@@ -1,4 +1,4 @@
-class ClothingPiece < ApplicationRecord
+class ClothingItem < ApplicationRecord
   belongs_to :user
   has_one :clothing_embedding, dependent: :destroy
   has_many_attached :images
@@ -21,7 +21,7 @@ class ClothingPiece < ApplicationRecord
     :failed
   ]
  
-  def similar_pieces(limit: 10, **filters)
+  def similar_items(limit: 10, **filters)
     return [] unless clothing_embedding&.vector_data
 
     similar_embeddings = clothing_embedding.similar_embeddings(limit: limit, **filters)
@@ -29,7 +29,7 @@ class ClothingPiece < ApplicationRecord
     similar_embeddings.map do |embedding|
       similarity_score = clothing_embedding.similarity_to(embedding)
       {
-        piece: embedding.clothing_piece,
+        item: embedding.clothing_item,
         similarity_score: similarity_score,
         distance_metric: "cosine"
       }

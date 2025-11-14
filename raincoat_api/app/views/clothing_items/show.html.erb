@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Raincoat POC - <%= @clothing_piece.name %></title>
+  <title>Raincoat POC - <%= @clothing_item.name %></title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
     .back-link { margin-bottom: 20px; }
     .back-link a { color: #007cba; text-decoration: none; }
-    .piece-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-    .piece-image { width: 100%; max-width: 400px; border-radius: 8px; }
-    .piece-info h1 { margin: 0 0 20px 0; }
+    .item-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+    .item-image { width: 100%; max-width: 400px; border-radius: 8px; }
+    .item-info h1 { margin: 0 0 20px 0; }
     .meta-item { margin: 10px 0; }
     .meta-label { font-weight: bold; color: #666; }
     .embedding-form { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
@@ -32,7 +32,7 @@
 </head>
 <body>
   <div class="back-link">
-    <a href="<%= clothing_pieces_path %>">&larr; Back to Closet</a>
+    <a href="<%= clothing_items_path %>">&larr; Back to Closet</a>
   </div>
   
   <% if notice %>
@@ -43,36 +43,36 @@
     <div class="alert"><%= alert %></div>
   <% end %>
   
-  <div class="piece-detail">
+  <div class="item-detail">
     <div>
-      <% if @clothing_piece.images.attached? %>
-        <%= image_tag @clothing_piece.images.first, class: "piece-image", alt: @clothing_piece.name %>
+      <% if @clothing_item.images.attached? %>
+        <%= image_tag @clothing_item.images.first, class: "item-image", alt: @clothing_item.name %>
       <% else %>
-        <div class="piece-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; height: 300px;">
+        <div class="item-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; height: 300px;">
           No Image
         </div>
       <% end %>
     </div>
     
-    <div class="piece-info">
-      <h1><%= @clothing_piece.name %></h1>
+    <div class="item-info">
+      <h1><%= @clothing_item.name %></h1>
       
       <div class="meta-item">
-        <span class="meta-label">Category:</span> <%= @clothing_piece.category&.humanize %>
+        <span class="meta-label">Category:</span> <%= @clothing_item.category&.humanize %>
       </div>
       
       <div class="meta-item">
-        <span class="meta-label">Brand:</span> <%= @clothing_piece.brand || 'Not specified' %>
+        <span class="meta-label">Brand:</span> <%= @clothing_item.brand || 'Not specified' %>
       </div>
       
-      <% if @clothing_piece.description.present? %>
+      <% if @clothing_item.description.present? %>
         <div class="meta-item">
-          <span class="meta-label">Description:</span> <%= @clothing_piece.description %>
+          <span class="meta-label">Description:</span> <%= @clothing_item.description %>
         </div>
       <% end %>
       
       <div class="meta-item">
-        <span class="meta-label">Uploaded:</span> <%= @clothing_piece.created_at.strftime("%B %d, %Y") %>
+        <span class="meta-label">Uploaded:</span> <%= @clothing_item.created_at.strftime("%B %d, %Y") %>
       </div>
       
       <!-- Embedding Status -->
@@ -100,7 +100,7 @@
       <h3>Upload Embedding (POC Testing)</h3>
       <p>For testing: paste a comma-separated list of 512 floating point numbers representing the TinyCLIP embedding.</p>
       
-      <%= form_with url: upload_embedding_clothing_piece_path(@clothing_piece), method: :post, local: true do |f| %>
+      <%= form_with url: upload_embedding_clothing_item_path(@clothing_item), method: :post, local: true do |f| %>
         <div class="form-group">
           <%= label_tag :vector_data, "Embedding Vector (512 values)" %>
           <%= text_area_tag :vector_data, "", rows: 4, placeholder: "0.123, -0.456, 0.789, ... (512 comma-separated values)" %>
@@ -125,22 +125,22 @@
   <% end %>
   
   <!-- Similar Items -->
-  <% if @embedding && @similar_pieces&.any? %>
+  <% if @embedding && @similar_items&.any? %>
     <div class="similar-items">
       <h3>Similar Items</h3>
       <div class="similar-grid">
-        <% @similar_pieces.each do |similar_piece, similarity| %>
+        <% @similar_items.each do |similar_item, similarity| %>
           <div class="similar-item">
-            <% if similar_piece.images.attached? %>
-              <%= image_tag similar_piece.images.first, class: "similar-image", alt: similar_piece.name %>
+            <% if similar_item.images.attached? %>
+              <%= image_tag similar_item.images.first, class: "similar-image", alt: similar_item.name %>
             <% else %>
               <div class="similar-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;">
                 No Image
               </div>
             <% end %>
-            <div><strong><%= similar_piece.name %></strong></div>
+            <div><strong><%= similar_item.name %></strong></div>
             <div class="similarity-score"><%= (similarity * 100).round(1) %>% similar</div>
-            <div><%= link_to "View", similar_piece, style: "font-size: 12px;" %></div>
+            <div><%= link_to "View", similar_item, style: "font-size: 12px;" %></div>
           </div>
         <% end %>
       </div>

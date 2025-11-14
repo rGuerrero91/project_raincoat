@@ -226,7 +226,7 @@
     <!-- Status Message -->
     <div id="status" class="status hidden"></div>
     
-    <%= form_with(model: @clothing_piece, local: true) do |f| %>
+    <%= form_with(model: @clothing_item, local: true) do |f| %>
       <!-- Image Upload -->
       <div class="form-group">
         <%= f.label :images, "Upload Photo" %>
@@ -255,7 +255,7 @@
       </div>
 
       <!-- Hidden Category Field (will be set automatically from YOLO detection) -->
-      <%= f.hidden_field :category, id: 'clothing_piece_category' %>
+      <%= f.hidden_field :category, id: 'clothing_item_category' %>
       
       <div class="form-group">
         <%= f.label :name, "Name (optional)" %>
