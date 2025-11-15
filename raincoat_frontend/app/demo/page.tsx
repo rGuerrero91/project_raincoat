@@ -15,6 +15,7 @@ import WeatherScreen from "./WeatherScreen";
 import RecommendationsScreen from "./RecommendationsScreen";
 import CompleteScreen from "./CompleteScreen";
 import apiClient from "@/lib/api";
+import imageCache from "@/lib/image-cache";
 
 export type DemoStep =
   | "welcome"
@@ -39,6 +40,7 @@ export interface ClothingItem {
   fileObject?: File; // Store original File for ONNX processing
   croppedImage?: string; // YOLO-cropped image URL (before processing)
   processedImage?: string; // Background-removed image URL
+  processedImageBlob?: Blob; // Background-removed image Blob for caching
   detectedCategory?: string; // YOLO-detected category
   category: string;
   tags: string[];
@@ -111,6 +113,16 @@ export default function DemoPage() {
         if (item.embedding && savedItem.id) {
           console.log("Uploading embedding...");
           await apiClient.uploadEmbedding(savedItem.id, item.embedding);
+        }
+
+        // Save processed image to browser cache if available
+        // Use Blob if available (prevents blob URL revocation issues), otherwise fall back to URL
+        if (savedItem.id && (item.processedImageBlob || item.processedImage)) {
+          console.log("Saving processed image to cache...");
+          await imageCache.saveImage(
+            savedItem.id,
+            item.processedImageBlob || item.processedImage!
+          );
         }
 
         // Update item with backend ID
@@ -224,7 +236,8 @@ export default function DemoPage() {
                   ...currentItem,
                   tags: result.tags,
                   embedding: result.embedding,
-                  processedImage: result.processedImageUrl, // Store processed image
+                  processedImage: result.processedImageUrl, // Store processed image URL
+                  processedImageBlob: result.processedImageBlob, // Store processed image Blob for caching
                 });
               }
               nextStep();

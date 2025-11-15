@@ -3,6 +3,8 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import { Plus, ExternalLink } from "lucide-react";
 import { ClothingItem } from "./page";
+import { useEffect } from "react";
+import imageCache from "@/lib/image-cache";
 
 interface ClosetScreenProps {
   items: ClothingItem[];
@@ -15,6 +17,32 @@ export default function ClosetScreen({
   onNext,
   onAddMore,
 }: ClosetScreenProps) {
+  // Save processed images to cache when items are added
+  useEffect(() => {
+    const saveImagesToCache = async () => {
+      for (const item of items) {
+        if (item.id && (item.processedImageBlob || item.processedImage)) {
+          try {
+            // Check if already cached to avoid redundant saves
+            const hasCached = await imageCache.hasImage(item.id);
+            if (!hasCached) {
+              console.log(`[ClosetScreen] Saving processed image for item ${item.id} to cache`);
+              // Use Blob if available (prevents blob URL revocation issues), otherwise fall back to URL
+              await imageCache.saveImage(
+                item.id,
+                item.processedImageBlob || item.processedImage!
+              );
+            }
+          } catch (error) {
+            console.warn(`[ClosetScreen] Failed to cache image for item ${item.id}:`, error);
+          }
+        }
+      }
+    };
+
+    saveImagesToCache();
+  }, [items]);
+
   return (
     <Container className="py-8 min-h-screen">
       {/* Header */}

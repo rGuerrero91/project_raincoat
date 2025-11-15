@@ -19,6 +19,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import apiClient, { ClothingItem } from "@/lib/api";
+import imageCache from "@/lib/image-cache";
 
 interface SimilarItem {
   item: ClothingItem;
@@ -37,6 +38,7 @@ export default function ClothingItemViewPage() {
   const [error, setError] = useState<string | null>(null);
   const [showEmbedding, setShowEmbedding] = useState(false);
   const [embeddingData, setEmbeddingData] = useState<number[] | null>(null);
+  const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchItemData = async () => {
@@ -49,6 +51,17 @@ export default function ClothingItemViewPage() {
         if (itemResponse.success && itemResponse.data) {
           setItem(itemResponse.data);
           console.log("Clothing item loaded:", itemResponse.data);
+
+          // Try to load processed image from cache
+          try {
+            const cachedImage = await imageCache.getImage(itemId);
+            if (cachedImage) {
+              setProcessedImageUrl(cachedImage);
+              console.log("Loaded processed image from cache");
+            }
+          } catch (cacheErr) {
+            console.warn("Failed to load cached image:", cacheErr);
+          }
 
           // Fetch similar items if embedding exists
           if (itemResponse.data.has_embedding) {
@@ -223,9 +236,9 @@ export default function ClothingItemViewPage() {
         {/* Image Card */}
         <Card padding="md">
           <div className="aspect-square bg-neutral-light rounded-xl overflow-hidden mb-4">
-            {item.images && item.images.length > 0 ? (
+            {processedImageUrl || (item.images && item.images.length > 0) ? (
               <img
-                src={item.images[0].url}
+                src={processedImageUrl || (item.images && item.images[0].url) || ""}
                 alt={item.name || "Clothing item"}
                 className="w-full h-full object-cover"
               />

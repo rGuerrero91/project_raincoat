@@ -9,7 +9,7 @@ import { onnxProcessor } from '@/lib/onnx-processor';
 interface ProcessingScreenProps {
   imageFile: File;
   croppedImageUrl?: string;
-  onComplete: (result: { embedding: number[]; tags: string[]; processedImageUrl: string }) => void;
+  onComplete: (result: { embedding: number[]; tags: string[]; processedImageUrl: string; processedImageBlob: Blob }) => void;
 }
 
 const processingSteps = [
@@ -75,6 +75,7 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
           embedding: result.embedding,
           tags: result.tags.map(t => t.label),
           processedImageUrl: result.processedImageUrl,
+          processedImageBlob: result.processedImageBlob,
         });
       } catch (err) {
         if (isCancelled) return;

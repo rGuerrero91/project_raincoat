@@ -316,6 +316,7 @@ if (typeof window !== "undefined") {
 export interface ProcessingResult {
   imageData: ImageData;
   processedImageUrl: string;
+  processedImageBlob: Blob; // The actual Blob for caching (blob URL can be revoked)
   embedding: number[];
   tags: { label: string; score: number }[];
 }
@@ -641,7 +642,7 @@ class ONNXProcessor {
       onProgress?.("Loading background removal model...");
       await this.loadU2Net();
       onProgress?.("Removing background...");
-      const processedImageUrl = await this.removeBackground(img);
+      const { url: processedImageUrl, blob: processedImageBlob } = await this.removeBackground(img);
 
       // Step 3: Lazy load FashionCLIP and generate embedding
       onProgress?.("Loading image analysis model...");
@@ -670,6 +671,7 @@ class ONNXProcessor {
       return {
         imageData: await this.imageUrlToImageData(processedImageUrl),
         processedImageUrl,
+        processedImageBlob,
         embedding,
         tags,
       };
@@ -778,7 +780,7 @@ class ONNXProcessor {
     });
   }
 
-  private async removeBackground(img: HTMLImageElement): Promise<string> {
+  private async removeBackground(img: HTMLImageElement): Promise<{ url: string; blob: Blob }> {
     if (!this.u2netSession) throw new Error("U2-Net model not loaded");
 
     const inputSize = U2NET_INPUT_SIZE;
@@ -866,7 +868,7 @@ class ONNXProcessor {
     mask: Float32Array,
     maskWidth: number,
     maskHeight: number
-  ): Promise<string> {
+  ): Promise<{ url: string; blob: Blob }> {
     const canvas = document.createElement("canvas");
     canvas.width = img.width;
     canvas.height = img.height;
@@ -895,7 +897,8 @@ class ONNXProcessor {
         canvas.width = 0;
         canvas.height = 0;
 
-        resolve(blobUrl);
+        // Return both URL and blob for caching
+        resolve({ url: blobUrl, blob });
       }, "image/png");
     });
   }
