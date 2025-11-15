@@ -901,7 +901,8 @@ puts "Attached images to #{ClothingItem.count} items"
 puts "Generating sample embeddings..."
 
 # Load pre-generated embeddings from fixture (if available)
-pregenerated_embeddings = EmbeddingGenerator.load_from_fixture('embeddings') || EmbeddingGenerator.load_from_fixture('sample_embeddings')
+# Priority: seed_embeddings (real FashionCLIP) > embeddings > sample_embeddings (synthetic)
+pregenerated_embeddings = EmbeddingGenerator.load_from_fixture('seed_embeddings') || EmbeddingGenerator.load_from_fixture('embeddings') || EmbeddingGenerator.load_from_fixture('sample_embeddings')
 
 ClothingItem.find_each do |item|
   # Try to find matching pre-generated embedding
