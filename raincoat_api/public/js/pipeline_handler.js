@@ -33,10 +33,12 @@ class PipelineHandler {
       // Load all models with caching
       const [yolo, u2net, fashionClip, labels, rules] = await Promise.all([
         this.initializeYOLO(),
-        window.modelCache.loadONNXModel('/models/u2net.onnx'),
-        window.modelCache.loadONNXModel('/models/fashionclip_image_encoder.onnx'),
-        window.modelCache.loadJSON('/models/label_embeddings.json'),
-        window.modelCache.loadJSON('/models/weather_rules.json')
+        window.modelCache.loadONNXModel("/models/u2net_fp16.onnx"),
+        window.modelCache.loadONNXModel(
+          "/models/fashionclip_image_encoder_fp16.onnx"
+        ),
+        window.modelCache.loadJSON("/models/label_embeddings.json"),
+        window.modelCache.loadJSON("/models/weather_rules.json"),
       ]);
 
       this.yoloHandler = yolo;
@@ -112,12 +114,18 @@ class PipelineHandler {
             );
           } else {
             // No detections - enable manual processing
-            this.showStatus("No clothing items detected. You can still process the image manually.", "error");
+            this.showStatus(
+              "No clothing items detected. You can still process the image manually.",
+              "error"
+            );
             this.enableManualProcessing();
           }
         } catch (error) {
           console.error("[Upload] Detection failed:", error);
-          this.showStatus("Detection failed. You can still process the image manually.", "error");
+          this.showStatus(
+            "Detection failed. You can still process the image manually.",
+            "error"
+          );
           this.enableManualProcessing();
         }
       } else {
@@ -165,7 +173,7 @@ class PipelineHandler {
     const resultsDiv = document.getElementById("detectionResults");
     if (!resultsDiv) return;
 
-    let html = '<h3>Detected Items - Click to select:</h3>';
+    let html = "<h3>Detected Items - Click to select:</h3>";
 
     detections.forEach((det, idx) => {
       html += `
@@ -203,7 +211,8 @@ class PipelineHandler {
     // Set the category field automatically
     const categoryField = document.getElementById("clothing_item_category");
     if (categoryField) {
-      categoryField.value = categoryMap[detection.category] || detection.category;
+      categoryField.value =
+        categoryMap[detection.category] || detection.category;
       console.log("[Upload] Auto-set category to:", categoryField.value);
     }
 
@@ -330,7 +339,7 @@ class PipelineHandler {
   }
 
   /**
-   * Remove background using U2-Net 
+   * Remove background using U2-Net
    */
   async removeBackground(img) {
     const canvas = document.createElement("canvas");
@@ -366,7 +375,7 @@ class PipelineHandler {
   }
 
   /**
-   * Apply mask to image 
+   * Apply mask to image
    */
   applyMask(img, mask, maskWidth, maskHeight) {
     const canvas = document.createElement("canvas");
@@ -392,7 +401,7 @@ class PipelineHandler {
   }
 
   /**
-   * Generate embedding using FashionCLIP 
+   * Generate embedding using FashionCLIP
    */
   async generateEmbedding(imageSrc) {
     const img = new Image();
@@ -438,7 +447,7 @@ class PipelineHandler {
   }
 
   /**
-   * Auto-tag using label embeddings 
+   * Auto-tag using label embeddings
    */
   async autoTag(imageEmbedding) {
     const similarities = {};
@@ -446,7 +455,7 @@ class PipelineHandler {
       "clothing_item_category"
     ).value;
 
-    // Category-relevant label patterns 
+    // Category-relevant label patterns
     const categoryBoosts = {
       tops: [
         "shirt",
@@ -571,7 +580,7 @@ class PipelineHandler {
   }
 
   /**
-   * Remove tag 
+   * Remove tag
    */
   removeTag(label) {
     const field = document.getElementById("aiTagsField");
@@ -588,7 +597,7 @@ class PipelineHandler {
   }
 
   /**
-   * Show status message 
+   * Show status message
    */
   showStatus(message, type) {
     const status = document.getElementById("status");
@@ -598,7 +607,7 @@ class PipelineHandler {
   }
 
   /**
-   * Hide status message 
+   * Hide status message
    */
   hideStatus() {
     const statusEl = document.getElementById("status");

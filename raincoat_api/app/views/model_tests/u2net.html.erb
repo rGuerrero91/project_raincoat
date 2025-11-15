@@ -192,7 +192,7 @@
         await window.modelCache.initialize();
         
         // Load model with caching
-        u2netSession = await window.modelCache.loadONNXModel('/models/u2net.onnx');
+        u2netSession = await window.modelCache.loadONNXModel('/models/u2net_fp16.onnx');
         
         showStatus('U2-Net model loaded successfully', 'success');
         setTimeout(() => hideStatus(), 2000);

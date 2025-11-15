@@ -47,7 +47,10 @@ function detectPlatform(): PlatformInfo {
   const userAgent = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(userAgent);
   const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
-  const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  const isMobile =
+    /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+      userAgent
+    );
 
   // Detect available memory (Chrome/Edge only, but gives us a hint)
   // @ts-ignore - deviceMemory is non-standard
@@ -85,7 +88,8 @@ function checkWASMSIMDSupport(): boolean {
     // Check if WebAssembly.validate supports SIMD
     // SIMD test module (minimal v128 instruction)
     const simdTest = new Uint8Array([
-      0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11
+      0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10,
+      1, 8, 0, 65, 0, 253, 15, 253, 98, 11,
     ]);
     return WebAssembly.validate(simdTest);
   } catch (e) {
@@ -96,7 +100,7 @@ function checkWASMSIMDSupport(): boolean {
 function checkWebGPUSupport(): boolean {
   try {
     // Check if navigator.gpu exists (WebGPU API entry point)
-    if (typeof navigator === "undefined" || !('gpu' in navigator)) {
+    if (typeof navigator === "undefined" || !("gpu" in navigator)) {
       return false;
     }
 
@@ -108,26 +112,39 @@ function checkWebGPUSupport(): boolean {
   }
 }
 
-function checkStorageQuota(): Promise<{ available: boolean; quotaMB: number; usageMB: number }> {
-  if (typeof navigator === "undefined" || !navigator.storage || !navigator.storage.estimate) {
+function checkStorageQuota(): Promise<{
+  available: boolean;
+  quotaMB: number;
+  usageMB: number;
+}> {
+  if (
+    typeof navigator === "undefined" ||
+    !navigator.storage ||
+    !navigator.storage.estimate
+  ) {
     return Promise.resolve({ available: false, quotaMB: 0, usageMB: 0 });
   }
 
-  return navigator.storage.estimate().then((estimate) => {
-    const quotaMB = (estimate.quota || 0) / (1024 * 1024);
-    const usageMB = (estimate.usage || 0) / (1024 * 1024);
-    const availableMB = quotaMB - usageMB;
+  return navigator.storage
+    .estimate()
+    .then((estimate) => {
+      const quotaMB = (estimate.quota || 0) / (1024 * 1024);
+      const usageMB = (estimate.usage || 0) / (1024 * 1024);
+      const availableMB = quotaMB - usageMB;
 
-    // We need ~522MB for all models
-    const requiredMB = 550; // Add some buffer
-    const available = availableMB >= requiredMB;
+      // We need ~522MB for all models
+      const requiredMB = 550; // Add some buffer
+      const available = availableMB >= requiredMB;
 
-    console.log(`[ONNX] Storage quota: ${availableMB.toFixed(0)}MB available of ${quotaMB.toFixed(0)}MB (usage: ${usageMB.toFixed(0)}MB, required: ${requiredMB}MB)`);
+      console.log(
+        `[ONNX] Storage quota: ${availableMB.toFixed(0)}MB available of ${quotaMB.toFixed(0)}MB (usage: ${usageMB.toFixed(0)}MB, required: ${requiredMB}MB)`
+      );
 
-    return { available, quotaMB, usageMB };
-  }).catch(() => {
-    return { available: false, quotaMB: 0, usageMB: 0 };
-  });
+      return { available, quotaMB, usageMB };
+    })
+    .catch(() => {
+      return { available: false, quotaMB: 0, usageMB: 0 };
+    });
 }
 
 /**
@@ -138,12 +155,16 @@ function checkStorageQuota(): Promise<{ available: boolean; quotaMB: number; usa
  * - usedJSHeapMB: Approximate JS heap usage (if available)
  * - recommendations: Suggested actions based on memory pressure
  */
-function checkMemoryPressure(): { level: string; usedJSHeapMB: number; recommendations: string[] } {
+function checkMemoryPressure(): {
+  level: string;
+  usedJSHeapMB: number;
+  recommendations: string[];
+} {
   // Default response for environments without memory API
   const defaultResult = {
-    level: 'unknown',
+    level: "unknown",
     usedJSHeapMB: 0,
-    recommendations: []
+    recommendations: [],
   };
 
   if (typeof window === "undefined" || typeof performance === "undefined") {
@@ -160,13 +181,13 @@ function checkMemoryPressure(): { level: string; usedJSHeapMB: number; recommend
       // Use platform heuristics instead
       if (PLATFORM_INFO.isIOS || PLATFORM_INFO.isLowMemoryDevice) {
         return {
-          level: 'medium',
+          level: "medium",
           usedJSHeapMB: 0,
           recommendations: [
-            'Low-memory device detected',
-            'Using conservative memory settings',
-            'Models will load individually to avoid OOM'
-          ]
+            "Low-memory device detected",
+            "Using conservative memory settings",
+            "Models will load individually to avoid OOM",
+          ],
         };
       }
       return defaultResult;
@@ -182,38 +203,40 @@ function checkMemoryPressure(): { level: string; usedJSHeapMB: number; recommend
     let recommendations: string[] = [];
 
     if (usagePercent < 50) {
-      level = 'low';
-      recommendations = ['Memory usage normal', 'All optimizations available'];
+      level = "low";
+      recommendations = ["Memory usage normal", "All optimizations available"];
     } else if (usagePercent < 70) {
-      level = 'medium';
+      level = "medium";
       recommendations = [
-        'Moderate memory usage',
-        'Using lazy model loading',
-        'Canvas cleanup enforced'
+        "Moderate memory usage",
+        "Using lazy model loading",
+        "Canvas cleanup enforced",
       ];
     } else if (usagePercent < 85) {
-      level = 'high';
+      level = "high";
       recommendations = [
-        'High memory usage detected',
-        'Consider closing other browser tabs',
-        'Background removal may use lower quality',
-        'Aggressive canvas cleanup enabled'
+        "High memory usage detected",
+        "Consider closing other browser tabs",
+        "Background removal may use lower quality",
+        "Aggressive canvas cleanup enabled",
       ];
     } else {
-      level = 'critical';
+      level = "critical";
       recommendations = [
-        'Critical memory pressure!',
-        'Close other browser tabs immediately',
-        'Reduce image sizes',
-        'Consider using a desktop browser'
+        "Critical memory pressure!",
+        "Close other browser tabs immediately",
+        "Reduce image sizes",
+        "Consider using a desktop browser",
       ];
     }
 
-    console.log(`[ONNX] Memory pressure: ${level} (${usagePercent.toFixed(1)}% of ${heapLimitMB.toFixed(0)}MB limit, using ${usedJSHeapMB.toFixed(0)}MB)`);
+    console.log(
+      `[ONNX] Memory pressure: ${level} (${usagePercent.toFixed(1)}% of ${heapLimitMB.toFixed(0)}MB limit, using ${usedJSHeapMB.toFixed(0)}MB)`
+    );
 
     return { level, usedJSHeapMB, recommendations };
   } catch (e) {
-    console.warn('[ONNX] Failed to check memory pressure:', e);
+    console.warn("[ONNX] Failed to check memory pressure:", e);
     return defaultResult;
   }
 }
@@ -235,20 +258,20 @@ function withTimeout<T>(
       setTimeout(() => {
         const error = new Error(
           `Operation timed out after ${timeoutMs}ms: ${operation}\n\n` +
-          `This may indicate:\n` +
-          `- Slow network connection\n` +
-          `- Insufficient device memory\n` +
-          `- Browser resource limitations\n\n` +
-          `Try:\n` +
-          `- Closing other browser tabs\n` +
-          `- Connecting to WiFi\n` +
-          `- Reloading the page\n` +
-          `- Using a different browser`
+            `This may indicate:\n` +
+            `- Slow network connection\n` +
+            `- Insufficient device memory\n` +
+            `- Browser resource limitations\n\n` +
+            `Try:\n` +
+            `- Closing other browser tabs\n` +
+            `- Connecting to WiFi\n` +
+            `- Reloading the page\n` +
+            `- Using a different browser`
         );
-        error.name = 'TimeoutError';
+        error.name = "TimeoutError";
         reject(error);
       }, timeoutMs)
-    )
+    ),
   ]);
 }
 
@@ -264,9 +287,9 @@ const PLATFORM_INFO = detectPlatform();
  * - Network throttling on cellular
  */
 const TIMEOUTS = {
-  modelLoad: PLATFORM_INFO.isMobile ? 90000 : 60000,    // 60s desktop, 90s mobile
-  inference: PLATFORM_INFO.isMobile ? 45000 : 30000,     // 30s desktop, 45s mobile
-  download: PLATFORM_INFO.isMobile ? 180000 : 120000,    // 120s desktop, 180s mobile
+  modelLoad: PLATFORM_INFO.isMobile ? 90000 : 60000, // 60s desktop, 90s mobile
+  inference: PLATFORM_INFO.isMobile ? 45000 : 30000, // 30s desktop, 45s mobile
+  download: PLATFORM_INFO.isMobile ? 180000 : 120000, // 120s desktop, 180s mobile
 };
 
 // Log platform info for debugging
@@ -281,7 +304,10 @@ if (typeof window !== "undefined") {
 // Configure ONNX Runtime - WASM files served from CDN/API endpoint
 if (typeof window !== "undefined") {
   // Get CDN URL from environment or fall back to localhost
-  const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  const CDN_URL =
+    process.env.NEXT_PUBLIC_CDN_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:3000";
 
   // Serve WASM files from CDN - they're in /js/onnx/ directory
   // Required files: ort-wasm.wasm (9.5MB) and ort-wasm-simd.wasm (10MB)
@@ -296,7 +322,9 @@ if (typeof window !== "undefined") {
   ort.env.logLevel = "error"; // Only show errors, not warnings
 
   console.log(`[ONNX] WASM paths: ${ort.env.wasm.wasmPaths}`);
-  console.log(`[ONNX] WASM configuration: SIMD=${ort.env.wasm.simd}, threads=${ort.env.wasm.numThreads}`);
+  console.log(
+    `[ONNX] WASM configuration: SIMD=${ort.env.wasm.simd}, threads=${ort.env.wasm.numThreads}`
+  );
 
   // Suppress console warnings from ONNX Runtime WASM
   const originalWarn = console.warn;
@@ -329,11 +357,15 @@ export interface ProcessingResult {
 // Currently using WASM for universal compatibility
 // Note: WebGPU support will be added in a future update after testing
 // ONNX Runtime Web only supports "webgpu" and "wasm" execution providers
-const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] = ["wasm"];
+const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] = [
+  "wasm",
+];
 
 // Log execution providers after definition
 if (typeof window !== "undefined") {
-  console.log(`[ONNX] Execution providers: ${EXECUTION_PROVIDERS.join(' → ')} (WebGPU detected but not enabled: ${PLATFORM_INFO.supportsWebGPU})`);
+  console.log(
+    `[ONNX] Execution providers: ${EXECUTION_PROVIDERS.join(" → ")} (WebGPU detected but not enabled: ${PLATFORM_INFO.supportsWebGPU})`
+  );
 }
 
 // Configuration for image processing
@@ -356,11 +388,15 @@ function getAdaptiveQualityMode(): "low" | "medium" {
 
   if (memoryGB < 4) {
     // Low/medium memory: prioritize speed and stability
-    console.log(`[ONNX] Adaptive quality: "low" (${memoryGB.toFixed(1)}GB RAM detected)`);
+    console.log(
+      `[ONNX] Adaptive quality: "low" (${memoryGB.toFixed(1)}GB RAM detected)`
+    );
     return "low";
   } else {
     // High memory: allow better quality
-    console.log(`[ONNX] Adaptive quality: "medium" (${memoryGB.toFixed(1)}GB RAM detected)`);
+    console.log(
+      `[ONNX] Adaptive quality: "medium" (${memoryGB.toFixed(1)}GB RAM detected)`
+    );
     return "medium";
   }
 }
@@ -370,7 +406,9 @@ const USE_FAST_MASK_APPLICATION = true; // Use optimized mask application (faste
 
 // Mobile-specific configuration
 const MOBILE_MAX_IMAGE_SIZE = 320; // Smaller max size for mobile to reduce memory pressure
-const EFFECTIVE_MAX_IMAGE_SIZE = PLATFORM_INFO.isMobile ? MOBILE_MAX_IMAGE_SIZE : MAX_IMAGE_SIZE;
+const EFFECTIVE_MAX_IMAGE_SIZE = PLATFORM_INFO.isMobile
+  ? MOBILE_MAX_IMAGE_SIZE
+  : MAX_IMAGE_SIZE;
 
 class ONNXProcessor {
   private u2netSession: ort.InferenceSession | null = null;
@@ -431,7 +469,7 @@ class ONNXProcessor {
    */
   clearTensorPool(): void {
     this.tensorPool.clear();
-    console.log('[ONNX] Tensor pool cleared');
+    console.log("[ONNX] Tensor pool cleared");
   }
 
   /**
@@ -446,7 +484,9 @@ class ONNXProcessor {
    */
   async preloadModels() {
     if (PLATFORM_INFO.isLowMemoryDevice) {
-      console.warn("[ONNX] Preload skipped on low-memory device. Models will load on-demand.");
+      console.warn(
+        "[ONNX] Preload skipped on low-memory device. Models will load on-demand."
+      );
       return;
     }
 
@@ -473,11 +513,11 @@ class ONNXProcessor {
     if (!quota.available && quota.quotaMB > 0) {
       console.warn(
         `[ONNX] Insufficient storage for model caching. ` +
-        `Available: ${(quota.quotaMB - quota.usageMB).toFixed(0)}MB, Required: ~550MB`
+          `Available: ${(quota.quotaMB - quota.usageMB).toFixed(0)}MB, Required: ~550MB`
       );
       throw new Error(
         `Insufficient storage space. Please free up at least 550MB and try again. ` +
-        `Currently available: ${(quota.quotaMB - quota.usageMB).toFixed(0)}MB`
+          `Currently available: ${(quota.quotaMB - quota.usageMB).toFixed(0)}MB`
       );
     }
   }
@@ -493,19 +533,29 @@ class ONNXProcessor {
     }
 
     this.u2netLoadingPromise = (async () => {
-      const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const CDN_URL =
+        process.env.NEXT_PUBLIC_CDN_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:3000";
       const useCache = typeof window !== "undefined" && window.modelCache;
 
       try {
         // Check memory pressure before loading large model
         const memoryStatus = checkMemoryPressure();
-        if (memoryStatus.level === 'critical') {
-          console.warn('[ONNX] Critical memory pressure detected before loading U2-Net!');
-          memoryStatus.recommendations.forEach(rec => console.warn(`  - ${rec}`));
+        if (memoryStatus.level === "critical") {
+          console.warn(
+            "[ONNX] Critical memory pressure detected before loading U2-Net!"
+          );
+          memoryStatus.recommendations.forEach((rec) =>
+            console.warn(`  - ${rec}`)
+          );
         }
 
         console.log("[ONNX] Loading U2-Net model (168 MB)...");
-        console.log("[ONNX] Using execution providers:", JSON.stringify(EXECUTION_PROVIDERS));
+        console.log(
+          "[ONNX] Using execution providers:",
+          JSON.stringify(EXECUTION_PROVIDERS)
+        );
 
         // Wrap model loading with timeout
         await withTimeout(
@@ -514,7 +564,7 @@ class ONNXProcessor {
               await this.checkStorageAvailability();
               await window.modelCache!.initialize();
               const u2netBuffer = await window.modelCache!.loadONNXModel(
-                `${CDN_URL}/models/u2net.onnx`
+                `${CDN_URL}/models/u2net_fp16.onnx`
               );
               this.u2netSession = await ort.InferenceSession.create(
                 u2netBuffer,
@@ -522,7 +572,7 @@ class ONNXProcessor {
               );
             } else {
               this.u2netSession = await ort.InferenceSession.create(
-                `${CDN_URL}/models/u2net.onnx`,
+                `${CDN_URL}/models/u2net_fp16.onnx`,
                 { executionProviders: EXECUTION_PROVIDERS }
               );
             }
@@ -538,18 +588,26 @@ class ONNXProcessor {
 
         // User-friendly error messages for common iOS issues
         if (error instanceof Error) {
-          if (error.name === 'TimeoutError') {
+          if (error.name === "TimeoutError") {
             throw error; // Pass through timeout errors with full message
-          } else if (error.message.includes("memory") || error.message.includes("allocation")) {
+          } else if (
+            error.message.includes("memory") ||
+            error.message.includes("allocation")
+          ) {
             throw new Error(
               "Unable to load background removal model due to memory constraints. " +
-              "Try closing other browser tabs and reload the page."
+                "Try closing other browser tabs and reload the page."
             );
-          } else if (error.message.includes("storage") || error.message.includes("quota")) {
+          } else if (
+            error.message.includes("storage") ||
+            error.message.includes("quota")
+          ) {
             throw error; // Already has user-friendly message
           }
         }
-        throw new Error("Failed to load background removal model: " + (error as Error).message);
+        throw new Error(
+          "Failed to load background removal model: " + (error as Error).message
+        );
       }
     })();
 
@@ -567,15 +625,25 @@ class ONNXProcessor {
     }
 
     this.fashionClipLoadingPromise = (async () => {
-      const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const CDN_URL =
+        process.env.NEXT_PUBLIC_CDN_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:3000";
       const useCache = typeof window !== "undefined" && window.modelCache;
 
       try {
         // Check memory pressure before loading large model
         const memoryStatus = checkMemoryPressure();
-        if (memoryStatus.level === 'critical' || memoryStatus.level === 'high') {
-          console.warn('[ONNX] High memory pressure detected before loading FashionCLIP!');
-          memoryStatus.recommendations.forEach(rec => console.warn(`  - ${rec}`));
+        if (
+          memoryStatus.level === "critical" ||
+          memoryStatus.level === "high"
+        ) {
+          console.warn(
+            "[ONNX] High memory pressure detected before loading FashionCLIP!"
+          );
+          memoryStatus.recommendations.forEach((rec) =>
+            console.warn(`  - ${rec}`)
+          );
         }
 
         console.log("[ONNX] Loading FashionCLIP model (335 MB)...");
@@ -587,7 +655,7 @@ class ONNXProcessor {
               await this.checkStorageAvailability();
               await window.modelCache!.initialize();
               const fashionClipBuffer = await window.modelCache!.loadONNXModel(
-                `${CDN_URL}/models/fashionclip_image_encoder.onnx`
+                `${CDN_URL}/models/fashionclip_image_encoder_fp16.onnx`
               );
               this.fashionClipSession = await ort.InferenceSession.create(
                 fashionClipBuffer,
@@ -595,7 +663,7 @@ class ONNXProcessor {
               );
             } else {
               this.fashionClipSession = await ort.InferenceSession.create(
-                `${CDN_URL}/models/fashionclip_image_encoder.onnx`,
+                `${CDN_URL}/models/fashionclip_image_encoder_fp16.onnx`,
                 { executionProviders: EXECUTION_PROVIDERS }
               );
             }
@@ -611,18 +679,26 @@ class ONNXProcessor {
 
         // User-friendly error messages for common iOS issues
         if (error instanceof Error) {
-          if (error.name === 'TimeoutError') {
+          if (error.name === "TimeoutError") {
             throw error; // Pass through timeout errors with full message
-          } else if (error.message.includes("memory") || error.message.includes("allocation")) {
+          } else if (
+            error.message.includes("memory") ||
+            error.message.includes("allocation")
+          ) {
             throw new Error(
               "Unable to load image analysis model due to memory constraints. " +
-              "Try closing other browser tabs and reload the page."
+                "Try closing other browser tabs and reload the page."
             );
-          } else if (error.message.includes("storage") || error.message.includes("quota")) {
+          } else if (
+            error.message.includes("storage") ||
+            error.message.includes("quota")
+          ) {
             throw error; // Already has user-friendly message
           }
         }
-        throw new Error("Failed to load image analysis model: " + (error as Error).message);
+        throw new Error(
+          "Failed to load image analysis model: " + (error as Error).message
+        );
       }
     })();
 
@@ -640,7 +716,10 @@ class ONNXProcessor {
     }
 
     this.labelEmbeddingsLoadingPromise = (async () => {
-      const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const CDN_URL =
+        process.env.NEXT_PUBLIC_CDN_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:3000";
       const useCache = typeof window !== "undefined" && window.modelCache;
 
       try {
@@ -652,7 +731,9 @@ class ONNXProcessor {
             `${CDN_URL}/models/label_embeddings.json`
           );
         } else {
-          const response = await fetch(`${CDN_URL}/models/label_embeddings.json`);
+          const response = await fetch(
+            `${CDN_URL}/models/label_embeddings.json`
+          );
           this.labelEmbeddings = await response.json();
         }
         console.log(
@@ -663,7 +744,9 @@ class ONNXProcessor {
       } catch (error) {
         this.labelEmbeddingsLoadingPromise = null; // Reset so we can retry
         console.error("[ONNX] Failed to load label embeddings:", error);
-        throw new Error("Failed to load label data: " + (error as Error).message);
+        throw new Error(
+          "Failed to load label data: " + (error as Error).message
+        );
       }
     })();
 
@@ -714,7 +797,8 @@ class ONNXProcessor {
       onProgress?.("Loading background removal model...");
       await this.loadU2Net();
       onProgress?.("Removing background...");
-      const { url: processedImageUrl, blob: processedImageBlob } = await this.removeBackground(img);
+      const { url: processedImageUrl, blob: processedImageBlob } =
+        await this.removeBackground(img);
 
       // Step 3: Lazy load FashionCLIP and generate embedding
       onProgress?.("Loading image analysis model...");
@@ -728,11 +812,17 @@ class ONNXProcessor {
       );
 
       if (embeddingMagnitude < 0.1) {
-        console.warn(`[ONNX] Embedding magnitude too low: ${embeddingMagnitude.toFixed(4)}`);
-        throw new Error('Failed to generate valid embedding - image may be blank or corrupted. Please try uploading the photo again.');
+        console.warn(
+          `[ONNX] Embedding magnitude too low: ${embeddingMagnitude.toFixed(4)}`
+        );
+        throw new Error(
+          "Failed to generate valid embedding - image may be blank or corrupted. Please try uploading the photo again."
+        );
       }
 
-      console.log(`[ONNX] Embedding magnitude: ${embeddingMagnitude.toFixed(3)}`);
+      console.log(
+        `[ONNX] Embedding magnitude: ${embeddingMagnitude.toFixed(3)}`
+      );
 
       // Step 4: Lazy load label embeddings and generate tags
       onProgress?.("Loading label data...");
@@ -820,7 +910,9 @@ class ONNXProcessor {
       // Use toBlob instead of toDataURL to reduce memory pressure (2-3x savings)
       canvas.toBlob((blob) => {
         if (!blob) {
-          reject(new Error("Failed to resize image - canvas conversion failed"));
+          reject(
+            new Error("Failed to resize image - canvas conversion failed")
+          );
           return;
         }
 
@@ -852,7 +944,9 @@ class ONNXProcessor {
     });
   }
 
-  private async removeBackground(img: HTMLImageElement): Promise<{ url: string; blob: Blob }> {
+  private async removeBackground(
+    img: HTMLImageElement
+  ): Promise<{ url: string; blob: Blob }> {
     if (!this.u2netSession) throw new Error("U2-Net model not loaded");
 
     const inputSize = U2NET_INPUT_SIZE;
@@ -890,7 +984,12 @@ class ONNXProcessor {
         (imageData.data[pixelIndex + 2] / 255.0 - mean[2]) / std[2];
     }
 
-    const tensor = new ort.Tensor("float32", tensorData, [1, 3, inputSize, inputSize]);
+    const tensor = new ort.Tensor("float32", tensorData, [
+      1,
+      3,
+      inputSize,
+      inputSize,
+    ]);
     const feeds = { "input.1": tensor };
 
     // Run inference with timeout
@@ -906,30 +1005,40 @@ class ONNXProcessor {
     const mask = outputs[outputName].data as Float32Array;
 
     // Validate mask has meaningful content (not blank/corrupted)
-    const nonZeroCount = Array.from(mask).filter(v => v > 0.1).length;
+    const nonZeroCount = Array.from(mask).filter((v) => v > 0.1).length;
     const nonZeroPercentage = (nonZeroCount / mask.length) * 100;
 
     if (nonZeroCount < mask.length * 0.01) {
       // Less than 1% of mask is non-zero - likely failed to detect object
-      console.warn(`[ONNX] U2-Net mask appears empty (${nonZeroPercentage.toFixed(2)}% non-zero)`);
-      throw new Error('Failed to detect object in image - mask is empty. Please ensure the photo clearly shows a clothing item.');
+      console.warn(
+        `[ONNX] U2-Net mask appears empty (${nonZeroPercentage.toFixed(2)}% non-zero)`
+      );
+      throw new Error(
+        "Failed to detect object in image - mask is empty. Please ensure the photo clearly shows a clothing item."
+      );
     }
 
-    console.log(`[ONNX] U2-Net mask coverage: ${nonZeroPercentage.toFixed(1)}%`);
+    console.log(
+      `[ONNX] U2-Net mask coverage: ${nonZeroPercentage.toFixed(1)}%`
+    );
 
     // Apply mask to original image
     const result = await this.applyMask(img, mask, inputSize, inputSize);
 
     const totalTime = performance.now() - startTime;
-    console.log(`[ONNX] U2-Net: ${totalTime.toFixed(0)}ms total (inference: ${inferenceTime.toFixed(0)}ms, input: ${inputSize}x${inputSize})`);
+    console.log(
+      `[ONNX] U2-Net: ${totalTime.toFixed(0)}ms total (inference: ${inferenceTime.toFixed(0)}ms, input: ${inputSize}x${inputSize})`
+    );
 
     // Return tensor to pool for reuse
     this.returnTensorToPool(tensorData);
 
     // Check memory pressure after intensive operation
     const memoryStatus = checkMemoryPressure();
-    if (memoryStatus.level === 'high' || memoryStatus.level === 'critical') {
-      console.warn(`[ONNX] Memory pressure after background removal: ${memoryStatus.level}`);
+    if (memoryStatus.level === "high" || memoryStatus.level === "critical") {
+      console.warn(
+        `[ONNX] Memory pressure after background removal: ${memoryStatus.level}`
+      );
       // Clear tensor pool if memory pressure is high
       this.clearTensorPool();
     }
@@ -956,7 +1065,14 @@ class ONNXProcessor {
     const imageData = ctx.getImageData(0, 0, img.width, img.height);
 
     // Process pixels with optional yielding to prevent iOS tab suspension
-    await this.applyMaskToImageData(imageData, mask, maskWidth, maskHeight, img.width, img.height);
+    await this.applyMaskToImageData(
+      imageData,
+      mask,
+      maskWidth,
+      maskHeight,
+      img.width,
+      img.height
+    );
 
     ctx.putImageData(imageData, 0, 0);
 
@@ -1021,7 +1137,9 @@ class ONNXProcessor {
 
         // Yield to browser every chunk (only on iOS/mobile to avoid overhead on desktop)
         if (PLATFORM_INFO.isMobile && startY + CHUNK_SIZE < totalRows) {
-          await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
+          await new Promise((resolve) =>
+            requestAnimationFrame(() => resolve(undefined))
+          );
         }
       }
     } else {
@@ -1044,7 +1162,9 @@ class ONNXProcessor {
 
         // Yield to browser every chunk (only on iOS/mobile)
         if (PLATFORM_INFO.isMobile && startY + CHUNK_SIZE < totalRows) {
-          await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
+          await new Promise((resolve) =>
+            requestAnimationFrame(() => resolve(undefined))
+          );
         }
       }
     }
@@ -1133,7 +1253,10 @@ class ONNXProcessor {
     if (topTags.length > 0 && topTags[0].score < 0.3) {
       console.warn(
         `[ONNX] Tag confidence suspiciously low (best: ${topTags[0].score.toFixed(3)}). ` +
-        `Top tags: ${topTags.slice(0, 3).map(t => `${t.label} (${t.score.toFixed(2)})`).join(', ')}`
+          `Top tags: ${topTags
+            .slice(0, 3)
+            .map((t) => `${t.label} (${t.score.toFixed(2)})`)
+            .join(", ")}`
       );
     }
 
@@ -1200,29 +1323,29 @@ class ONNXProcessor {
   async predownloadModelsWhenIdle(): Promise<void> {
     // Skip on low memory devices
     if (PLATFORM_INFO.estimatedMemoryMB < 3072) {
-      console.log('[ONNX] Skipping idle predownload: Low memory device');
+      console.log("[ONNX] Skipping idle predownload: Low memory device");
       return;
     }
 
     // Check storage quota
     const storage = await checkStorageQuota();
     if (!storage.available) {
-      console.log('[ONNX] Skipping idle predownload: Insufficient storage');
+      console.log("[ONNX] Skipping idle predownload: Insufficient storage");
       return;
     }
 
     // Check memory pressure
     const memoryStatus = checkMemoryPressure();
-    if (memoryStatus.level === 'high' || memoryStatus.level === 'critical') {
-      console.log('[ONNX] Skipping idle predownload: Memory pressure too high');
+    if (memoryStatus.level === "high" || memoryStatus.level === "critical") {
+      console.log("[ONNX] Skipping idle predownload: Memory pressure too high");
       return;
     }
 
-    console.log('[ONNX] Starting idle predownload of models...');
+    console.log("[ONNX] Starting idle predownload of models...");
 
     // Use requestIdleCallback if available, otherwise use setTimeout
     const scheduleIdle = (callback: () => void) => {
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
         (window as any).requestIdleCallback(callback, { timeout: 5000 });
       } else {
         setTimeout(callback, 1000);
@@ -1233,47 +1356,50 @@ class ONNXProcessor {
     scheduleIdle(async () => {
       try {
         if (!window.modelCache) {
-          console.log('[ONNX] ModelCache not available for predownload');
+          console.log("[ONNX] ModelCache not available for predownload");
           return;
         }
 
         // Predownload U2Net (background removal) - 168MB
-        console.log('[ONNX] Idle predownload: U2Net model...');
+        console.log("[ONNX] Idle predownload: U2Net model...");
         await window.modelCache.loadONNXModel(
-          "https://raincoat-labs.s3.us-east-2.amazonaws.com/js/u2net.onnx"
+          "https://raincoat-labs.s3.us-east-2.amazonaws.com/models/u2net_fp16.onnx"
         );
-        console.log('[ONNX] ✓ U2Net model predownloaded');
+        console.log("[ONNX] ✓ U2Net model predownloaded");
 
         // Wait for next idle period before downloading next model
         scheduleIdle(async () => {
           try {
             // Predownload FashionClip (embedding) - 335MB
-            console.log('[ONNX] Idle predownload: FashionClip model...');
+            console.log("[ONNX] Idle predownload: FashionClip model...");
             await window.modelCache!.loadONNXModel(
-              "https://raincoat-labs.s3.us-east-2.amazonaws.com/js/fashion-clip.onnx"
+              "https://raincoat-labs.s3.us-east-2.amazonaws.com/models/fashionclip_image_encoder_fp16.onnx"
             );
-            console.log('[ONNX] ✓ FashionClip model predownloaded');
+            console.log("[ONNX] ✓ FashionClip model predownloaded");
 
             // Wait for next idle period for labels
             scheduleIdle(async () => {
               try {
                 // Predownload label embeddings - 7MB
-                console.log('[ONNX] Idle predownload: Label embeddings...');
+                console.log("[ONNX] Idle predownload: Label embeddings...");
                 await window.modelCache!.loadJSON(
-                  "https://raincoat-labs.s3.us-east-2.amazonaws.com/js/label_embeddings.json"
+                  "https://raincoat-labs.s3.us-east-2.amazonaws.com/models/label_embeddings.json"
                 );
-                console.log('[ONNX] ✓ Label embeddings predownloaded');
-                console.log('[ONNX] ✓ All models predownloaded successfully!');
+                console.log("[ONNX] ✓ Label embeddings predownloaded");
+                console.log("[ONNX] ✓ All models predownloaded successfully!");
               } catch (error) {
-                console.warn('[ONNX] Failed to predownload label embeddings:', error);
+                console.warn(
+                  "[ONNX] Failed to predownload label embeddings:",
+                  error
+                );
               }
             });
           } catch (error) {
-            console.warn('[ONNX] Failed to predownload FashionClip:', error);
+            console.warn("[ONNX] Failed to predownload FashionClip:", error);
           }
         });
       } catch (error) {
-        console.warn('[ONNX] Failed to predownload U2Net:', error);
+        console.warn("[ONNX] Failed to predownload U2Net:", error);
       }
     });
   }

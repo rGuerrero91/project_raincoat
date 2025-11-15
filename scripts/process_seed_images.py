@@ -55,7 +55,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 PRE_PROCESSED_DIR = PROJECT_ROOT / "raincoat_api" / "db" / "seed_images"/"pre-processed"
 PROCESSED_DIR = PROJECT_ROOT / "raincoat_api" / "db" / "seed_images"/"processed"
 YOLO_MODEL_PATH = PROJECT_ROOT / "raincoat_api" / "public" / "models" / "yolo_raincoat.onnx"
-FASHIONCLIP_MODEL_PATH = PROJECT_ROOT / "raincoat_api" / "public" / "models" / "fashionclip_image_encoder.onnx"
+FASHIONCLIP_MODEL_PATH = PROJECT_ROOT / "raincoat_api" / "public" / "models" / "fashionclip_image_encoder_fp32.onnx"
 SAMPLE_EMBEDDINGS_PATH = PROJECT_ROOT / "raincoat_api" / "db" / "fixtures" / "sample_embeddings.json"
 OUTPUT_EMBEDDINGS_PATH = PROJECT_ROOT / "raincoat_api" / "db" / "fixtures" / "seed_embeddings.json"
 
