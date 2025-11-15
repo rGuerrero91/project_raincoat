@@ -9,7 +9,13 @@ import { onnxProcessor } from '@/lib/onnx-processor';
 interface ProcessingScreenProps {
   imageFile: File;
   croppedImageUrl?: string;
-  onComplete: (result: { embedding: number[]; tags: string[]; processedImageUrl: string; processedImageBlob: Blob }) => void;
+  onComplete: (result: {
+    embedding: number[];
+    tags: string[];
+    topTag: string; // Highest confidence tag to use as item name
+    processedImageUrl: string;
+    processedImageBlob: Blob
+  }) => void;
 }
 
 const processingSteps = [
@@ -65,15 +71,22 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
           return;
         }
 
+        // Extract tag labels and get the top tag (highest confidence)
+        const tagLabels = result.tags.map(t => t.label);
+        const topTag = result.tags.length > 0 ? result.tags[0].label : 'Clothing Item';
+
         console.log('[ProcessingScreen] Processing complete:', {
           embeddingLength: result.embedding.length,
           tagCount: result.tags.length,
-          tags: result.tags.map(t => t.label)
+          tags: tagLabels,
+          topTag: topTag,
+          topTagScore: result.tags.length > 0 ? result.tags[0].score.toFixed(3) : 'N/A'
         });
 
         onComplete({
           embedding: result.embedding,
-          tags: result.tags.map(t => t.label),
+          tags: tagLabels,
+          topTag: topTag,
           processedImageUrl: result.processedImageUrl,
           processedImageBlob: result.processedImageBlob,
         });

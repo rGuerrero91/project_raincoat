@@ -100,6 +100,7 @@ export default function DemoPage() {
 
       // Create clothing item in backend
       const response = await apiClient.createClothingItem({
+        name: item.name, // Use the top tag as the item name
         category: item.category,
         ai_tags: item.tags,
         user_tags: item.tags,
@@ -234,6 +235,7 @@ export default function DemoPage() {
               if (currentItem) {
                 setCurrentItem({
                   ...currentItem,
+                  name: result.topTag, // Use highest confidence tag as item name
                   tags: result.tags,
                   embedding: result.embedding,
                   processedImage: result.processedImageUrl, // Store processed image URL
