@@ -5,6 +5,8 @@ Process seed images for the clothing database:
 2. Resize to 320x320 max (reduces compute for next step)
 3. Remove backgrounds using U2Net (via rembg)
 4. Save as PNG with transparency
+5. Generate FashionCLIP embeddings for similarity search
+6. Save embeddings to db/fixtures/seed_embeddings.json
 
 Usage:
     python scripts/process_seed_images.py
@@ -15,7 +17,9 @@ The script will automatically install dependencies if missing.
 import os
 import sys
 import subprocess
+import json
 from pathlib import Path
+from datetime import datetime
 
 # Check and install dependencies
 def install_dependencies():
@@ -51,9 +55,17 @@ PROJECT_ROOT = Path(__file__).parent.parent
 PRE_PROCESSED_DIR = PROJECT_ROOT / "raincoat_api" / "db" / "seed_images"/"pre-processed"
 PROCESSED_DIR = PROJECT_ROOT / "raincoat_api" / "db" / "seed_images"/"processed"
 YOLO_MODEL_PATH = PROJECT_ROOT / "raincoat_api" / "public" / "models" / "yolo_raincoat.onnx"
+FASHIONCLIP_MODEL_PATH = PROJECT_ROOT / "raincoat_api" / "public" / "models" / "fashionclip_image_encoder.onnx"
+SAMPLE_EMBEDDINGS_PATH = PROJECT_ROOT / "raincoat_api" / "db" / "fixtures" / "sample_embeddings.json"
+OUTPUT_EMBEDDINGS_PATH = PROJECT_ROOT / "raincoat_api" / "db" / "fixtures" / "seed_embeddings.json"
 
 # Target size
 MAX_SIZE = (320, 320)
+
+# FashionCLIP constants (matching frontend implementation)
+FASHIONCLIP_SIZE = 224
+FASHIONCLIP_MEAN = np.array([0.48145466, 0.4578275, 0.40821073], dtype=np.float32)
+FASHIONCLIP_STD = np.array([0.26862954, 0.26130258, 0.27577711], dtype=np.float32)
 
 # YOLO categories
 YOLO_CATEGORIES = {
@@ -249,6 +261,113 @@ class YOLODetector:
 
         return intersection / union if union > 0 else 0.0
 
+
+class FashionCLIPEmbedder:
+    """Generate FashionCLIP embeddings from images."""
+
+    def __init__(self, model_path: Path):
+        if not model_path.exists():
+            raise FileNotFoundError(f"FashionCLIP model not found: {model_path}")
+
+        print("Loading FashionCLIP model...")
+        self.session = ort.InferenceSession(str(model_path))
+        self.input_name = self.session.get_inputs()[0].name
+        print(f"✓ FashionCLIP model loaded (input: {self.input_name})")
+
+    def preprocess_image(self, image_path: Path) -> np.ndarray:
+        """
+        Preprocess image for FashionCLIP inference.
+
+        Matches the frontend implementation:
+        - Resize to 224x224
+        - Convert to RGB
+        - Normalize with FashionCLIP mean/std
+        - Transpose to CHW format
+        """
+        # Load and resize image
+        img = Image.open(image_path).convert('RGB')
+        img = img.resize((FASHIONCLIP_SIZE, FASHIONCLIP_SIZE), Image.Resampling.LANCZOS)
+
+        # Convert to numpy array and normalize to [0, 1]
+        img_array = np.array(img, dtype=np.float32) / 255.0
+
+        # Apply FashionCLIP normalization (per-channel)
+        for c in range(3):
+            img_array[:, :, c] = (img_array[:, :, c] - FASHIONCLIP_MEAN[c]) / FASHIONCLIP_STD[c]
+
+        # Transpose from HWC to CHW format
+        img_array = img_array.transpose(2, 0, 1)  # (3, 224, 224)
+
+        # Add batch dimension
+        img_array = np.expand_dims(img_array, axis=0)  # (1, 3, 224, 224)
+
+        return img_array
+
+    def generate_embedding(self, image_path: Path) -> np.ndarray:
+        """
+        Generate normalized 512-dimensional embedding for an image.
+
+        Returns:
+            Normalized embedding vector (length=1.0)
+        """
+        # Preprocess image
+        input_tensor = self.preprocess_image(image_path)
+
+        # Run inference
+        outputs = self.session.run(None, {self.input_name: input_tensor})
+        raw_embedding = outputs[0][0]  # Remove batch dimension
+
+        # Normalize to unit length (matching frontend)
+        norm = np.linalg.norm(raw_embedding)
+        if norm == 0:
+            raise ValueError(f"Zero norm embedding for {image_path.name}")
+
+        normalized_embedding = raw_embedding / norm
+
+        return normalized_embedding
+
+
+def load_sample_embeddings_metadata() -> dict:
+    """Load metadata from sample_embeddings.json."""
+    if not SAMPLE_EMBEDDINGS_PATH.exists():
+        return {}
+
+    with open(SAMPLE_EMBEDDINGS_PATH, 'r') as f:
+        data = json.load(f)
+
+    # Create mapping of item_name -> metadata
+    metadata_map = {}
+    for entry in data.get('embeddings', []):
+        item_name = entry.get('item_name')
+        if item_name:
+            metadata_map[item_name] = {
+                'category': entry.get('category'),
+                'seed_key': entry.get('seed_key'),
+                'colors': entry.get('colors', []),
+                'materials': entry.get('materials', []),
+                'description': entry.get('description', '')
+            }
+
+    return metadata_map
+
+
+def filename_to_item_name(filename: str) -> str:
+    """
+    Convert image filename to item name.
+
+    Examples:
+        'blue-cotton-t-shirt.png' -> 'Blue Cotton T-Shirt'
+        'white-linen-button-up.png' -> 'White Linen Button-Up'
+    """
+    # Remove extension
+    name = filename.rsplit('.', 1)[0]
+
+    # Replace hyphens with spaces and titlecase
+    name = name.replace('-', ' ').title()
+
+    return name
+
+
 def process_image(input_path: Path, output_path: Path, detector: YOLODetector) -> bool:
     """
     Process a single image: detect with YOLO, crop, resize, then remove background.
@@ -341,11 +460,12 @@ def process_image(input_path: Path, output_path: Path, detector: YOLODetector) -
 
 def main():
     """Main processing function."""
-    print("Seed Image Processor with YOLO Detection")
-    print("=" * 50)
+    print("Seed Image Processor with YOLO Detection + FashionCLIP")
+    print("=" * 60)
     print(f"Source: {PRE_PROCESSED_DIR}")
     print(f"Output: {PROCESSED_DIR}")
     print(f"YOLO Model: {YOLO_MODEL_PATH}")
+    print(f"FashionCLIP Model: {FASHIONCLIP_MODEL_PATH}")
     print()
 
     # Create processed directory
@@ -384,7 +504,10 @@ def main():
     print(f"Found {len(image_files)} images to process")
     print()
 
-    # Process each image
+    # STEP 1: Process images (YOLO detection + background removal)
+    print("=" * 60)
+    print("STEP 1: Processing images (YOLO + background removal)")
+    print("=" * 60)
     processed_count = 0
     failed_count = 0
 
@@ -403,18 +526,137 @@ def main():
             print(f"⚠️  Processing {image_path.name} without YOLO detection")
             failed_count += 1
 
-    # Summary
-    print("=" * 50)
-    print("Processing complete!")
+    print()
+    print("=" * 60)
+    print("Image processing complete!")
     print(f"✓ Processed: {processed_count} images")
     if failed_count > 0:
         print(f"✗ Failed: {failed_count} images")
     print()
+
+    # STEP 2: Generate FashionCLIP embeddings
+    if processed_count == 0:
+        print("No images processed successfully. Skipping embedding generation.")
+        return
+
+    print("=" * 60)
+    print("STEP 2: Generating FashionCLIP embeddings")
+    print("=" * 60)
+    print()
+
+    # Check if FashionCLIP model exists
+    if not FASHIONCLIP_MODEL_PATH.exists():
+        print(f"⚠️  FashionCLIP model not found: {FASHIONCLIP_MODEL_PATH}")
+        print("Skipping embedding generation")
+        print()
+        return
+
+    # Load metadata from sample_embeddings.json
+    print("Loading metadata from sample_embeddings.json...")
+    metadata_map = load_sample_embeddings_metadata()
+    print(f"✓ Loaded metadata for {len(metadata_map)} items")
+    print()
+
+    # Initialize FashionCLIP embedder
+    try:
+        embedder = FashionCLIPEmbedder(FASHIONCLIP_MODEL_PATH)
+        print()
+    except Exception as e:
+        print(f"✗ Failed to load FashionCLIP: {e}")
+        print("Skipping embedding generation")
+        return
+
+    # Generate embeddings for all processed images
+    processed_images = sorted(PROCESSED_DIR.glob('*.png'))
+    embeddings_data = []
+    embedding_count = 0
+    embedding_failed = 0
+
+    for image_path in processed_images:
+        try:
+            print(f"Generating embedding: {image_path.name}")
+
+            # Generate embedding
+            embedding = embedder.generate_embedding(image_path)
+
+            # Convert filename to item name
+            item_name = filename_to_item_name(image_path.name)
+
+            # Get metadata if available
+            metadata = metadata_map.get(item_name, {})
+
+            # Validate embedding
+            magnitude = np.linalg.norm(embedding)
+            print(f"  ✓ Embedding generated (magnitude: {magnitude:.3f})")
+
+            if magnitude < 0.9 or magnitude > 1.1:
+                print(f"  ⚠️  Warning: Unusual magnitude {magnitude:.3f} (expected ~1.0)")
+
+            # Store embedding data
+            embedding_entry = {
+                'item_name': item_name,
+                'filename': image_path.name,
+                'vector_data': embedding.tolist(),  # Convert numpy to list
+                'category': metadata.get('category', 'unknown'),
+                'seed_key': metadata.get('seed_key', ''),
+                'colors': metadata.get('colors', []),
+                'materials': metadata.get('materials', []),
+                'description': metadata.get('description', ''),
+                'vector_magnitude': float(magnitude)
+            }
+
+            embeddings_data.append(embedding_entry)
+            embedding_count += 1
+            print()
+
+        except Exception as e:
+            print(f"  ✗ Error: {e}")
+            embedding_failed += 1
+            print()
+
+    # Save embeddings to JSON
+    if embeddings_data:
+        output_data = {
+            'generated_at': datetime.utcnow().isoformat() + 'Z',
+            'model_version': 'fashionclip-2.0',
+            'model_path': str(FASHIONCLIP_MODEL_PATH.relative_to(PROJECT_ROOT)),
+            'description': 'Real FashionCLIP embeddings generated from processed seed images',
+            'embedding_dimensions': 512,
+            'total_items': len(embeddings_data),
+            'embeddings': embeddings_data
+        }
+
+        print("=" * 60)
+        print("Saving embeddings to JSON...")
+
+        # Create fixtures directory if needed
+        OUTPUT_EMBEDDINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(OUTPUT_EMBEDDINGS_PATH, 'w') as f:
+            json.dump(output_data, f, indent=2)
+
+        file_size_mb = OUTPUT_EMBEDDINGS_PATH.stat().st_size / (1024 * 1024)
+        print(f"✓ Saved to: {OUTPUT_EMBEDDINGS_PATH}")
+        print(f"  File size: {file_size_mb:.1f} MB")
+        print()
+
+    # Final summary
+    print("=" * 60)
+    print("ALL PROCESSING COMPLETE!")
+    print("=" * 60)
+    print(f"✓ Images processed: {processed_count}")
+    print(f"✓ Embeddings generated: {embedding_count}")
+    if failed_count > 0:
+        print(f"✗ Images failed: {failed_count}")
+    if embedding_failed > 0:
+        print(f"✗ Embeddings failed: {embedding_failed}")
+    print()
     print("Next steps:")
-    print(f"1. Review processed images in: {PROCESSED_DIR}")
-    print(f"2. Images are now cropped to detected clothing items")
-    print(f"3. Update seeds.rb image_mapping with new filenames")
+    print(f"1. Review processed images: {PROCESSED_DIR}")
+    print(f"2. Review embeddings file: {OUTPUT_EMBEDDINGS_PATH}")
+    print(f"3. Update seeds.rb to load from seed_embeddings.json")
     print("4. Run: cd raincoat_api && rails db:seed")
+    print()
 
 
 if __name__ == "__main__":
