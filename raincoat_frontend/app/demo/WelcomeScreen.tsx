@@ -29,6 +29,11 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
     if (consent === 'true') {
       setHasConsented(true);
     }
+
+    // Start intelligent idle predownload of models
+    // This will only run on devices with sufficient memory and storage
+    // Models are downloaded during browser idle time to avoid impacting UX
+    onnxProcessor.predownloadModelsWhenIdle();
   }, []);
 
   const handleStartDemo = () => {
