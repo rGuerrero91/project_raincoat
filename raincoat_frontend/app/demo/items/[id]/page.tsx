@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Container from '@/components/Container';
-import Button from '@/components/Button';
-import Card from '@/components/Card';
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Container from "@/components/Container";
+import Button from "@/components/Button";
+import Card from "@/components/Card";
 import {
   ArrowLeft,
   Tag,
@@ -16,9 +16,9 @@ import {
   Snowflake,
   Wind,
   Sparkles,
-  TrendingUp
-} from 'lucide-react';
-import apiClient, { ClothingItem } from '@/lib/api';
+  TrendingUp,
+} from "lucide-react";
+import apiClient, { ClothingItem } from "@/lib/api";
 
 interface SimilarItem {
   item: ClothingItem;
@@ -41,14 +41,14 @@ export default function ClothingItemViewPage() {
   useEffect(() => {
     const fetchItemData = async () => {
       try {
-        console.log('Fetching clothing item:', itemId);
+        console.log("Fetching clothing item:", itemId);
 
         // Fetch clothing item details
         const itemResponse = await apiClient.getClothingItem(itemId);
 
         if (itemResponse.success && itemResponse.data) {
           setItem(itemResponse.data);
-          console.log('Clothing item loaded:', itemResponse.data);
+          console.log("Clothing item loaded:", itemResponse.data);
 
           // Fetch similar items if embedding exists
           if (itemResponse.data.has_embedding) {
@@ -58,11 +58,11 @@ export default function ClothingItemViewPage() {
             }
           }
         } else {
-          setError('Clothing item not found');
+          setError("Clothing item not found");
         }
       } catch (err) {
-        console.error('Failed to load clothing item:', err);
-        setError('Failed to load clothing item details');
+        console.error("Failed to load clothing item:", err);
+        setError("Failed to load clothing item details");
       } finally {
         setIsLoading(false);
       }
@@ -91,7 +91,7 @@ export default function ClothingItemViewPage() {
           setShowEmbedding(true);
         }
       } catch (err) {
-        console.error('Failed to load embedding:', err);
+        console.error("Failed to load embedding:", err);
       }
     } else {
       // Data already loaded, just show it
@@ -110,7 +110,7 @@ export default function ClothingItemViewPage() {
       windy: 0,
     };
 
-    const tagStr = tags.join(' ').toLowerCase();
+    const tagStr = tags.join(" ").toLowerCase();
 
     // Hot weather indicators
     if (tagStr.match(/tank|shorts|summer|lightweight|breathable|sleeveless/)) {
@@ -119,7 +119,9 @@ export default function ClothingItemViewPage() {
     }
 
     // Cold weather indicators
-    if (tagStr.match(/coat|jacket|sweater|hoodie|winter|warm|thermal|fleece|down/)) {
+    if (
+      tagStr.match(/coat|jacket|sweater|hoodie|winter|warm|thermal|fleece|down/)
+    ) {
       suitability.cold = 2;
       suitability.cool = 1;
     }
@@ -140,18 +142,22 @@ export default function ClothingItemViewPage() {
   const WeatherBadge = ({
     icon: Icon,
     label,
-    level
+    level,
   }: {
     icon: any;
     label: string;
-    level: number
+    level: number;
   }) => {
     if (level === 0) return null;
 
     return (
-      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-        level === 2 ? 'bg-primary text-white' : 'bg-primary-light text-primary'
-      }`}>
+      <div
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+          level === 2
+            ? "bg-primary text-white"
+            : "bg-primary-light text-primary"
+        }`}
+      >
         <Icon className="w-4 h-4" />
         <span className="text-sm font-medium">{label}</span>
       </div>
@@ -175,7 +181,9 @@ export default function ClothingItemViewPage() {
     return (
       <Container className="py-8 min-h-screen">
         <Card padding="xl" className="text-center">
-          <p className="text-red-500 mb-4">{error || 'Clothing item not found'}</p>
+          <p className="text-red-500 mb-4">
+            {error || "Clothing item not found"}
+          </p>
           <Button variant="secondary" onClick={() => router.back()}>
             Go Back
           </Button>
@@ -184,10 +192,13 @@ export default function ClothingItemViewPage() {
     );
   }
 
-  const weatherSuitability = getWeatherSuitability([...(item.ai_tags || []), ...(item.user_tags || [])]);
+  const weatherSuitability = getWeatherSuitability([
+    ...(item.ai_tags || []),
+    ...(item.user_tags || []),
+  ]);
 
   return (
-    <Container className="py-8 min-h-screen">
+    <div style={{ width: "50%", margin: "0 auto", padding: "2rem 0" }}>
       {/* Header */}
       <div className="mb-6">
         <Button
@@ -215,12 +226,15 @@ export default function ClothingItemViewPage() {
             {item.images && item.images.length > 0 ? (
               <img
                 src={item.images[0].url}
-                alt={item.name || 'Clothing item'}
+                alt={item.name || "Clothing item"}
                 className="w-full h-full object-cover"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <Shirt className="w-24 h-24 text-neutral-medium" strokeWidth={1} />
+                <Shirt
+                  className="w-24 h-24 text-neutral-medium"
+                  strokeWidth={1}
+                />
               </div>
             )}
           </div>
@@ -228,8 +242,12 @@ export default function ClothingItemViewPage() {
           {/* Basic Info */}
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-neutral-medium mb-1">Category</p>
-              <p className="font-semibold capitalize">{item.category}</p>
+              <p>
+                <a className="text-sm text-neutral-medium mb-1">Category: </a>
+                <span className="font-semibold capitalize">
+                  {item.category}
+                </span>
+              </p>
             </div>
 
             {item.brand && (
@@ -272,6 +290,39 @@ export default function ClothingItemViewPage() {
               </div>
             )}
           </div>
+          <h3 className="text-xl font-semibold mb-4">Similar Items</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {similarItems.map((similar) => (
+              <button
+                key={similar.item.id}
+                onClick={() => router.push(`/items/${similar.item.id}`)}
+                className="text-left hover:opacity-80 transition-opacity"
+              >
+                <div className="aspect-square bg-neutral-light rounded-lg overflow-hidden mb-2">
+                  {similar.item.images && similar.item.images.length > 0 ? (
+                    <img
+                      src={similar.item.images[0].url}
+                      alt={similar.item.name || "Similar item"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Shirt
+                        className="w-12 h-12 text-neutral-medium"
+                        strokeWidth={1}
+                      />
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm font-medium mb-1 truncate">
+                  {similar.item.name || similar.item.category}
+                </p>
+                <p className="text-xs text-primary font-semibold">
+                  {similar.similarity_score.toFixed(0)}% similar
+                </p>
+              </button>
+            ))}
+          </div>
         </Card>
 
         {/* Details Card */}
@@ -281,7 +332,7 @@ export default function ClothingItemViewPage() {
             <Card padding="md">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-5 h-5 text-primary" />
-                <h3 className="font-semibold">AI-Generated Tags</h3>
+                <h3 className="font-semibold">Auto-Generated Tags</h3>
               </div>
               <div className="flex gap-2 flex-wrap">
                 {item.ai_tags.map((tag, idx) => (
@@ -298,7 +349,7 @@ export default function ClothingItemViewPage() {
           )}
 
           {/* User Tags */}
-          {item.user_tags && item.user_tags.length > 0 && (
+          {/* {item.user_tags && item.user_tags.length > 0 && (
             <Card padding="md">
               <div className="flex items-center gap-2 mb-3">
                 <Tag className="w-5 h-5 text-ink" />
@@ -315,7 +366,7 @@ export default function ClothingItemViewPage() {
                 ))}
               </div>
             </Card>
-          )}
+          )} */}
 
           {/* Weather Suitability */}
           <Card padding="md">
@@ -324,14 +375,38 @@ export default function ClothingItemViewPage() {
               <h3 className="font-semibold">Weather Suitability</h3>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <WeatherBadge icon={Sun} label="Hot" level={weatherSuitability.hot} />
-              <WeatherBadge icon={Sun} label="Warm" level={weatherSuitability.warm} />
-              <WeatherBadge icon={Wind} label="Cool" level={weatherSuitability.cool} />
-              <WeatherBadge icon={Snowflake} label="Cold" level={weatherSuitability.cold} />
-              <WeatherBadge icon={CloudRain} label="Rainy" level={weatherSuitability.rainy} />
-              <WeatherBadge icon={Wind} label="Windy" level={weatherSuitability.windy} />
+              <WeatherBadge
+                icon={Sun}
+                label="Hot"
+                level={weatherSuitability.hot}
+              />
+              <WeatherBadge
+                icon={Sun}
+                label="Warm"
+                level={weatherSuitability.warm}
+              />
+              <WeatherBadge
+                icon={Wind}
+                label="Cool"
+                level={weatherSuitability.cool}
+              />
+              <WeatherBadge
+                icon={Snowflake}
+                label="Cold"
+                level={weatherSuitability.cold}
+              />
+              <WeatherBadge
+                icon={CloudRain}
+                label="Rainy"
+                level={weatherSuitability.rainy}
+              />
+              <WeatherBadge
+                icon={Wind}
+                label="Windy"
+                level={weatherSuitability.windy}
+              />
             </div>
-            {Object.values(weatherSuitability).every(v => v === 0) && (
+            {Object.values(weatherSuitability).every((v) => v === 0) && (
               <p className="text-sm text-neutral-medium italic">
                 No weather preferences detected from tags
               </p>
@@ -344,24 +419,28 @@ export default function ClothingItemViewPage() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-primary" />
-                  <h3 className="font-semibold">AI Embedding</h3>
+                  <h3 className="font-semibold">Vector Embedding</h3>
                 </div>
                 <Button
                   variant="secondary"
                   onClick={toggleEmbeddingVector}
                   className="text-sm px-3 py-1.5"
                 >
-                  {showEmbedding ? 'Hide' : 'View'} Vector
+                  {showEmbedding ? "Hide" : "View"} Vector
                 </Button>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-neutral-medium">Model:</span>
-                  <span className="font-medium">{item.embedding.model_version}</span>
+                  <span className="font-medium">
+                    {item.embedding.model_version}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-medium">Dimensions:</span>
-                  <span className="font-medium">{item.embedding.vector_dimensions}</span>
+                  <span className="font-medium">
+                    {item.embedding.vector_dimensions}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-medium">Created:</span>
@@ -377,7 +456,12 @@ export default function ClothingItemViewPage() {
                     Vector Data (first 10 dimensions):
                   </p>
                   <code className="text-xs font-mono break-all block">
-                    [{embeddingData.slice(0, 10).map(v => v.toFixed(4)).join(', ')}...]
+                    [
+                    {embeddingData
+                      .slice(0, 10)
+                      .map((v) => v.toFixed(4))
+                      .join(", ")}
+                    ...]
                   </code>
                 </div>
               )}
@@ -387,7 +471,7 @@ export default function ClothingItemViewPage() {
       </div>
 
       {/* Similar Items */}
-      {similarItems.length > 0 && (
+      {/* {similarItems.length > 0 && (
         <Card padding="md" className="mb-6">
           <h3 className="text-xl font-semibold mb-4">Similar Items</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -401,12 +485,15 @@ export default function ClothingItemViewPage() {
                   {similar.item.images && similar.item.images.length > 0 ? (
                     <img
                       src={similar.item.images[0].url}
-                      alt={similar.item.name || 'Similar item'}
+                      alt={similar.item.name || "Similar item"}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Shirt className="w-12 h-12 text-neutral-medium" strokeWidth={1} />
+                      <Shirt
+                        className="w-12 h-12 text-neutral-medium"
+                        strokeWidth={1}
+                      />
                     </div>
                   )}
                 </div>
@@ -420,7 +507,7 @@ export default function ClothingItemViewPage() {
             ))}
           </div>
         </Card>
-      )}
-    </Container>
+      )} */}
+    </div>
   );
 }
