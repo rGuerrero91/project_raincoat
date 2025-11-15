@@ -214,8 +214,8 @@ class ApiClient {
     return this.request<ClothingItem>(`/api/v1/clothing_items/${itemId}`);
   }
 
-  async getSimilarItems(itemId: number, limit: number = 10) {
-    return this.request<{
+  async getSimilarItems(itemId: number, limit: number = 10, minSimilarityPercentage: number = 50) {
+    const response = await this.request<{
       source_item: ClothingItem;
       similar_items: Array<{
         item: ClothingItem;
@@ -226,6 +226,16 @@ class ApiClient {
     }>(
       `/api/v1/clothing_items/${itemId}/similar?limit=${limit}`
     );
+
+    // Filter items below the similarity threshold
+    if (response.success && response.data) {
+      response.data.similar_items = response.data.similar_items.filter((similarItem) => {
+        const percentage = parseFloat(similarItem.similarity_percentage.replace('%', ''));
+        return percentage >= minSimilarityPercentage;
+      });
+    }
+
+    return response;
   }
 
   async getItemEmbedding(itemId: number) {
