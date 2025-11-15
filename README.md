@@ -405,6 +405,140 @@ cp models/*.onnx ../../raincoat_api/public/models/
 cp models/*.json ../../raincoat_api/public/models/
 ```
 
+### Generating Seed Items with Real Embeddings
+
+By default, seed data uses synthetic embeddings generated from item attributes (category, colors, materials). For production-quality similarity search, you should generate real FashionCLIP embeddings from actual images.
+
+#### Why Real Embeddings Matter
+
+- **Synthetic embeddings** (from `EmbeddingGenerator`) are deterministic and heuristic-based, but lack visual nuance
+- **Real embeddings** (from FashionCLIP) capture actual visual features like patterns, textures, and style
+- Mixing both types creates an **embedding space mismatch** - similarity search won't work correctly
+- User uploads always use real FashionCLIP embeddings, so seed data should too
+
+#### Prerequisites
+
+```bash
+# Install Python dependencies
+pip install torch torchvision pillow numpy onnxruntime ultralytics rembg
+
+# Verify required models exist
+ls raincoat_api/public/models/fashionclip_image_encoder.onnx  # FashionCLIP
+ls scripts/model_extractions/models/yolo_raincoat.onnx        # YOLO (if not in public/models)
+```
+
+#### Processing Pipeline
+
+The `process_seed_images.py` script performs a 2-step pipeline:
+
+**Step 1: Image Processing**
+1. YOLO object detection (finds clothing items in photos)
+2. Automatic cropping with 10% padding
+3. Resize to 320x320 for performance
+4. Background removal using U2-Net (via rembg)
+5. Save processed images to `raincoat_api/db/seed_images/processed/`
+
+**Step 2: Embedding Generation**
+1. Load processed images
+2. Resize to 224x224 for FashionCLIP
+3. Apply FashionCLIP preprocessing (same as frontend):
+   - Mean normalization: `[0.48145466, 0.4578275, 0.40821073]`
+   - Std normalization: `[0.26862954, 0.26130258, 0.27577711]`
+   - CHW tensor format
+4. Generate 512-dimensional embeddings via ONNX inference
+5. Normalize to unit length (L2 norm)
+6. Save to `raincoat_api/db/fixtures/seed_embeddings.json`
+
+#### Usage
+
+```bash
+# Navigate to scripts directory
+cd scripts
+
+# Place original seed images in raincoat_api/db/seed_images/
+# (Photos can contain multiple items - YOLO will detect and crop them)
+
+# Run the full pipeline
+python process_seed_images.py
+
+# Output files:
+# - raincoat_api/db/seed_images/processed/*.png  (cropped, background-removed)
+# - raincoat_api/db/fixtures/seed_embeddings.json  (real embeddings)
+```
+
+#### Seed Embeddings Format
+
+The generated `seed_embeddings.json` has this structure:
+
+```json
+{
+  "generated_at": "2024-01-15T10:30:00Z",
+  "model_version": "fashionclip-2.0",
+  "embedding_dimensions": 512,
+  "total_items": 25,
+  "embeddings": [
+    {
+      "item_name": "Navy Blazer",
+      "filename": "navy_blazer.png",
+      "vector_data": [0.123, -0.456, ...],  // 512 values
+      "category": "outerwear",
+      "seed_key": "navy_blazer_formal",
+      "colors": ["navy", "blue"],
+      "materials": ["wool"],
+      "description": "Classic navy blazer",
+      "vector_magnitude": 1.0
+    }
+  ]
+}
+```
+
+#### Using Real Embeddings in Seeds
+
+The Rails seed file (`db/seeds.rb`) automatically prioritizes real embeddings:
+
+```ruby
+# Priority: seed_embeddings (real) > embeddings > sample_embeddings (synthetic)
+pregenerated_embeddings = EmbeddingGenerator.load_from_fixture('seed_embeddings') ||
+                          EmbeddingGenerator.load_from_fixture('embeddings') ||
+                          EmbeddingGenerator.load_from_fixture('sample_embeddings')
+```
+
+After generating embeddings, run:
+
+```bash
+cd raincoat_api
+bundle exec rails db:seed
+```
+
+This will populate the database with clothing items that have real FashionCLIP embeddings, enabling accurate similarity search with user-uploaded items.
+
+#### Troubleshooting
+
+**YOLO model not found:**
+```bash
+# Copy from model_extractions if needed
+cp scripts/model_extractions/models/yolo_raincoat.onnx raincoat_api/public/models/
+```
+
+**FashionCLIP model not found:**
+```bash
+# Re-export from HuggingFace
+cd scripts/model_extractions
+python export_fashionclip_onnx.py
+cp models/fashionclip_image_encoder.onnx ../../raincoat_api/public/models/
+```
+
+**Rembg background removal fails:**
+```bash
+# Reinstall with U2-Net model
+pip install --upgrade rembg[gpu]  # or rembg for CPU-only
+```
+
+**Empty processed directory:**
+- Check YOLO detected items: look for console output showing bounding boxes
+- Verify confidence threshold (default: 0.25) isn't too high
+- Ensure input images contain visible clothing items
+
 ### Frontend Commands
 
 ```bash
