@@ -13,46 +13,27 @@ def quantize_fashionclip_fp16(input_path: str, output_path: str):
     Quantize FashionCLIP to FP16
     ~50% size reduction, minimal accuracy loss
 
-    Note: FP16 conversion is done by converting tensor weights directly,
-    not through onnxruntime quantization (which doesn't support FP16).
+    Note: FP16 conversion uses onnxconverter-common for proper graph transformations.
     """
-    from onnx import numpy_helper, TensorProto
+    try:
+        from onnxconverter_common import float16
+    except ImportError:
+        print("Installing onnxconverter-common...")
+        import subprocess
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'onnxconverter-common'])
+        from onnxconverter_common import float16
 
     print(f"Loading FashionCLIP model from: {input_path}")
     model = onnx.load(input_path)
 
-    print("Converting weights to FP16...")
+    print("Converting model to FP16...")
 
-    # Convert all FP32 initializers to FP16
-    for tensor in model.graph.initializer:
-        if tensor.data_type == TensorProto.FLOAT:
-            # Convert float32 to float16
-            fp32_data = numpy_helper.to_array(tensor)
-            fp16_data = fp32_data.astype(np.float16)
-
-            # Update tensor to FP16
-            tensor.ClearField('float_data')
-            tensor.ClearField('raw_data')
-            tensor.data_type = TensorProto.FLOAT16
-            tensor.raw_data = fp16_data.tobytes()
-
-    # Update graph value_info and inputs/outputs to FP16 where applicable
-    def convert_value_info_to_fp16(value_info):
-        if value_info.type.HasField('tensor_type'):
-            if value_info.type.tensor_type.elem_type == TensorProto.FLOAT:
-                value_info.type.tensor_type.elem_type = TensorProto.FLOAT16
-
-    for value_info in model.graph.value_info:
-        convert_value_info_to_fp16(value_info)
-
-    for input_info in model.graph.input:
-        convert_value_info_to_fp16(input_info)
-
-    for output_info in model.graph.output:
-        convert_value_info_to_fp16(output_info)
+    # Use onnxconverter-common for proper FP16 conversion
+    # This handles all graph transformations correctly
+    model_fp16 = float16.convert_float_to_float16(model, keep_io_types=False)
 
     print(f"Saving FP16 model to: {output_path}")
-    onnx.save(model, output_path)
+    onnx.save(model_fp16, output_path)
 
     # Verify output
     original_size = Path(input_path).stat().st_size / (1024 * 1024)
