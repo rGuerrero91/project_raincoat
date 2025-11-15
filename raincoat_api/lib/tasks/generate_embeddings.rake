@@ -48,7 +48,7 @@ namespace :embeddings do
       Dir.glob(category_dir.join('*.{jpg,jpeg,png,webp}')).each do |image_path|
         filename = File.basename(image_path, '.*')
 
-        puts "  Processing: #{category}/#{File.basename(image_path)}"
+        puts "Processing: #{category}/#{File.basename(image_path)}"
 
         begin
           # Generate embedding (this would call your actual embedding generation service)
