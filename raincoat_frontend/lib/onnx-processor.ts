@@ -343,7 +343,29 @@ const MAX_IMAGE_SIZE = 400; // Maximum width/height for processing (reduce compu
 // Note: U2-Net model is trained for 320×320 input - cannot be changed without retraining
 // For iOS memory optimization, model quantization (FP16/INT8) is the recommended approach
 const U2NET_INPUT_SIZE = 320; // Fixed at 320×320 as required by the model
-const U2NET_QUALITY_MODE = PLATFORM_INFO.isMobile ? "low" : "medium"; // Mobile: faster, Desktop: better quality
+
+/**
+ * Adaptive quality mode based on device memory
+ * - Low memory devices (<2GB): "low" quality for fastest processing
+ * - Medium memory devices (2-4GB): "low" quality to be safe
+ * - High memory devices (4-8GB): "medium" quality for balanced performance
+ * - Very high memory devices (>8GB): "medium" quality (we don't have "high" mode yet)
+ */
+function getAdaptiveQualityMode(): "low" | "medium" {
+  const memoryGB = PLATFORM_INFO.estimatedMemoryMB / 1024;
+
+  if (memoryGB < 4) {
+    // Low/medium memory: prioritize speed and stability
+    console.log(`[ONNX] Adaptive quality: "low" (${memoryGB.toFixed(1)}GB RAM detected)`);
+    return "low";
+  } else {
+    // High memory: allow better quality
+    console.log(`[ONNX] Adaptive quality: "medium" (${memoryGB.toFixed(1)}GB RAM detected)`);
+    return "medium";
+  }
+}
+
+const U2NET_QUALITY_MODE = getAdaptiveQualityMode();
 const USE_FAST_MASK_APPLICATION = true; // Use optimized mask application (faster, slight quality loss)
 
 // Mobile-specific configuration
@@ -361,6 +383,56 @@ class ONNXProcessor {
   private u2netLoadingPromise: Promise<void> | null = null;
   private fashionClipLoadingPromise: Promise<void> | null = null;
   private labelEmbeddingsLoadingPromise: Promise<void> | null = null;
+
+  // Tensor memory pool for reusing Float32Array buffers
+  // Maps size -> array of available buffers
+  private tensorPool: Map<number, Float32Array[]> = new Map();
+  private readonly MAX_POOLED_TENSORS = 10; // Maximum tensors to keep in pool per size
+
+  /**
+   * Get a Float32Array from the pool or create a new one
+   * Reduces memory allocation overhead by reusing buffers
+   */
+  private getTensorFromPool(size: number): Float32Array {
+    const pool = this.tensorPool.get(size);
+    if (pool && pool.length > 0) {
+      const tensor = pool.pop()!;
+      // Clear the tensor before reuse
+      tensor.fill(0);
+      return tensor;
+    }
+    // No pooled tensor available, create new one
+    return new Float32Array(size);
+  }
+
+  /**
+   * Return a Float32Array to the pool for reuse
+   * Call this after you're done with a tensor to enable reuse
+   */
+  private returnTensorToPool(tensor: Float32Array): void {
+    const size = tensor.length;
+    let pool = this.tensorPool.get(size);
+
+    if (!pool) {
+      pool = [];
+      this.tensorPool.set(size, pool);
+    }
+
+    // Only pool if we haven't reached the limit
+    if (pool.length < this.MAX_POOLED_TENSORS) {
+      pool.push(tensor);
+    }
+    // Otherwise let it be garbage collected
+  }
+
+  /**
+   * Clear the tensor pool to free memory
+   * Useful when memory pressure is detected
+   */
+  clearTensorPool(): void {
+    this.tensorPool.clear();
+    console.log('[ONNX] Tensor pool cleared');
+  }
 
   /**
    * DEPRECATED: Preload models in the background
@@ -801,7 +873,8 @@ class ONNXProcessor {
     canvas.width = 0;
     canvas.height = 0;
 
-    const tensorData = new Float32Array(3 * inputSize * inputSize);
+    // Get tensor from pool to reduce memory allocations
+    const tensorData = this.getTensorFromPool(3 * inputSize * inputSize);
 
     // U2-Net normalization (from Rails implementation)
     const mean = [0.485, 0.456, 0.406];
@@ -850,10 +923,15 @@ class ONNXProcessor {
     const totalTime = performance.now() - startTime;
     console.log(`[ONNX] U2-Net: ${totalTime.toFixed(0)}ms total (inference: ${inferenceTime.toFixed(0)}ms, input: ${inputSize}x${inputSize})`);
 
+    // Return tensor to pool for reuse
+    this.returnTensorToPool(tensorData);
+
     // Check memory pressure after intensive operation
     const memoryStatus = checkMemoryPressure();
     if (memoryStatus.level === 'high' || memoryStatus.level === 'critical') {
       console.warn(`[ONNX] Memory pressure after background removal: ${memoryStatus.level}`);
+      // Clear tensor pool if memory pressure is high
+      this.clearTensorPool();
     }
 
     return result;
@@ -991,7 +1069,8 @@ class ONNXProcessor {
     canvas.width = 0;
     canvas.height = 0;
 
-    const tensorData = new Float32Array(3 * 224 * 224);
+    // Get tensor from pool to reduce memory allocations
+    const tensorData = this.getTensorFromPool(3 * 224 * 224);
 
     // FashionCLIP normalization (from Rails implementation)
     const mean = [0.48145466, 0.4578275, 0.40821073];
@@ -1018,6 +1097,9 @@ class ONNXProcessor {
     const rawEmbedding = Array.from(
       outputs[Object.keys(outputs)[0]].data as Float32Array
     );
+
+    // Return tensor to pool for reuse
+    this.returnTensorToPool(tensorData);
 
     // Normalize embedding (from Rails implementation)
     const norm = Math.sqrt(
@@ -1107,6 +1189,92 @@ class ONNXProcessor {
       };
 
       img.src = url;
+    });
+  }
+
+  /**
+   * Intelligently predownload models during idle time
+   * Uses requestIdleCallback to download models when browser is idle
+   * Only runs on devices with sufficient memory and storage
+   */
+  async predownloadModelsWhenIdle(): Promise<void> {
+    // Skip on low memory devices
+    if (PLATFORM_INFO.estimatedMemoryMB < 3072) {
+      console.log('[ONNX] Skipping idle predownload: Low memory device');
+      return;
+    }
+
+    // Check storage quota
+    const storage = await checkStorageQuota();
+    if (!storage.available) {
+      console.log('[ONNX] Skipping idle predownload: Insufficient storage');
+      return;
+    }
+
+    // Check memory pressure
+    const memoryStatus = checkMemoryPressure();
+    if (memoryStatus.level === 'high' || memoryStatus.level === 'critical') {
+      console.log('[ONNX] Skipping idle predownload: Memory pressure too high');
+      return;
+    }
+
+    console.log('[ONNX] Starting idle predownload of models...');
+
+    // Use requestIdleCallback if available, otherwise use setTimeout
+    const scheduleIdle = (callback: () => void) => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(callback, { timeout: 5000 });
+      } else {
+        setTimeout(callback, 1000);
+      }
+    };
+
+    // Predownload models in sequence during idle time
+    scheduleIdle(async () => {
+      try {
+        if (!window.modelCache) {
+          console.log('[ONNX] ModelCache not available for predownload');
+          return;
+        }
+
+        // Predownload U2Net (background removal) - 168MB
+        console.log('[ONNX] Idle predownload: U2Net model...');
+        await window.modelCache.loadONNXModel(
+          "https://raincoat-labs.s3.us-east-2.amazonaws.com/js/u2net.onnx"
+        );
+        console.log('[ONNX] ✓ U2Net model predownloaded');
+
+        // Wait for next idle period before downloading next model
+        scheduleIdle(async () => {
+          try {
+            // Predownload FashionClip (embedding) - 335MB
+            console.log('[ONNX] Idle predownload: FashionClip model...');
+            await window.modelCache!.loadONNXModel(
+              "https://raincoat-labs.s3.us-east-2.amazonaws.com/js/fashion-clip.onnx"
+            );
+            console.log('[ONNX] ✓ FashionClip model predownloaded');
+
+            // Wait for next idle period for labels
+            scheduleIdle(async () => {
+              try {
+                // Predownload label embeddings - 7MB
+                console.log('[ONNX] Idle predownload: Label embeddings...');
+                await window.modelCache!.loadJSON(
+                  "https://raincoat-labs.s3.us-east-2.amazonaws.com/js/label_embeddings.json"
+                );
+                console.log('[ONNX] ✓ Label embeddings predownloaded');
+                console.log('[ONNX] ✓ All models predownloaded successfully!');
+              } catch (error) {
+                console.warn('[ONNX] Failed to predownload label embeddings:', error);
+              }
+            });
+          } catch (error) {
+            console.warn('[ONNX] Failed to predownload FashionClip:', error);
+          }
+        });
+      } catch (error) {
+        console.warn('[ONNX] Failed to predownload U2Net:', error);
+      }
     });
   }
 }
