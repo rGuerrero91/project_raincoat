@@ -1,8 +1,8 @@
-import Container from '@/components/Container';
-import Button from '@/components/Button';
-import Card from '@/components/Card';
-import { Plus, ExternalLink } from 'lucide-react';
-import { ClothingItem } from './page';
+import Container from "@/components/Container";
+import Button from "@/components/Button";
+import Card from "@/components/Card";
+import { Plus, ExternalLink } from "lucide-react";
+import { ClothingItem } from "./page";
 
 interface ClosetScreenProps {
   items: ClothingItem[];
@@ -10,7 +10,11 @@ interface ClosetScreenProps {
   onAddMore: () => void;
 }
 
-export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenProps) {
+export default function ClosetScreen({
+  items,
+  onNext,
+  onAddMore,
+}: ClosetScreenProps) {
   return (
     <Container className="py-8 min-h-screen">
       {/* Header */}
@@ -19,7 +23,7 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
           Your <strong className="text-primary">closet</strong>
         </h2>
         <p className="text-lg text-neutral-medium">
-          {items.length} {items.length === 1 ? 'item' : 'items'} added
+          {items.length} {items.length === 1 ? "item" : "items"} added
         </p>
       </div>
 
@@ -28,10 +32,10 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
         {items.map((item, index) => (
           <a
             key={index}
-            href={item.id ? `demo/items/${item.id}` : '#'}
+            href={item.id ? `demo/items/${item.id}` : "#"}
             target="_blank"
             rel="noopener noreferrer"
-            className={`block ${!item.id ? 'pointer-events-none' : ''}`}
+            className={`block ${!item.id ? "pointer-events-none" : ""}`}
           >
             <Card
               padding="sm"
@@ -73,10 +77,13 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
 
               {/* Category Badge */}
               {item.category && (
-                <div className="mt-2 text-xs text-neutral-medium capitalize">
-                  {item.category}
-                </div>
+                <span className="mt-2 text-xs text-medium capitalize">
+                  {item.category}-
+                </span>
               )}
+              <span className="mt-2 text-xs text-neutral-medium capitalize">
+                See Similar Items
+              </span>
             </Card>
           </a>
         ))}
@@ -101,7 +108,12 @@ export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenP
 
       {/* Action Buttons */}
       <div className="space-y-4">
-        <Button variant="primary" fullWidth onClick={onNext} className="text-lg py-4">
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={onNext}
+          className="text-lg py-4"
+        >
           Get Outfit Ideas
         </Button>
 
