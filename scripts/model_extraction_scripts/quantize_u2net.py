@@ -31,7 +31,13 @@ def quantize_model_fp16(input_path: str, output_path: str):
 
     # Use onnxconverter-common for proper FP16 conversion
     # This handles all graph transformations correctly
-    model_fp16 = float16.convert_float_to_float16(model, keep_io_types=False)
+    # keep_io_types=True maintains FP32 inputs/outputs for compatibility
+    # disable_shape_infer=True skips shape inference which can cause issues
+    model_fp16 = float16.convert_float_to_float16(
+        model,
+        keep_io_types=True,
+        disable_shape_infer=True
+    )
 
     print(f"Saving FP16 model to: {output_path}")
     onnx.save(model_fp16, output_path)
@@ -41,7 +47,7 @@ def quantize_model_fp16(input_path: str, output_path: str):
     quantized_size = Path(output_path).stat().st_size / (1024 * 1024)
     reduction = ((original_size - quantized_size) / original_size) * 100
 
-    print(f"\n✓ FP16 Conversion complete!")
+    print(f"\nFP16 Conversion complete!")
     print(f"  Original:  {original_size:.1f} MB")
     print(f"  FP16:      {quantized_size:.1f} MB")
     print(f"  Reduction: {reduction:.1f}%")
@@ -96,7 +102,7 @@ def quantize_model_int8(input_path: str, output_path: str, calibration_data=None
     quantized_size = Path(output_path).stat().st_size / (1024 * 1024)
     reduction = ((original_size - quantized_size) / original_size) * 100
     
-    print(f"\n✓ INT8 Quantization complete!")
+    print(f"\nINT8 Quantization complete!")
     print(f"  Original:  {original_size:.1f} MB")
     print(f"  Quantized: {quantized_size:.1f} MB")
     print(f"  Reduction: {reduction:.1f}%")
@@ -138,7 +144,7 @@ def main():
     else:  # int8
         output_path = quantize_model_int8(args.input, args.output)
     
-    print(f"\n✓ Saved to: {output_path}")
+    print(f"\nSaved to: {output_path}")
     print("\nNext steps:")
     print(f"1. Test the quantized model: python test_quantized_u2net.py --model {output_path}")
     print(f"2. Compare quality with original model")

@@ -44,7 +44,8 @@ def test_u2net_quality(original_path: str, quantized_path: str, test_image_path:
     print("\n2. Testing quantized model...")
     session_quant = ort.InferenceSession(quantized_path)
     start = time.time()
-    result_quant = session_quant.run(None, {'input.1': img_tensor.astype(np.float16)})
+    # FP16 models with keep_io_types=True accept FP32 inputs
+    result_quant = session_quant.run(None, {'input.1': img_tensor})
     time_quant = (time.time() - start) * 1000
     mask_quant = result_quant[0]
 
@@ -122,7 +123,8 @@ def test_fashionclip_embeddings(original_path: str, quantized_path: str, test_im
     print("\n2. Testing quantized model...")
     session_quant = ort.InferenceSession(quantized_path)
     start = time.time()
-    result_quant = session_quant.run(None, {'pixel_values': img_tensor.astype(np.float16)})
+    # FP16 models with keep_io_types=True accept FP32 inputs
+    result_quant = session_quant.run(None, {'pixel_values': img_tensor})
     time_quant = (time.time() - start) * 1000
     embedding_quant = result_quant[0][0]
 
@@ -214,9 +216,9 @@ def main():
     # Overall recommendation
     if (u2net_results['quality'] in ['EXCELLENT', 'GOOD'] and
         fashionclip_results['quality'] in ['EXCELLENT', 'GOOD']):
-        print("\n✓ RECOMMENDATION: Deploy quantized models to production")
+        print("\nRECOMMENDATION: Deploy quantized models to production")
     else:
-        print("\n⚠ RECOMMENDATION: Review quality carefully before deploying")
+        print("\nRECOMMENDATION: Review quality carefully before deploying")
 
 if __name__ == "__main__":
     main()

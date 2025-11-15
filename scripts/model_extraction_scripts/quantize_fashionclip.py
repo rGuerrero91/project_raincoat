@@ -13,8 +13,14 @@ def quantize_fashionclip_fp16(input_path: str, output_path: str):
     Quantize FashionCLIP to FP16
     ~50% size reduction, minimal accuracy loss
 
-    Note: FP16 conversion uses onnxconverter-common for proper graph transformations.
+    Note: Uses onnxconverter-common for FP16 conversion.
     """
+    print(f"Loading FashionCLIP model from: {input_path}")
+    model = onnx.load(input_path)
+
+    print("Converting model to FP16...")
+
+    # Use onnxconverter-common for FP16 conversion (same as U2-Net)
     try:
         from onnxconverter_common import float16
     except ImportError:
@@ -23,14 +29,14 @@ def quantize_fashionclip_fp16(input_path: str, output_path: str):
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'onnxconverter-common'])
         from onnxconverter_common import float16
 
-    print(f"Loading FashionCLIP model from: {input_path}")
-    model = onnx.load(input_path)
-
-    print("Converting model to FP16...")
-
-    # Use onnxconverter-common for proper FP16 conversion
-    # This handles all graph transformations correctly
-    model_fp16 = float16.convert_float_to_float16(model, keep_io_types=False)
+    # Convert the model to FP16
+    # keep_io_types=True maintains FP32 inputs/outputs for compatibility
+    # op_block_list prevents conversion of problematic Conv operations
+    model_fp16 = float16.convert_float_to_float16(
+        model,
+        keep_io_types=True,
+        op_block_list=['Conv']
+    )
 
     print(f"Saving FP16 model to: {output_path}")
     onnx.save(model_fp16, output_path)
@@ -40,7 +46,7 @@ def quantize_fashionclip_fp16(input_path: str, output_path: str):
     quantized_size = Path(output_path).stat().st_size / (1024 * 1024)
     reduction = ((original_size - quantized_size) / original_size) * 100
 
-    print(f"\n✓ FashionCLIP FP16 Conversion complete!")
+    print(f"\nFashionCLIP FP16 Conversion complete!")
     print(f"  Original:  {original_size:.1f} MB")
     print(f"  FP16:      {quantized_size:.1f} MB")
     print(f"  Reduction: {reduction:.1f}%")
@@ -94,7 +100,7 @@ def quantize_fashionclip_int8(input_path: str, output_path: str):
     quantized_size = Path(output_path).stat().st_size / (1024 * 1024)
     reduction = ((original_size - quantized_size) / original_size) * 100
     
-    print(f"\n✓ FashionCLIP INT8 Quantization complete!")
+    print(f"\nFashionCLIP INT8 Quantization complete!")
     print(f"  Original:  {original_size:.1f} MB")
     print(f"  Quantized: {quantized_size:.1f} MB")
     print(f"  Reduction: {reduction:.1f}%")
@@ -117,7 +123,8 @@ def main():
     # Auto-generate output path
     if not args.output:
         input_path = Path(args.input)
-        args.output = str(input_path.parent / f"fashionclip_{args.precision}.onnx")
+        # Use same naming convention as input file (fashionclip_image_encoder_xxx.onnx)
+        args.output = str(input_path.parent / f"fashionclip_image_encoder_{args.precision}.onnx")
     
     print("="*60)
     print(f"FashionCLIP Model Quantization: {args.precision.upper()}")
@@ -137,7 +144,7 @@ def main():
     else:  # int8
         output_path = quantize_fashionclip_int8(args.input, args.output)
     
-    print(f"\n✓ Saved to: {output_path}")
+    print(f"\nSaved to: {output_path}")
     print("\nNext steps:")
     print(f"1. Test embeddings: python test_quantized_fashionclip.py --model {output_path}")
     print(f"2. Compare embedding quality with original")
