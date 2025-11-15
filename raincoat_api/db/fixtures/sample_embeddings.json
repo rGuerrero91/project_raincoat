@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-01-15T12:00:00Z",
+  "generated_at": "2025-11-14T20:00:00Z",
   "model_version": "fashionclip-2.0",
   "description": "Pre-generated embeddings for seed data - created with deterministic algorithm for consistency",
   "embeddings": [
@@ -106,6 +106,334 @@
       "colors": ["black"],
       "materials": ["wool"],
       "description": "Winter accessory embedding - warm weather accessories cluster"
+    },
+    {
+      "item_name": "Gray Sweatshirt",
+      "category": "tops",
+      "seed_key": "gray_sweatshirt_001",
+      "colors": ["gray"],
+      "materials": ["cotton"],
+      "description": "Casual sweatshirt embedding"
+    },
+    {
+      "item_name": "Blue Jeans",
+      "category": "bottoms",
+      "seed_key": "blue_jeans_001",
+      "colors": ["blue"],
+      "materials": ["denim"],
+      "description": "Medium wash jeans embedding"
+    },
+    {
+      "item_name": "White Linen Button-Up",
+      "category": "tops",
+      "seed_key": "white_linen_001",
+      "colors": ["white"],
+      "materials": ["linen"],
+      "description": "Lightweight summer shirt - clustered with breathable tops"
+    },
+    {
+      "item_name": "Striped Cotton Tank Top",
+      "category": "tops",
+      "seed_key": "striped_tank_001",
+      "colors": ["navy", "white"],
+      "materials": ["cotton"],
+      "description": "Summer tank top - sleeveless casual cluster"
+    },
+    {
+      "item_name": "Light Blue Chambray Shirt",
+      "category": "tops",
+      "seed_key": "chambray_001",
+      "colors": ["light blue"],
+      "materials": ["cotton"],
+      "description": "Casual chambray - versatile spring/summer"
+    },
+    {
+      "item_name": "Pale Yellow T-Shirt",
+      "category": "tops",
+      "seed_key": "yellow_tee_001",
+      "colors": ["yellow"],
+      "materials": ["cotton"],
+      "description": "Light summer tee - bright casual cluster"
+    },
+    {
+      "item_name": "Charcoal Turtleneck Sweater",
+      "category": "tops",
+      "seed_key": "turtleneck_001",
+      "colors": ["charcoal", "gray"],
+      "materials": ["wool"],
+      "description": "Formal winter sweater - warm tailored cluster"
+    },
+    {
+      "item_name": "Navy Fleece Pullover",
+      "category": "tops",
+      "seed_key": "fleece_001",
+      "colors": ["navy"],
+      "materials": ["fleece", "polyester"],
+      "description": "Warm casual pullover - winter athletic cluster"
+    },
+    {
+      "item_name": "Burgundy Cardigan",
+      "category": "tops",
+      "seed_key": "cardigan_001",
+      "colors": ["burgundy", "red"],
+      "materials": ["wool"],
+      "description": "Classic cardigan - layering piece cluster"
+    },
+    {
+      "item_name": "Olive Green Henley",
+      "category": "tops",
+      "seed_key": "henley_001",
+      "colors": ["olive", "green"],
+      "materials": ["cotton"],
+      "description": "Casual henley - versatile layering"
+    },
+    {
+      "item_name": "Gray V-Neck T-Shirt",
+      "category": "tops",
+      "seed_key": "vneck_001",
+      "colors": ["gray"],
+      "materials": ["cotton"],
+      "description": "Basic v-neck - essential casual cluster"
+    },
+    {
+      "item_name": "Plaid Flannel Shirt",
+      "category": "tops",
+      "seed_key": "flannel_001",
+      "colors": ["red", "black"],
+      "materials": ["cotton", "flannel"],
+      "description": "Casual flannel - fall outdoor cluster"
+    },
+    {
+      "item_name": "White Oxford Shirt",
+      "category": "tops",
+      "seed_key": "oxford_001",
+      "colors": ["white"],
+      "materials": ["cotton"],
+      "description": "Classic oxford - formal business cluster"
+    },
+    {
+      "item_name": "Black Polo Shirt",
+      "category": "tops",
+      "seed_key": "polo_001",
+      "colors": ["black"],
+      "materials": ["cotton"],
+      "description": "Polo shirt - smart casual cluster"
+    },
+    {
+      "item_name": "Khaki Shorts",
+      "category": "bottoms",
+      "seed_key": "khaki_shorts_001",
+      "colors": ["khaki", "tan"],
+      "materials": ["cotton"],
+      "description": "Summer shorts - casual warm weather"
+    },
+    {
+      "item_name": "Navy Chino Shorts",
+      "category": "bottoms",
+      "seed_key": "chino_shorts_001",
+      "colors": ["navy"],
+      "materials": ["cotton"],
+      "description": "Casual shorts - summer essential"
+    },
+    {
+      "item_name": "Light Wash Jeans",
+      "category": "bottoms",
+      "seed_key": "light_jeans_001",
+      "colors": ["light blue"],
+      "materials": ["denim", "cotton"],
+      "description": "Light denim - casual spring/summer"
+    },
+    {
+      "item_name": "Gray Joggers",
+      "category": "bottoms",
+      "seed_key": "joggers_001",
+      "colors": ["gray"],
+      "materials": ["cotton", "polyester"],
+      "description": "Athletic joggers - comfort casual cluster"
+    },
+    {
+      "item_name": "Olive Cargo Pants",
+      "category": "bottoms",
+      "seed_key": "cargo_001",
+      "colors": ["olive", "green"],
+      "materials": ["cotton"],
+      "description": "Utility pants - outdoor casual cluster"
+    },
+    {
+      "item_name": "Charcoal Dress Pants",
+      "category": "bottoms",
+      "seed_key": "dress_pants_002",
+      "colors": ["charcoal", "gray"],
+      "materials": ["wool", "polyester"],
+      "description": "Formal trousers - business attire"
+    },
+    {
+      "item_name": "Navy Corduroy Pants",
+      "category": "bottoms",
+      "seed_key": "corduroy_001",
+      "colors": ["navy"],
+      "materials": ["corduroy", "cotton"],
+      "description": "Textured pants - fall/winter casual"
+    },
+    {
+      "item_name": "Black Athletic Leggings",
+      "category": "bottoms",
+      "seed_key": "leggings_001",
+      "colors": ["black"],
+      "materials": ["polyester", "spandex"],
+      "description": "Athletic leggings - performance wear"
+    },
+    {
+      "item_name": "Yellow Rain Jacket",
+      "category": "outerwear",
+      "seed_key": "rain_jacket_001",
+      "colors": ["yellow"],
+      "materials": ["nylon", "waterproof"],
+      "description": "Waterproof jacket - rainy weather protection"
+    },
+    {
+      "item_name": "Black Windbreaker",
+      "category": "outerwear",
+      "seed_key": "windbreaker_001",
+      "colors": ["black"],
+      "materials": ["nylon", "polyester"],
+      "description": "Lightweight jacket - athletic outer layer"
+    },
+    {
+      "item_name": "Camel Wool Overcoat",
+      "category": "outerwear",
+      "seed_key": "overcoat_001",
+      "colors": ["camel", "tan"],
+      "materials": ["wool", "cashmere"],
+      "description": "Luxury overcoat - formal winter wear"
+    },
+    {
+      "item_name": "Gray Puffer Jacket",
+      "category": "outerwear",
+      "seed_key": "puffer_001",
+      "colors": ["gray"],
+      "materials": ["down", "nylon"],
+      "description": "Insulated puffer - cold weather casual"
+    },
+    {
+      "item_name": "Black Pea Coat",
+      "category": "outerwear",
+      "seed_key": "peacoat_001",
+      "colors": ["black"],
+      "materials": ["wool"],
+      "description": "Classic pea coat - winter formal"
+    },
+    {
+      "item_name": "Olive Bomber Jacket",
+      "category": "outerwear",
+      "seed_key": "bomber_001",
+      "colors": ["olive", "green"],
+      "materials": ["nylon", "polyester"],
+      "description": "Bomber jacket - casual spring layer"
+    },
+    {
+      "item_name": "Brown Leather Jacket",
+      "category": "outerwear",
+      "seed_key": "leather_jacket_001",
+      "colors": ["brown"],
+      "materials": ["leather"],
+      "description": "Moto jacket - edgy casual style"
+    },
+    {
+      "item_name": "Gray Zip-Up Hoodie",
+      "category": "outerwear",
+      "seed_key": "zip_hoodie_001",
+      "colors": ["gray"],
+      "materials": ["cotton", "polyester"],
+      "description": "Casual hoodie - athletic layering"
+    },
+    {
+      "item_name": "Brown Leather Boots",
+      "category": "shoes",
+      "seed_key": "boots_001",
+      "colors": ["brown"],
+      "materials": ["leather"],
+      "description": "Chelsea boots - casual fall/winter"
+    },
+    {
+      "item_name": "Navy Canvas Sneakers",
+      "category": "shoes",
+      "seed_key": "canvas_sneakers_001",
+      "colors": ["navy"],
+      "materials": ["canvas", "rubber"],
+      "description": "Casual sneakers - everyday wear"
+    },
+    {
+      "item_name": "Black Running Shoes",
+      "category": "shoes",
+      "seed_key": "running_shoes_001",
+      "colors": ["black"],
+      "materials": ["mesh", "rubber", "synthetic"],
+      "description": "Athletic shoes - running/gym"
+    },
+    {
+      "item_name": "Tan Boat Shoes",
+      "category": "shoes",
+      "seed_key": "boat_shoes_001",
+      "colors": ["tan", "brown"],
+      "materials": ["leather", "rubber"],
+      "description": "Boat shoes - summer preppy"
+    },
+    {
+      "item_name": "Gray Slip-On Sneakers",
+      "category": "shoes",
+      "seed_key": "slip_on_001",
+      "colors": ["gray"],
+      "materials": ["canvas", "rubber"],
+      "description": "Slip-on sneakers - easy casual"
+    },
+    {
+      "item_name": "Burgundy Loafers",
+      "category": "shoes",
+      "seed_key": "loafers_001",
+      "colors": ["burgundy", "red"],
+      "materials": ["leather"],
+      "description": "Formal loafers - dressy footwear"
+    },
+    {
+      "item_name": "Navy Baseball Cap",
+      "category": "accessories",
+      "seed_key": "baseball_cap_001",
+      "colors": ["navy"],
+      "materials": ["cotton"],
+      "description": "Casual cap - sun protection"
+    },
+    {
+      "item_name": "Black Sunglasses",
+      "category": "accessories",
+      "seed_key": "sunglasses_001",
+      "colors": ["black"],
+      "materials": ["metal", "glass"],
+      "description": "Aviator sunglasses - summer accessory"
+    },
+    {
+      "item_name": "Gray Knit Scarf",
+      "category": "accessories",
+      "seed_key": "scarf_001",
+      "colors": ["gray"],
+      "materials": ["wool"],
+      "description": "Winter scarf - cold weather accessory"
+    },
+    {
+      "item_name": "Brown Leather Watch",
+      "category": "accessories",
+      "seed_key": "watch_001",
+      "colors": ["brown"],
+      "materials": ["leather", "metal"],
+      "description": "Classic watch - everyday accessory"
+    },
+    {
+      "item_name": "Black Backpack",
+      "category": "accessories",
+      "seed_key": "backpack_001",
+      "colors": ["black"],
+      "materials": ["nylon", "polyester"],
+      "description": "Practical backpack - everyday carry"
     }
   ]
 }
