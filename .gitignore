@@ -14,3 +14,5 @@ scripts/model_extractions/models
 scripts/model_extractions/user_corrections
 
 raincoat_api/db/seed_images/pre-processed/*
+
+.raincoatpy/
