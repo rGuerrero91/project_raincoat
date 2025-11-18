@@ -119,7 +119,7 @@ function checkStorageQuota(): Promise<{ available: boolean; quotaMB: number; usa
     const availableMB = quotaMB - usageMB;
 
     // We need ~522MB for all models
-    const requiredMB = 550; // Add some buffer
+    const requiredMB = 195; // Add some buffer
     const available = availableMB >= requiredMB;
 
     console.log(`[ONNX] Storage quota: ${availableMB.toFixed(0)}MB available of ${quotaMB.toFixed(0)}MB (usage: ${usageMB.toFixed(0)}MB, required: ${requiredMB}MB)`);
@@ -284,7 +284,7 @@ if (typeof window !== "undefined") {
   const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   // Serve WASM files from CDN - they're in /js/onnx/ directory
-  // Required files: ort-wasm.wasm (9.5MB) and ort-wasm-simd.wasm (10MB)
+  // Required files: ort-wasm-simd-threaded.wasm and ort-wasm-simd-threaded.jsep.wasm (for WebGPU)
   ort.env.wasm.wasmPaths = `${CDN_URL}/js/onnx/`;
 
   // Configure WASM settings based on platform capabilities
@@ -292,11 +292,21 @@ if (typeof window !== "undefined") {
   ort.env.wasm.simd = PLATFORM_INFO.supportsWASMSIMD; // Conditionally enable SIMD
   ort.env.wasm.proxy = false; // Disable proxy
 
+  // WebGPU configuration (required for JSEP)
+  if (PLATFORM_INFO.supportsWebGPU) {
+    ort.env.webgpu.powerPreference = 'high-performance';
+    // Enable validation in development for better error messages
+    if (process.env.NODE_ENV === 'development') {
+      ort.env.webgpu.validateInputContent = true;
+    }
+  }
+
   // Suppress ONNX Runtime warnings to prevent Next.js dev overlay spam
-  ort.env.logLevel = "error"; // Only show errors, not warnings
+  ort.env.logLevel = "warning"; // Show warnings for debugging WebGPU issues
 
   console.log(`[ONNX] WASM paths: ${ort.env.wasm.wasmPaths}`);
   console.log(`[ONNX] WASM configuration: SIMD=${ort.env.wasm.simd}, threads=${ort.env.wasm.numThreads}`);
+  console.log(`[ONNX] WebGPU available: ${PLATFORM_INFO.supportsWebGPU}, will use JSEP: ${PLATFORM_INFO.supportsWebGPU && !PLATFORM_INFO.isIOS}`);
 
   // Suppress console warnings from ONNX Runtime WASM
   const originalWarn = console.warn;
@@ -329,7 +339,10 @@ export interface ProcessingResult {
 // Currently using WASM for universal compatibility
 // Note: WebGPU support will be added in a future update after testing
 // ONNX Runtime Web only supports "webgpu" and "wasm" execution providers
-const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] = ["wasm"];
+const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] = 
+  PLATFORM_INFO.supportsWebGPU && !PLATFORM_INFO.isIOS
+    ? ["webgpu", "wasm"]  // Try WebGPU first, fallback to WASM
+    : ["wasm"];
 
 // Log execution providers after definition
 if (typeof window !== "undefined") {
@@ -442,7 +455,7 @@ class ONNXProcessor {
               await this.checkStorageAvailability();
               await window.modelCache!.initialize();
               const u2netBuffer = await window.modelCache!.loadONNXModel(
-                `${CDN_URL}/models/u2net.onnx`
+                `${CDN_URL}/models/u2netp_fp16.onnx`
               );
               this.u2netSession = await ort.InferenceSession.create(
                 u2netBuffer,
@@ -450,7 +463,7 @@ class ONNXProcessor {
               );
             } else {
               this.u2netSession = await ort.InferenceSession.create(
-                `${CDN_URL}/models/u2net.onnx`,
+                `${CDN_URL}/models/u2netp_fp16.onnx`,
                 { executionProviders: EXECUTION_PROVIDERS }
               );
             }
@@ -515,7 +528,7 @@ class ONNXProcessor {
               await this.checkStorageAvailability();
               await window.modelCache!.initialize();
               const fashionClipBuffer = await window.modelCache!.loadONNXModel(
-                `${CDN_URL}/models/fashionclip_image_encoder.onnx`
+                `${CDN_URL}/models/fashion_clip_vision_fp16.onnx`
               );
               this.fashionClipSession = await ort.InferenceSession.create(
                 fashionClipBuffer,
@@ -523,7 +536,7 @@ class ONNXProcessor {
               );
             } else {
               this.fashionClipSession = await ort.InferenceSession.create(
-                `${CDN_URL}/models/fashionclip_image_encoder.onnx`,
+                `${CDN_URL}/models/fashion_clip_vision_fp16.onnx`,
                 { executionProviders: EXECUTION_PROVIDERS }
               );
             }
@@ -818,7 +831,7 @@ class ONNXProcessor {
     }
 
     const tensor = new ort.Tensor("float32", tensorData, [1, 3, inputSize, inputSize]);
-    const feeds = { "input.1": tensor };
+    const feeds = { "input": tensor };
 
     // Run inference with timeout
     const inferenceStart = performance.now();
