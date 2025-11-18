@@ -1,4 +1,0 @@
-raincoat_api/Gemfile.lock
-raincoat_api/public/models/clip-vit-base-patch32/fashionclip_vision.onnx
-raincoat_api/public/models/clip-vit-base-patch32/vision_model_quantized.onnx
-test_images/

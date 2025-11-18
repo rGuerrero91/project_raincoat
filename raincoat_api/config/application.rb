@@ -32,5 +32,12 @@ module RaincoatApi
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore
     config.middleware.use ActionDispatch::Flash
+
+    # ONNX Runtime Web WebGPU/JSEP Support
+    # These headers are required for SharedArrayBuffer and WebGPU acceleration
+    config.action_dispatch.default_headers.merge!({
+      'Cross-Origin-Opener-Policy' => 'same-origin',
+      'Cross-Origin-Embedder-Policy' => 'require-corp'
+    })
   end
 end

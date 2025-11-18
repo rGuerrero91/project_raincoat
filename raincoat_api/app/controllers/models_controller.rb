@@ -18,6 +18,7 @@ class ModelsController < ApplicationController
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
     response.headers['Cache-Control'] = 'public, max-age=31536000' # Cache for 1 year
     
     # Handle preflight requests
