@@ -214,14 +214,14 @@ export default function ClothingItemViewPage() {
     <div style={{ width: "50%", margin: "0 auto", padding: "2rem 0" }}>
       {/* Header */}
       <div className="mb-6">
-        <Button
+        {/* <Button
           variant="secondary"
-          onClick={() => router.back()}
+          onClick={() => router.()}
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
-        </Button>
+        </Button> */}
 
         <h1 className="text-headline font-bold mb-2">
           {item.name || `${item.category} Item`}
@@ -308,7 +308,7 @@ export default function ClothingItemViewPage() {
             {similarItems.map((similar) => (
               <button
                 key={similar.item.id}
-                onClick={() => router.push(`/items/${similar.item.id}`)}
+                onClick={() => router.push(`/demo/items/${similar.item.id}`)}
                 className="text-left hover:opacity-80 transition-opacity"
               >
                 <div className="aspect-square bg-neutral-light rounded-lg overflow-hidden mb-2">
