@@ -106,11 +106,11 @@ export default function ClosetScreen({
               {/* Category Badge */}
               {item.category && (
                 <span className="mt-2 text-xs text-medium capitalize">
-                  {item.category}-
+                  {item.category + " "} <br/>
                 </span>
               )}
-              <span className="mt-2 text-xs text-neutral-medium capitalize">
-                See Similar Items
+              <span className="mt-2 text-xs text-neutral-medium capitalize" >
+                {"(tap for Similar Items)"}
               </span>
             </Card>
           </a>
