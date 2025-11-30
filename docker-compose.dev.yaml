@@ -1,7 +1,7 @@
 #project_raincoat/docker-compose.dev.yaml
 services:
   db:
-    image: pgvector/pgvector:pg15
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_DB: raincoat_api_development
       POSTGRES_USER: postgres
@@ -24,7 +24,6 @@ services:
     volumes:
       - redis_data:/data
       
-  # Rails docker environment omitted to simplify development. May reinstate once team starts to scale. 
   rails:
     build:
       context: ./raincoat_api
