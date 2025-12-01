@@ -15,11 +15,11 @@ Raincoat is a privacy first, Machine learning powered, weather based outfit reco
 
 ## Architecture
 
-**Frontend**: Next.js 15 with TypeScript and Tailwind CSS
-**Backend**: Ruby on Rails 8 (API-only)
-**Database**: PostgreSQL 15 with pgvector for AI embeddings
+**Frontend**: Next.js 15.5+ with TypeScript and Tailwind CSS
+**Backend**: Ruby on Rails 8.0.2 (API-only)
+**Database**: PostgreSQL 16 with pgvector for AI embeddings
 **Image Storage**: Active Storage with direct uploads
-**Authentication**: JWT with Devise
+**Authentication**: Devise with session/token auth (JWT planned)
 **Caching**: Redis
 **AI Processing**: Client-side ONNX models (U2-Net, YOLOv8, FashionCLIP)
 **Weather Data**: WeatherAPI.com
@@ -59,10 +59,10 @@ Photos never leave your device. Only vector embeddings and user-validated tags a
 ### Prerequisites
 
 - Ruby 3.4.5 (use rbenv, rvm, or asdf)
-- Node.js 18+ and npm (for Next.js frontend)
+- Node.js 18+ and npm (recommended: create .nvmrc with version 18 or higher)
 - Docker Desktop
 - Git
-- Python 3.11+ (for AI model preparation)
+- Python 3.11+ (for one-time AI model preparation only)
 
 ### Ruby Installation
 
@@ -108,20 +108,22 @@ rvm use 3.4.5
 4. **Prepare AI Models** (one-time setup)
 
    ```bash
-   cd scripts/model_extractions
+   # Export U2Net (quantized, optimized for browser)
+   cd scripts/model_extraction_scripts/u2net_quantized
+   python u2net_onnx_export_v2.py
 
-   # Install Python dependencies
-   pip install torch transformers
+   # Export FashionCLIP (quantized with FP16)
+   cd ../FCLIP_quantized
+   python FCLIP_onnx_export_V2.py
 
-   # Extract U2-Net, export FashionCLIP, and YOLO
-   python extract_u2net_onnx.py
-   python export_fashionclip_onnx.py
-   python export_yolo_onnx.py
-
-   # Generate label embeddings
-   python generate_label_embeddings.py
+   # Export YOLO and generate label embeddings
+   cd ..
+   python yolo_export_only.py
+   python fclip_generate_label_embeddings.py
 
    # Copy models to Rails public directory
+   cp u2net_quantized/models/*.onnx ../../raincoat_api/public/models/
+   cp FCLIP_quantized/models/*.onnx ../../raincoat_api/public/models/
    cp models/*.onnx ../../raincoat_api/public/models/
    cp models/*.json ../../raincoat_api/public/models/
    ```
@@ -156,9 +158,8 @@ rvm use 3.4.5
    - PostgreSQL: localhost:5432
    - Redis: localhost:6379
 
-### Full Docker Setup (Alternative)
+### Alternative: Full Docker Development
 
-For consistent environments across machines or when you prefer full containerization:
 
 1. **Start the full development environment**
 
@@ -172,6 +173,8 @@ For consistent environments across machines or when you prefer full containeriza
    docker compose -f docker-compose.dev.yaml exec rails db:migrate
    docker compose -f docker-compose.dev.yaml exec rails db:seed
    ```
+
+For services-only (PostgreSQL + Redis), use `docker-compose.services.yaml` instead.
 
 ### Environment Reset
 
@@ -215,14 +218,13 @@ project_raincoat/
 │   │       └── weather_rules.json  # Transitional mappings (~2 KB)
 │   ├── Gemfile            # Ruby dependencies
 │   └── Dockerfile.dev      # Development Docker image
-├── raincoat_frontend/      # Next.js 15 frontend
+├── raincoat_frontend/      # Next.js 15.5+ frontend
 │   ├── app/                # Next.js App Router
-│   │   ├── demo/           # Demo flow screens
+│   │   ├── demo/           # Demo flow (11 screens)
 │   │   │   ├── WelcomeScreen.tsx
 │   │   │   ├── PrivacyScreen.tsx
 │   │   │   ├── AddItemScreen.tsx
-│   │   │   ├── ObjectDetectionScreen.tsx
-│   │   │   ├── CategoryScreen.tsx
+│   │   │   ├── ObjectDetectionAndCategoryScreen.tsx  # Combined detection + category
 │   │   │   ├── ProcessingScreen.tsx
 │   │   │   ├── TagsScreen.tsx
 │   │   │   ├── ClosetScreen.tsx
@@ -241,11 +243,15 @@ project_raincoat/
 │   │   └── ort-wasm-simd.wasm    # ONNX Runtime SIMD WASM
 │   └── package.json        # Node dependencies
 ├── scripts/                # Utility scripts
-│   ├── model_extractions/  # AI model preparation
-│   │   ├── extract_u2net_onnx.py
-│   │   ├── export_fashionclip_onnx.py
-│   │   ├── export_yolo_onnx.py
-│   │   └── generate_label_embeddings.py
+│   ├── model_extraction_scripts/  # AI model preparation
+│   │   ├── u2net_quantized/       # U2Net FP16 quantized export
+│   │   │   └── u2net_onnx_export_v2.py
+│   │   ├── FCLIP_quantized/       # FashionCLIP FP16 quantized export
+│   │   │   └── FCLIP_onnx_export_V2.py
+│   │   ├── yolo_export_only.py
+│   │   ├── yolo_full_process.py
+│   │   ├── fclip_generate_label_embeddings.py
+│   │   └── test_exported_models.py
 │   ├── reset_docker.ps1    # Windows Docker reset
 │   └── reset_docker.sh     # Unix Docker reset
 ├── init.sql               # PostgreSQL initialization
@@ -270,18 +276,19 @@ project_raincoat/
 
 **U2-Net (Background Removal)**
 
-- Size: ~167 MB
+- Size: ~88 MB (FP16 quantized from 176 MB)
 - Input: 320x320 RGB image (auto-resized from max 800px for performance)
 - Output: Segmentation mask
 - Purpose: Remove distracting backgrounds from clothing photos
-- Optimization: Images resized to max 800x800 before processing
+- Optimization: FP16 quantization for 50% size reduction with minimal quality loss
 
 **FashionCLIP (Image Encoder)**
 
-- Size: ~150 MB
+- Size: ~75 MB (FP16 quantized from 150 MB)
 - Input: 224x224 RGB image
 - Output: 512-dimensional embedding
 - Purpose: Generate semantic representations of clothing items
+- Optimization: FP16 quantization optimized for browser/mobile performance
 
 **Label Embeddings (Auto-Tagging)**
 
@@ -297,20 +304,24 @@ project_raincoat/
 
 ### Model Preparation
 
-Models are extracted/exported once and served as static assets:
+Models are exported with FP16 quantization for optimized browser performance:
 
 ```bash
-# Extract U2-Net from rembg cache
-python extract_u2net_onnx.py
+# Export U2Net (FP16 quantized v2)
+cd scripts/model_extraction_scripts/u2net_quantized
+python u2net_onnx_export_v2.py
 
-# Export FashionCLIP from HuggingFace
-python export_fashionclip_onnx.py
+# Export FashionCLIP (FP16 quantized v2)
+cd ../FCLIP_quantized
+python FCLIP_onnx_export_V2.py
 
-# Generate label embeddings (fashion + weather terms)
-python generate_label_embeddings.py
+# Export YOLO and generate label embeddings
+cd ..
+python yolo_export_only.py
+python fclip_generate_label_embeddings.py
 ```
 
-Output files are copied to `raincoat_api/public/models/` and served via CDN.
+Output files are copied to `raincoat_api/public/models/` and served as static assets. The v2 quantized scripts automatically handle dependencies and produce browser-optimized models with 50% size reduction.
 
 ## Data Models
 
@@ -389,18 +400,24 @@ docker compose -f docker-compose.dev.yaml up --build
 
 ```bash
 # One-time setup: prepare all AI models
-cd scripts/model_extractions
+cd scripts/model_extraction_scripts
 
-# Install dependencies
-pip install torch transformers ultralytics
+# Export U2Net (quantized v2 script handles dependencies)
+cd u2net_quantized
+python u2net_onnx_export_v2.py
 
-# Extract and export models
-python extract_u2net_onnx.py
-python export_fashionclip_onnx.py
-python export_yolo_onnx.py
-python generate_label_embeddings.py
+# Export FashionCLIP (quantized v2 script handles dependencies)
+cd ../FCLIP_quantized
+python FCLIP_onnx_export_V2.py
+
+# Export YOLO and generate label embeddings
+cd ..
+python yolo_export_only.py
+python fclip_generate_label_embeddings.py
 
 # Deploy to public directory
+cp u2net_quantized/models/*.onnx ../../raincoat_api/public/models/
+cp FCLIP_quantized/models/*.onnx ../../raincoat_api/public/models/
 cp models/*.onnx ../../raincoat_api/public/models/
 cp models/*.json ../../raincoat_api/public/models/
 ```
@@ -516,16 +533,16 @@ This will populate the database with clothing items that have real FashionCLIP e
 
 **YOLO model not found:**
 ```bash
-# Copy from model_extractions if needed
-cp scripts/model_extractions/models/yolo_raincoat.onnx raincoat_api/public/models/
+# Copy from model_extraction_scripts if needed
+cp scripts/model_extraction_scripts/models/yolo_raincoat.onnx raincoat_api/public/models/
 ```
 
 **FashionCLIP model not found:**
 ```bash
-# Re-export from HuggingFace
-cd scripts/model_extractions
-python export_fashionclip_onnx.py
-cp models/fashionclip_image_encoder.onnx ../../raincoat_api/public/models/
+# Re-export from HuggingFace (using quantized v2)
+cd scripts/model_extraction_scripts/FCLIP_quantized
+python FCLIP_onnx_export_V2.py
+cp models/fashionclip_image_encoder.onnx ../../../raincoat_api/public/models/
 ```
 
 **Rembg background removal fails:**
@@ -672,9 +689,9 @@ REDIS_URL=<production-redis-url>
 
 ### Phase 4: Frontend Polish (IN PROGRESS)
 
-- [x] Interactive demo flow with 12 screens
+- [x] Interactive demo flow with 11 screens
 - [x] Live crop preview with category selection
-- [ ] Combine object detection and category screens
+- [x] Combine object detection and category screens
 - [ ] Enhanced UI/UX and responsive design
 - [ ] Error handling and user feedback
 - [ ] Loading states and animations
@@ -789,10 +806,12 @@ bundle install
 # Verify models exist
 ls -lh raincoat_api/public/models/
 
-# Re-extract if needed
-cd scripts/model_extractions
-python extract_u2net_onnx.py
-python export_fashionclip_onnx.py
+# Re-export if needed (using quantized v2 scripts)
+cd scripts/model_extraction_scripts/u2net_quantized
+python u2net_onnx_export_v2.py
+
+cd ../FCLIP_quantized
+python FCLIP_onnx_export_V2.py
 ```
 
 **ONNX runtime errors in browser:**
