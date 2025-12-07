@@ -80,8 +80,27 @@ rvm install 3.4.5
 rvm use 3.4.5
 ```
 
-### Development Setup (Hybrid Approach)
+## Development Setup
 
+### Full Docker Development
+
+
+1. **Start the full development environment**
+
+   ```bash
+   docker compose -f docker-compose.dev.yaml up
+   ```
+
+2. **Set up the database** (first time only)
+   ```bash
+   docker compose -f docker-compose.dev.yaml exec rails bundle exec rails db:create
+   docker compose -f docker-compose.dev.yaml exec rails db:migrate
+   docker compose -f docker-compose.dev.yaml exec rails db:seed
+   ```
+
+For services-only (PostgreSQL + Redis), use `docker-compose.services.yaml` instead.
+
+### Docker for Services only 
 1. **Clone the repository**
 
    ```bash
@@ -158,24 +177,6 @@ rvm use 3.4.5
    - PostgreSQL: localhost:5432
    - Redis: localhost:6379
 
-### Alternative: Full Docker Development
-
-
-1. **Start the full development environment**
-
-   ```bash
-   docker compose -f docker-compose.dev.yaml up
-   ```
-
-2. **Set up the database** (first time only)
-   ```bash
-   docker compose -f docker-compose.dev.yaml exec rails bundle exec rails db:create
-   docker compose -f docker-compose.dev.yaml exec rails db:migrate
-   docker compose -f docker-compose.dev.yaml exec rails db:seed
-   ```
-
-For services-only (PostgreSQL + Redis), use `docker-compose.services.yaml` instead.
-
 ### Environment Reset
 
 If you encounter issues or need a fresh start:
@@ -224,7 +225,7 @@ project_raincoat/
 │   │   │   ├── WelcomeScreen.tsx
 │   │   │   ├── PrivacyScreen.tsx
 │   │   │   ├── AddItemScreen.tsx
-│   │   │   ├── ObjectDetectionAndCategoryScreen.tsx  # Combined detection + category
+│   │   │   ├── ObjectDetectionAndCategoryScreen.tsx  
 │   │   │   ├── ProcessingScreen.tsx
 │   │   │   ├── TagsScreen.tsx
 │   │   │   ├── ClosetScreen.tsx
@@ -276,7 +277,7 @@ project_raincoat/
 
 **U2-Net (Background Removal)**
 
-- Size: ~88 MB (FP16 quantized from 176 MB)
+- Size: ~2.5 MB (FP16 quantized from 176 MB)
 - Input: 320x320 RGB image (auto-resized from max 800px for performance)
 - Output: Segmentation mask
 - Purpose: Remove distracting backgrounds from clothing photos
@@ -284,7 +285,7 @@ project_raincoat/
 
 **FashionCLIP (Image Encoder)**
 
-- Size: ~75 MB (FP16 quantized from 150 MB)
+- Size: ~176 MB (FP16 quantized from 352 MB)
 - Input: 224x224 RGB image
 - Output: 512-dimensional embedding
 - Purpose: Generate semantic representations of clothing items
