@@ -354,7 +354,7 @@ const MAX_IMAGE_SIZE = 400; // Maximum width/height for processing (reduce compu
 
 // U2-Net Configuration - Trade-off between speed and quality
 // Note: U2-Net model is trained for 320×320 input - cannot be changed without retraining
-// For iOS memory optimization, model quantization (FP16/INT8) is the recommended approach
+// For iOS memory optimization, models have been quantized down to FP16/INT8
 const U2NET_INPUT_SIZE = 320; // Fixed at 320×320 as required by the model
 const U2NET_QUALITY_MODE = PLATFORM_INFO.isMobile ? "low" : "medium"; // Mobile: faster, Desktop: better quality
 const USE_FAST_MASK_APPLICATION = true; // Use optimized mask application (faster, slight quality loss)
