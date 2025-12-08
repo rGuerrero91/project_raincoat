@@ -11,3 +11,5 @@ raincoat_api/public/js/*
 raincoat_api/db/seed_images/pre-processed/*
 
 .raincoatpy/
+
+scripts/model_extractions/*
