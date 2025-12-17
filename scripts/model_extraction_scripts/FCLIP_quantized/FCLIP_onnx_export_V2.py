@@ -124,7 +124,7 @@ def export_fashion_clip():
     vision_encoder = VisionEncoder(model)
     dummy_image = torch.randn(1, 3, 224, 224)
 
-    vision_path = output_dir / "fashion_clip_vision.onnx"
+    vision_path = output_dir / "fashionclip_image_encoder_fp16.onnx"
     print(f"Exporting to: {vision_path}")
     print("  Input: pixel_values [batch, 3, 224, 224] float32")
     print("  Output: image_embeds [batch, 512] float32 (L2-normalized)")

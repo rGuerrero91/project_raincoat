@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """
+This export script is deprecated and should not be used. 
+Use the updated script @ scripts\model_extraction_scripts\FCLIP_quantized\FCLIP_onnx_export_V2.py instead.
+
 Export FashionCLIP to ONNX format for browser deployment.
 Creates separate models for image and text encoding.
 Loads directly from HuggingFace without requiring the fashion-clip package.
