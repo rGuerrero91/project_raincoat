@@ -19,6 +19,12 @@ amazon:
   # Uncomment and set to desired path:
   # prefix: <%= ENV['S3_PREFIX'] || 'clothing/user_uploads' %>
 
+  # Set CORP header to allow cross-origin access
+  upload:
+    cache_control: "public, max-age=31536000"
+    metadata:
+      "Cross-Origin-Resource-Policy": "cross-origin"
+
 # Remember not to checkin your GCS keyfile to a repository
 # google:
 #   service: GCS
