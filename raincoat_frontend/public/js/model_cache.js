@@ -55,28 +55,30 @@ class ModelCache {
       const usageMB = (estimate.usage || 0) / (1024 * 1024);
       const availableMB = quotaMB - usageMB;
 
-      // All models require ~522MB total
-      const requiredMB = 550; // Add buffer for overhead
+      // All models require ~170MB total
+      const requiredMB = 185; // Add buffer for overhead
 
-      console.log(`[Cache] Storage: ${availableMB.toFixed(0)}MB available of ${quotaMB.toFixed(0)}MB total (using ${usageMB.toFixed(0)}MB, need ${requiredMB}MB)`);
+      console.log(
+        `[Cache] Storage: ${availableMB.toFixed(0)}MB available of ${quotaMB.toFixed(0)}MB total (using ${usageMB.toFixed(0)}MB, need ${requiredMB}MB)`
+      );
 
       if (availableMB < requiredMB) {
         const error = new Error(
           `Insufficient storage space for AI models.\n\n` +
-          `Required: ~${requiredMB}MB\n` +
-          `Available: ${availableMB.toFixed(0)}MB\n\n` +
-          `Please free up space by:\n` +
-          `- Clearing browser cache and data\n` +
-          `- Removing unused files/apps\n` +
-          `- Checking storage in Settings`
+            `Required: ~${requiredMB}MB\n` +
+            `Available: ${availableMB.toFixed(0)}MB\n\n` +
+            `Please free up space by:\n` +
+            `- Clearing browser cache and data\n` +
+            `- Removing unused files/apps\n` +
+            `- Checking storage in Settings`
         );
-        error.name = 'QuotaExceededError';
+        error.name = "QuotaExceededError";
         throw error;
       }
 
       return { available: true, quotaMB, usageMB, availableMB };
     } catch (err) {
-      if (err.name === 'QuotaExceededError') {
+      if (err.name === "QuotaExceededError") {
         throw err; // Re-throw quota errors
       }
       console.warn("[Cache] Failed to check storage quota:", err);
@@ -94,8 +96,17 @@ class ModelCache {
 
       request.onsuccess = () => {
         if (request.result) {
-          console.log(`[Cache] Model loaded from cache: ${url}`);
-          resolve(request.result.data);
+          // Check if cached model is older than 7 days
+          const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+          const age = Date.now() - request.result.timestamp;
+
+          if (age > SEVEN_DAYS_MS) {
+            console.log(`[Cache] Model cache expired (${Math.floor(age / (24 * 60 * 60 * 1000))} days old): ${url}`);
+            resolve(null); // Return null to trigger fresh fetch
+          } else {
+            console.log(`[Cache] Model loaded from cache: ${url}`);
+            resolve(request.result.data);
+          }
         } else {
           resolve(null);
         }
@@ -126,18 +137,18 @@ class ModelCache {
         const error = event.target.error;
 
         // Handle quota exceeded errors with user-friendly message
-        if (error.name === 'QuotaExceededError') {
+        if (error.name === "QuotaExceededError") {
           const friendlyError = new Error(
             `Storage quota exceeded while caching model.\n\n` +
-            `The browser ran out of storage space while saving this AI model.\n\n` +
-            `Solutions:\n` +
-            `- Clear browser cache and site data\n` +
-            `- Free up device storage\n` +
-            `- Use a different browser with more available quota\n\n` +
-            `Note: The demo will still work but models won't be cached for offline use.`
+              `The browser ran out of storage space while saving this AI model.\n\n` +
+              `Solutions:\n` +
+              `- Clear browser cache and site data\n` +
+              `- Free up device storage\n` +
+              `- Use a different browser with more available quota\n\n` +
+              `Note: The demo will still work but models won't be cached for offline use.`
           );
-          friendlyError.name = 'QuotaExceededError';
-          console.error('[Cache] Quota exceeded:', friendlyError.message);
+          friendlyError.name = "QuotaExceededError";
+          console.error("[Cache] Quota exceeded:", friendlyError.message);
           reject(friendlyError);
         } else {
           reject(error);
@@ -156,8 +167,17 @@ class ModelCache {
 
       request.onsuccess = () => {
         if (request.result) {
-          console.log(`[Cache] JSON loaded from cache: ${url}`);
-          resolve(request.result.data);
+          // Check if cached JSON is older than 7 days
+          const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+          const age = Date.now() - request.result.timestamp;
+
+          if (age > SEVEN_DAYS_MS) {
+            console.log(`[Cache] JSON cache expired (${Math.floor(age / (24 * 60 * 60 * 1000))} days old): ${url}`);
+            resolve(null); // Return null to trigger fresh fetch
+          } else {
+            console.log(`[Cache] JSON loaded from cache: ${url}`);
+            resolve(request.result.data);
+          }
         } else {
           resolve(null);
         }
@@ -205,8 +225,10 @@ class ModelCache {
     try {
       await this.setModel(url, arrayBuffer);
     } catch (err) {
-      if (err.name === 'QuotaExceededError') {
-        console.warn(`[Cache] Could not cache model due to quota limits - will fetch on each use`);
+      if (err.name === "QuotaExceededError") {
+        console.warn(
+          `[Cache] Could not cache model due to quota limits - will fetch on each use`
+        );
         console.warn(`[Cache] ${err.message}`);
         // Continue without caching - model is still loaded in memory
       } else {
