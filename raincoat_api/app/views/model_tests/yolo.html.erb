@@ -235,10 +235,25 @@
         showStatus('Model or image not ready', 'error');
         return;
       }
-      
+
+      // Wait for model to finish loading if still in progress
+      if (!yoloHandler.modelLoaded) {
+        showStatus('Waiting for model to finish loading...', 'loading');
+        // Wait up to 30 seconds for model to load
+        const maxWait = 30000;
+        const startWait = Date.now();
+        while (!yoloHandler.modelLoaded && (Date.now() - startWait) < maxWait) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        if (!yoloHandler.modelLoaded) {
+          showStatus('Model failed to load. Please refresh the page.', 'error');
+          return;
+        }
+      }
+
       showStatus('Detecting clothing items...', 'loading');
       const startTime = performance.now();
-      
+
       try {
         // Run detection
         const detections = await yoloHandler.detect(currentImage);
