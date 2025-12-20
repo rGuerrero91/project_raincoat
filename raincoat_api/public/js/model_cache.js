@@ -8,6 +8,7 @@ class ModelCache {
     this.dbName = "RaincoatModelCache";
     this.dbVersion = 1;
     this.db = null;
+    this._ortConfigured = false;
   }
 
   async initialize() {
@@ -189,34 +190,49 @@ class ModelCache {
   }
 
   async loadONNXModel(url) {
-    // check cache first
-    const cachedData = await this.getModel(url);
-    if (cachedData) {
-      // Return raw ArrayBuffer - caller will create session
-      return cachedData;
+    // Configure ONNX Runtime WASM paths (only needs to be done once)
+    if (!this._ortConfigured) {
+      console.log('[Cache] Configuring ONNX Runtime WASM paths...');
+      ort.env.wasm.wasmPaths = '/js/onnx/';
+      this._ortConfigured = true;
     }
 
-    // if not there fetch and store
-    console.log(`[Cache] Fetching model from server: ${url}`);
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
+    // check cache first
+    const cachedData = await this.getModel(url);
+    let arrayBuffer;
 
-    // Try to store in cache, but don't fail if quota exceeded
-    try {
-      await this.setModel(url, arrayBuffer);
-    } catch (err) {
-      if (err.name === 'QuotaExceededError') {
-        console.warn(`[Cache] Could not cache model due to quota limits - will fetch on each use`);
-        console.warn(`[Cache] ${err.message}`);
-        // Continue without caching - model is still loaded in memory
-      } else {
-        // For other errors, log but continue
-        console.error(`[Cache] Failed to cache model:`, err);
+    if (cachedData) {
+      console.log(`[Cache] Using cached model data`);
+      arrayBuffer = cachedData;
+    } else {
+      // if not there fetch and store
+      console.log(`[Cache] Fetching model from server: ${url}`);
+      const response = await fetch(url);
+      arrayBuffer = await response.arrayBuffer();
+
+      // Try to store in cache, but don't fail if quota exceeded
+      try {
+        await this.setModel(url, arrayBuffer);
+      } catch (err) {
+        if (err.name === 'QuotaExceededError') {
+          console.warn(`[Cache] Could not cache model due to quota limits - will fetch on each use`);
+          console.warn(`[Cache] ${err.message}`);
+          // Continue without caching - model is still loaded in memory
+        } else {
+          // For other errors, log but continue
+          console.error(`[Cache] Failed to cache model:`, err);
+        }
       }
     }
 
-    // Return raw ArrayBuffer - caller will create session
-    return arrayBuffer;
+    // Create ONNX session from ArrayBuffer
+    console.log(`[Cache] Creating ONNX inference session...`);
+    const session = await ort.InferenceSession.create(arrayBuffer, {
+      executionProviders: ["wasm"],
+      graphOptimizationLevel: "all",
+    });
+
+    return session;
   }
 
   async loadJSON(url) {

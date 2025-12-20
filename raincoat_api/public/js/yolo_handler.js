@@ -48,15 +48,42 @@ class YOLOHandler {
     console.log("[YOLO] Initializing with cache...");
 
     try {
+      // Configure ONNX Runtime WASM paths
+      if (typeof ort !== 'undefined' && ort.env && ort.env.wasm) {
+        ort.env.wasm.wasmPaths = '/js/onnx/';
+        console.log("[YOLO] WASM paths configured");
+      }
+
       // Load configuration (lightweight, always fetch)
       const configResponse = await fetch("/models/yolo_config.json");
       this.config = await configResponse.json();
       console.log("[YOLO] Config loaded:", this.config.model_info.name);
 
-      // Load model with caching
-      this.session = await window.modelCache.loadONNXModel(
-        "/models/yolo_raincoat.onnx"
+      // Load ONNX model directly (like frontend implementation)
+      console.log("[YOLO] Loading ONNX model from /models/yolo_raincoat.onnx...");
+      console.log("[YOLO] Fetching model file...");
+
+      const modelUrl = "/models/yolo_raincoat.onnx";
+      const fetchStart = performance.now();
+      const response = await fetch(modelUrl);
+      const fetchTime = performance.now() - fetchStart;
+      console.log(`[YOLO] Model fetched in ${fetchTime.toFixed(0)}ms (${(response.headers.get('content-length') / 1024 / 1024).toFixed(1)}MB)`);
+
+      console.log("[YOLO] Converting to ArrayBuffer...");
+      const arrayBuffer = await response.arrayBuffer();
+      console.log(`[YOLO] ArrayBuffer ready (${(arrayBuffer.byteLength / 1024 / 1024).toFixed(1)}MB)`);
+
+      console.log("[YOLO] Creating ONNX inference session...");
+      const sessionStart = performance.now();
+      this.session = await ort.InferenceSession.create(
+        arrayBuffer,
+        {
+          executionProviders: ["wasm"],
+          graphOptimizationLevel: "all",
+        }
       );
+      const sessionTime = performance.now() - sessionStart;
+      console.log(`[YOLO] Session created in ${sessionTime.toFixed(0)}ms`);
 
       this.modelLoaded = true;
       console.log("[YOLO] Model loaded successfully");
