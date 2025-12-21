@@ -162,24 +162,31 @@
   </div>
 
   <script src="/js/onnx/ort.min.js"></script>
+  <script>
+    // Configure ONNX Runtime BEFORE loading yolo_handler.js
+    ort.env.wasm.numThreads = 1;
+    ort.env.wasm.simd = true;
+    ort.env.wasm.wasmPaths = '/js/onnx/';
+    console.log('[YOLO Setup] ONNX Runtime configured:', {
+      numThreads: ort.env.wasm.numThreads,
+      simd: ort.env.wasm.simd,
+      wasmPaths: ort.env.wasm.wasmPaths
+    });
+  </script>
   <script src="/js/yolo_handler.js"></script>
-  <script src="/js/model_cache.js"></script>
-  
+
   <script>
     let yoloHandler = null;
     let currentImage = null;
-    
+
     // Load model on page load
     window.addEventListener('load', async () => {
-      showStatus('Loading YOLO model from cache...', 'loading');
-      
+      showStatus('Loading YOLO model...', 'loading');
+
       try {
-        // Initialize cache
-        await window.modelCache.initialize();
-        
         yoloHandler = new YOLOHandler();
-        await yoloHandler.initializeWithCache();
-        
+        await yoloHandler.initialize();
+
         showStatus('YOLO model loaded successfully', 'success');
         setTimeout(() => hideStatus(), 2000);
       } catch (error) {

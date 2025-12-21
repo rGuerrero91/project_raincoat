@@ -1,14 +1,6 @@
 class ApplicationController < ActionController::Base
   include ActionController::Flash
   protect_from_forgery with: :null_session
-
-  # Enable SharedArrayBuffer for ONNX Runtime multi-threaded WASM
-  before_action :set_coop_coep_headers
-
-  def set_coop_coep_headers
-    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
-    response.headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
-  end
   
   def index
     if current_user

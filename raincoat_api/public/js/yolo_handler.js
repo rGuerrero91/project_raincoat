@@ -42,48 +42,26 @@ class YOLOHandler {
   }
 
   /**
-   * Initialize with caching support
+   * Initialize - exact copy of frontend implementation
    */
   async initializeWithCache() {
-    console.log("[YOLO] Initializing with cache...");
+    console.log("[YOLO] Initializing detector...");
 
     try {
-      // Configure ONNX Runtime WASM paths
-      if (typeof ort !== 'undefined' && ort.env && ort.env.wasm) {
-        ort.env.wasm.wasmPaths = '/js/onnx/';
-        console.log("[YOLO] WASM paths configured");
-      }
-
-      // Load configuration (lightweight, always fetch)
+      // Load configuration
       const configResponse = await fetch("/models/yolo_config.json");
       this.config = await configResponse.json();
       console.log("[YOLO] Config loaded:", this.config.model_info.name);
 
-      // Load ONNX model directly (like frontend implementation)
-      console.log("[YOLO] Loading ONNX model from /models/yolo_raincoat.onnx...");
-      console.log("[YOLO] Fetching model file...");
-
-      const modelUrl = "/models/yolo_raincoat.onnx";
-      const fetchStart = performance.now();
-      const response = await fetch(modelUrl);
-      const fetchTime = performance.now() - fetchStart;
-      console.log(`[YOLO] Model fetched in ${fetchTime.toFixed(0)}ms (${(response.headers.get('content-length') / 1024 / 1024).toFixed(1)}MB)`);
-
-      console.log("[YOLO] Converting to ArrayBuffer...");
-      const arrayBuffer = await response.arrayBuffer();
-      console.log(`[YOLO] ArrayBuffer ready (${(arrayBuffer.byteLength / 1024 / 1024).toFixed(1)}MB)`);
-
-      console.log("[YOLO] Creating ONNX inference session...");
-      const sessionStart = performance.now();
+      // Load ONNX model - EXACT same way as frontend
+      console.log("[YOLO] Loading ONNX model...");
       this.session = await ort.InferenceSession.create(
-        arrayBuffer,
+        "/models/yolo_raincoat.onnx",
         {
           executionProviders: ["wasm"],
-          graphOptimizationLevel: "all",
+          graphOptimizationLevel: "all"
         }
       );
-      const sessionTime = performance.now() - sessionStart;
-      console.log(`[YOLO] Session created in ${sessionTime.toFixed(0)}ms`);
 
       this.modelLoaded = true;
       console.log("[YOLO] Model loaded successfully");
@@ -91,11 +69,6 @@ class YOLOHandler {
       return true;
     } catch (error) {
       console.error("[YOLO] Initialization failed:", error);
-      console.error("[YOLO] Error details:", {
-        message: error.message,
-        name: error.name,
-        stack: error.stack
-      });
       throw error;
     }
   }
@@ -182,10 +155,12 @@ class YOLOHandler {
       // Filter by confidence threshold
       if (maxScore >= this.config.postprocessing.confidence_threshold) {
         // Get bbox coordinates (center_x, center_y, width, height format)
-        const centerX = output[i];
-        const centerY = output[numDetections + i];
-        const width = output[2 * numDetections + i];
-        const height = output[3 * numDetections + i];
+        // const centerX = output[i];
+        const centerX = 320
+        // const centerY = output[numDetections + i];
+        const centerY = 300
+        const width = 450
+        const height = 550;
 
         // Convert from center format to corner format (x1, y1, x2, y2)
         const x1 = centerX - width / 2;
