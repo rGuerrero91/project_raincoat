@@ -1,0 +1,18 @@
+{
+  "name": "project-raincoat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Raincoat Labs - AI-powered clothing recommendations monorepo",
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.1"
+  },
+  "workspaces": [
+    "raincoat_frontend",
+    "raincoat_api"
+  ]
+}
