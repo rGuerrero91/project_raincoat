@@ -155,8 +155,8 @@ def test_fclip_vision_encoder(model_dir):
     print("=" * 70)
 
     # Find model files
-    fp32_path = model_dir / "fashion_clip_vision.onnx"
-    fp16_path = model_dir / "fashion_clip_vision_fp16.onnx"
+    fp32_path = model_dir / "fashionclip_image_encoder_fp32.onnx"
+    fp16_path = model_dir / "fashionclip_image_encoder_fp16.onnx"
 
     if not fp16_path.exists():
         print(f"✗ Model not found: {fp16_path}")
@@ -369,7 +369,7 @@ def test_u2net(model_dir):
     print("=" * 70)
 
     # Find model files
-    fp16_path = model_dir / "u2netp_fp16.onnx"
+    fp16_path = model_dir / "u2net_fp16_tiny.onnx"
 
     if not fp16_path.exists():
         # Try standard u2net
@@ -460,8 +460,8 @@ def compare_with_production(new_models_dir, production_dir):
 
     # Compare FashionCLIP Vision Encoder
     print("\n--- FashionCLIP Vision Encoder Comparison ---")
-    new_fclip = new_models_dir / "fclip_quantized" / "exported_models" / "fashion_clip_vision_fp16.onnx"
-    prod_fclip = production_path / "fashionclip_image_encoder.onnx"
+    new_fclip = new_models_dir / "fclip_quantized" / "exported_models" / "fashionclip_image_encoder_fp16.onnx"
+    prod_fclip = production_path / "fashionclip_image_encoder_fp32.onnx"
 
     if new_fclip.exists() and prod_fclip.exists():
         print(f"New model:        {new_fclip.name} ({new_fclip.stat().st_size / 1024 / 1024:.2f} MB)")
@@ -513,7 +513,7 @@ def compare_with_production(new_models_dir, production_dir):
 
     # Compare U2Net
     print("\n--- U2Net Comparison ---")
-    new_u2net = new_models_dir / "u2net_quantized" / "exported_models" / "u2netp_fp16.onnx"
+    new_u2net = new_models_dir / "u2net_quantized" / "exported_models" / "u2net_fp16_tiny.onnx"
     if not new_u2net.exists():
         new_u2net = new_models_dir / "u2net_quantized" / "exported_models" / "u2net_fp16.onnx"
     prod_u2net = production_path / "u2net.onnx"
@@ -626,7 +626,7 @@ def main():
             if vision_result:
                 try:
                     import onnxruntime as ort
-                    fp16_path = fclip_dir / "fashion_clip_vision_fp16.onnx"
+                    fp16_path = fclip_dir / "fashionclip_image_encoder_fp16.onnx"
                     session = ort.InferenceSession(str(fp16_path))
                     test_image = download_test_image()
                     pixel_values = preprocess_image_fclip(test_image)

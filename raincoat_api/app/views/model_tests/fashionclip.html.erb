@@ -551,7 +551,7 @@
         
         // Load both model and label embeddings with caching
         const [session, labels] = await Promise.all([
-          window.modelCache.loadONNXModel('/models/fashionclip_image_encoder.onnx'),
+          window.modelCache.loadONNXModel('/models/fashionclip_image_encoder_fp32.onnx'),
           window.modelCache.loadJSON('/models/label_embeddings.json')
         ]);
         
