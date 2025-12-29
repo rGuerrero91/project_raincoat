@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+dist
+build
+out
+
+# Backend
+raincoat_api/storage
+raincoat_api/public/models
+raincoat_api/public/js/onnx
+raincoat_api/log
+raincoat_api/tmp
+raincoat_api/vendor
+
+# Frontend
+raincoat_frontend/.next
+raincoat_frontend/node_modules
+
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
+
+# Coverage
+coverage
+.nyc_output
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+Gemfile.lock
