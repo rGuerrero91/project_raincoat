@@ -1,0 +1,7 @@
+{
+  "raincoat_frontend/**/*.{ts,tsx,js,jsx}": ["eslint --fix", "prettier --write"],
+  "raincoat_frontend/**/*.{css,json,md}": ["prettier --write"],
+  "raincoat_api/**/*.rb": ["bundle exec rubocop -A"],
+  "raincoat_api/**/*.{yml,yaml,json}": ["prettier --write"],
+  "*.{json,md,yml,yaml}": ["prettier --write"]
+}
