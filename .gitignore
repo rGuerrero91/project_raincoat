@@ -13,3 +13,30 @@ raincoat_api/db/seed_images/pre-processed/*
 .raincoatpy/
 
 scripts/model_extractions/*
+
+# Dependencies
+node_modules
+node_modules/
+**/node_modules/
+package-lock.json
+
+# Testing
+coverage
+*.lcov
+.nyc_output
+
+# Build outputs
+dist
+build
+.next
+out
+
+# Misc
+.DS_Store
+*.log
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
