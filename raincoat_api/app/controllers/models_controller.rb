@@ -1,11 +1,24 @@
 class ModelsController < ApplicationController
 
   def show
+    # Sanitize path to prevent path traversal attacks
+    # Remove any directory traversal attempts and absolute paths
     model_path = params[:path]
-    file_path = Rails.root.join('public', 'models', model_path)
-    
-    # Security check - ensure path is within models directory
-    unless file_path.to_s.start_with?(Rails.root.join('public', 'models').to_s)
+    return head :bad_request if model_path.blank?
+
+    # Normalize path and prevent directory traversal
+    clean_path = Pathname.new(model_path).cleanpath.to_s
+
+    # Reject absolute paths or paths that try to escape the directory
+    if clean_path.start_with?('/') || clean_path.include?('..')
+      return head :forbidden
+    end
+
+    file_path = Rails.root.join('public', 'models', clean_path)
+
+    # Double-check - ensure resolved path is within models directory
+    allowed_dir = Rails.root.join('public', 'models').to_s
+    unless file_path.to_s.start_with?(allowed_dir + '/')
       return head :forbidden
     end
     
