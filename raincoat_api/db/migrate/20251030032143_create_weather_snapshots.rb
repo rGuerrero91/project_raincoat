@@ -33,7 +33,7 @@ class CreateWeatherSnapshots < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :weather_snapshots, [:location_id, :recorded_at]
+    add_index :weather_snapshots, [ :location_id, :recorded_at ]
     add_index :weather_snapshots, :condition_text
   end
 end

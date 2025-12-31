@@ -5,7 +5,7 @@ class ClothingEmbedding < ApplicationRecord
   validates :vector_data, presence: true
   validates :model_version, presence: true
   # Note: vector_data validation is handled by the database schema (limit: 512)
-  
+
   def similar_embeddings(limit: 10, category: nil, min_similarity: 0.0, colors: nil, materials: nil)
     return [] unless vector_data.present?
 
@@ -20,14 +20,14 @@ class ClothingEmbedding < ApplicationRecord
 
     # Filter by colors (JSON array contains any of the specified colors)
     if colors.present?
-      color_conditions = colors.map { |color| "clothing_items.colors @> ?::jsonb" }
-      query = query.where(color_conditions.join(' OR '), *colors.map { |c| [c].to_json })
+      color_conditions = colors.map { |color| 'clothing_items.colors @> ?::jsonb' }
+      query = query.where(color_conditions.join(' OR '), *colors.map { |c| [ c ].to_json })
     end
 
     # Filter by materials (JSON array contains any of the specified materials)
     if materials.present?
-      material_conditions = materials.map { |material| "clothing_items.materials @> ?::jsonb" }
-      query = query.where(material_conditions.join(' OR '), *materials.map { |m| [m].to_json })
+      material_conditions = materials.map { |material| 'clothing_items.materials @> ?::jsonb' }
+      query = query.where(material_conditions.join(' OR '), *materials.map { |m| [ m ].to_json })
     end
 
     # Order by similarity and apply limit
@@ -50,13 +50,13 @@ class ClothingEmbedding < ApplicationRecord
 
     results
   end
-  
+
   # Get similarity score between two embeddings (Do not ask me why this works, I had the AI help me with this one)
   def similarity_to(other_embedding)
     return 0.0 unless other_embedding&.vector_data && vector_data
 
-    sql = "SELECT ?::vector <=> ?::vector as distance"
-    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, vector_data, other_embedding.vector_data])
+    sql = 'SELECT ?::vector <=> ?::vector as distance'
+    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([ sql, vector_data, other_embedding.vector_data ])
 
     distance = ActiveRecord::Base.connection.execute(sanitized_sql).first['distance'].to_f
 
@@ -77,7 +77,7 @@ class ClothingEmbedding < ApplicationRecord
   # <-> - L2 distance
   # <#> - inner product distance
 
-  
+
   # Class method to search for similar items by vector
   def self.search_similar(vector_array, user_id, limit: 10)
     return [] unless vector_array&.length == 512

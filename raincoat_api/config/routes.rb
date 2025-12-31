@@ -2,14 +2,14 @@
 Rails.application.routes.draw do
   # Root route with authentication check
   root to: 'application#index'
-  
+
   # Basic authentication routes
   get '/signup', to: 'users#new'
   post '/signup', to: 'users#create'
   get '/login', to: 'sessions#new'
   post '/login', to: 'sessions#create'
   get '/logout', to: 'sessions#destroy'
-  
+
   # Main closet interface
   resources :clothing_items, path: 'closet' do
     member do
@@ -31,10 +31,10 @@ Rails.application.routes.draw do
     get 'seal', to: 'seal'
   end
   get '/ai_models/similarity_comparison', to: 'ai_models#similarity_comparison'
-  
+
   namespace :api do
     namespace :v1 do
-      resources :clothing_items, only: [:show, :create, :index] do
+      resources :clothing_items, only: [ :show, :create, :index ] do
         member do
           get 'embedding', to: 'clothing_items#get_embedding'      # GET /api/v1/clothing_items/:id/embedding
           post 'embedding', to: 'clothing_items#save_embedding'    # POST /api/v1/clothing_items/:id/embedding
@@ -66,15 +66,15 @@ Rails.application.routes.draw do
       end
 
       # Outfit recommendations
-      resources :outfits, only: [:index, :show, :create, :destroy] do
+      resources :outfits, only: [ :index, :show, :create, :destroy ] do
         collection do
           post :generate       # POST /api/v1/outfits/generate - Generate outfit recommendations
         end
       end
     end
   end
-  
+
   # Health check endpoints
   get '/health', to: 'application#health'
-  get "up" => "rails/health#show", as: :rails_health_check
+  get 'up' => 'rails/health#show', as: :rails_health_check
 end

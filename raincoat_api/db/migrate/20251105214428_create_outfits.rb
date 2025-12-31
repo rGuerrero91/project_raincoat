@@ -12,7 +12,7 @@ class CreateOutfits < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :outfits, [:user_id, :created_at]
+    add_index :outfits, [ :user_id, :created_at ]
     add_index :outfits, :weather_condition
   end
 end

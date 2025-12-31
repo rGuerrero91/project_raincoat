@@ -1,5 +1,5 @@
 class Api::V1::LocationsController < Api::V1::BaseController
-  before_action :set_location, only: [:show, :update, :destroy, :set_default, :current_weather]
+  before_action :set_location, only: [ :show, :update, :destroy, :set_default, :current_weather ]
 
   # GET /api/v1/locations
   def index

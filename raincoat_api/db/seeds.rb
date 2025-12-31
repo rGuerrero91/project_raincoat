@@ -38,7 +38,7 @@ test_user = User.create!(
 )
 
 demo_user = User.create!(
-  name: "Demo User", 
+  name: "Demo User",
   email: "demo@sample.com"
 )
 
@@ -69,40 +69,40 @@ test_user.clothing_items.create!([
     description: "Classic navy blue cotton t-shirt, casual wear",
     category: "tops",
     brand: "Uniqlo",
-    colors: ["blue", "navy"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "regular", "short-sleeve", "summer"],
-    user_tags: ["casual", "weekend", "summer"]
+    colors: [ "blue", "navy" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "regular", "short-sleeve", "summer" ],
+    user_tags: [ "casual", "weekend", "summer" ]
   },
   {
     name: "White Button-Down Shirt",
     description: "Crisp white dress shirt for professional settings",
     category: "tops",
     brand: "Brooks Brothers",
-    colors: ["white"],
-    materials: ["cotton"],
-    ai_tags: ["formal", "tailored", "spread-collar", "dress-shirt"],
-    user_tags: ["work", "formal", "all-season"]
+    colors: [ "white" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "formal", "tailored", "spread-collar", "dress-shirt" ],
+    user_tags: [ "work", "formal", "all-season" ]
   },
   {
     name: "Red Wool Sweater",
     description: "Cozy red merino wool pullover sweater",
     category: "tops",
     brand: "J.Crew",
-    colors: ["red", "burgundy"],
-    materials: ["wool", "merino"],
-    ai_tags: ["casual", "relaxed", "warm", "pullover"],
-    user_tags: ["casual", "date", "winter"]
+    colors: [ "red", "burgundy" ],
+    materials: [ "wool", "merino" ],
+    ai_tags: [ "casual", "relaxed", "warm", "pullover" ],
+    user_tags: [ "casual", "date", "winter" ]
   },
   {
     name: "Black Hoodie",
     description: "Comfortable black cotton hoodie with kangaroo pocket",
     category: "tops",
     brand: "Nike",
-    colors: ["black"],
-    materials: ["cotton", "polyester"],
-    ai_tags: ["athletic", "loose", "hooded", "casual"],
-    user_tags: ["gym", "casual", "fall"]
+    colors: [ "black" ],
+    materials: [ "cotton", "polyester" ],
+    ai_tags: [ "athletic", "loose", "hooded", "casual" ],
+    user_tags: [ "gym", "casual", "fall" ]
   }
 ])
 
@@ -113,30 +113,30 @@ test_user.clothing_items.create!([
     description: "Classic dark wash denim jeans, straight fit",
     category: "bottoms",
     brand: "Levi's",
-    colors: ["blue", "indigo"],
-    materials: ["denim", "cotton"],
-    ai_tags: ["casual", "straight-fit", "dark-wash", "denim"],
-    user_tags: ["casual", "everyday", "all-season"]
+    colors: [ "blue", "indigo" ],
+    materials: [ "denim", "cotton" ],
+    ai_tags: [ "casual", "straight-fit", "dark-wash", "denim" ],
+    user_tags: [ "casual", "everyday", "all-season" ]
   },
   {
     name: "Black Dress Pants",
     description: "Formal black trousers for business attire",
     category: "bottoms",
     brand: "Hugo Boss",
-    colors: ["black"],
-    materials: ["wool", "polyester"],
-    ai_tags: ["formal", "tailored", "flat-front", "dress-pants"],
-    user_tags: ["work", "formal", "all-season"]
+    colors: [ "black" ],
+    materials: [ "wool", "polyester" ],
+    ai_tags: [ "formal", "tailored", "flat-front", "dress-pants" ],
+    user_tags: [ "work", "formal", "all-season" ]
   },
   {
     name: "Khaki Chinos",
     description: "Casual khaki cotton chino pants",
     category: "bottoms",
     brand: "Dockers",
-    colors: ["tan", "khaki"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "slim-fit", "regular-length", "chinos"],
-    user_tags: ["casual", "weekend", "spring"]
+    colors: [ "tan", "khaki" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "slim-fit", "regular-length", "chinos" ],
+    user_tags: [ "casual", "weekend", "spring" ]
   }
 ])
 
@@ -147,20 +147,20 @@ test_user.clothing_items.create!([
     description: "Classic navy blue wool overcoat for cold weather",
     category: "outerwear",
     brand: "Burberry",
-    colors: ["navy", "blue"],
-    materials: ["wool", "cashmere"],
-    ai_tags: ["formal", "tailored", "warm", "overcoat"],
-    user_tags: ["work", "formal", "winter"]
+    colors: [ "navy", "blue" ],
+    materials: [ "wool", "cashmere" ],
+    ai_tags: [ "formal", "tailored", "warm", "overcoat" ],
+    user_tags: [ "work", "formal", "winter" ]
   },
   {
     name: "Denim Jacket",
     description: "Light blue denim jacket, vintage style",
     category: "outerwear",
     brand: "Wrangler",
-    colors: ["blue", "light blue"],
-    materials: ["denim", "cotton"],
-    ai_tags: ["casual", "regular-fit", "vintage", "denim-jacket"],
-    user_tags: ["casual", "weekend", "spring"]
+    colors: [ "blue", "light blue" ],
+    materials: [ "denim", "cotton" ],
+    ai_tags: [ "casual", "regular-fit", "vintage", "denim-jacket" ],
+    user_tags: [ "casual", "weekend", "spring" ]
   }
 ])
 
@@ -171,20 +171,20 @@ test_user.clothing_items.create!([
     description: "Clean white leather sneakers for everyday wear",
     category: "shoes",
     brand: "Adidas",
-    colors: ["white"],
-    materials: ["leather", "rubber"],
-    ai_tags: ["casual", "sneaker", "rubber-sole", "athletic"],
-    user_tags: ["casual", "gym", "all-season"]
+    colors: [ "white" ],
+    materials: [ "leather", "rubber" ],
+    ai_tags: [ "casual", "sneaker", "rubber-sole", "athletic" ],
+    user_tags: [ "casual", "gym", "all-season" ]
   },
   {
     name: "Black Dress Shoes",
     description: "Formal black leather oxford shoes",
     category: "shoes",
     brand: "Cole Haan",
-    colors: ["black"],
-    materials: ["leather"],
-    ai_tags: ["formal", "oxford", "cap-toe", "dress-shoes"],
-    user_tags: ["work", "formal", "all-season"]
+    colors: [ "black" ],
+    materials: [ "leather" ],
+    ai_tags: [ "formal", "oxford", "cap-toe", "dress-shoes" ],
+    user_tags: [ "work", "formal", "all-season" ]
   }
 ])
 
@@ -195,20 +195,20 @@ test_user.clothing_items.create!([
     description: "Classic brown leather belt with silver buckle",
     category: "accessories",
     brand: "Coach",
-    colors: ["brown", "cognac"],
-    materials: ["leather"],
-    ai_tags: ["classic", "silver-buckle", "standard-width", "leather-belt"],
-    user_tags: ["work", "casual", "all-season"]
+    colors: [ "brown", "cognac" ],
+    materials: [ "leather" ],
+    ai_tags: [ "classic", "silver-buckle", "standard-width", "leather-belt" ],
+    user_tags: [ "work", "casual", "all-season" ]
   },
   {
     name: "Black Wool Beanie",
     description: "Warm black wool beanie for cold weather",
     category: "accessories",
     brand: "Patagonia",
-    colors: ["black"],
-    materials: ["wool"],
-    ai_tags: ["casual", "warm", "snug-fit", "winter-hat"],
-    user_tags: ["casual", "outdoor", "winter"]
+    colors: [ "black" ],
+    materials: [ "wool" ],
+    ai_tags: [ "casual", "warm", "snug-fit", "winter-hat" ],
+    user_tags: [ "casual", "outdoor", "winter" ]
   }
 ])
 
@@ -219,20 +219,20 @@ demo_user.clothing_items.create!([
     description: "Comfortable gray cotton sweatshirt",
     category: "tops",
     brand: "Champion",
-    colors: ["gray"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "relaxed-fit", "sweatshirt"],
-    user_tags: ["casual", "fall"]
+    colors: [ "gray" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "relaxed-fit", "sweatshirt" ],
+    user_tags: [ "casual", "fall" ]
   },
   {
     name: "Blue Jeans",
     description: "Medium wash blue denim jeans",
     category: "bottoms",
     brand: "Gap",
-    colors: ["blue"],
-    materials: ["denim"],
-    ai_tags: ["casual", "medium-wash", "denim"],
-    user_tags: ["everyday", "all-season"]
+    colors: [ "blue" ],
+    materials: [ "denim" ],
+    ai_tags: [ "casual", "medium-wash", "denim" ],
+    user_tags: [ "everyday", "all-season" ]
   },
   # New hot weather tops
   {
@@ -240,40 +240,40 @@ demo_user.clothing_items.create!([
     description: "Lightweight white linen shirt perfect for hot weather",
     category: "tops",
     brand: "J.Crew",
-    colors: ["white"],
-    materials: ["linen"],
-    ai_tags: ["lightweight", "breathable", "summer", "long-sleeve", "casual"],
-    user_tags: ["summer", "vacation", "casual"]
+    colors: [ "white" ],
+    materials: [ "linen" ],
+    ai_tags: [ "lightweight", "breathable", "summer", "long-sleeve", "casual" ],
+    user_tags: [ "summer", "vacation", "casual" ]
   },
   {
     name: "Striped Cotton Tank Top",
     description: "Navy and white striped cotton tank top",
     category: "tops",
     brand: "Old Navy",
-    colors: ["navy", "white"],
-    materials: ["cotton"],
-    ai_tags: ["sleeveless", "breathable", "summer", "casual", "striped"],
-    user_tags: ["summer", "beach", "casual"]
+    colors: [ "navy", "white" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "sleeveless", "breathable", "summer", "casual", "striped" ],
+    user_tags: [ "summer", "beach", "casual" ]
   },
   {
     name: "Light Blue Chambray Shirt",
     description: "Casual light blue chambray button-down",
     category: "tops",
     brand: "Gap",
-    colors: ["light blue"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "breathable", "summer", "long-sleeve", "button-down"],
-    user_tags: ["casual", "spring", "versatile"]
+    colors: [ "light blue" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "breathable", "summer", "long-sleeve", "button-down" ],
+    user_tags: [ "casual", "spring", "versatile" ]
   },
   {
     name: "Pale Yellow T-Shirt",
     description: "Soft pale yellow cotton t-shirt",
     category: "tops",
     brand: "Uniqlo",
-    colors: ["yellow"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "short-sleeve", "summer", "lightweight"],
-    user_tags: ["casual", "summer", "everyday"]
+    colors: [ "yellow" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "short-sleeve", "summer", "lightweight" ],
+    user_tags: [ "casual", "summer", "everyday" ]
   },
   # Cold weather tops
   {
@@ -281,30 +281,30 @@ demo_user.clothing_items.create!([
     description: "Warm charcoal gray wool turtleneck",
     category: "tops",
     brand: "Banana Republic",
-    colors: ["charcoal", "gray"],
-    materials: ["wool"],
-    ai_tags: ["warm", "winter", "turtleneck", "formal", "long-sleeve"],
-    user_tags: ["winter", "work", "formal"]
+    colors: [ "charcoal", "gray" ],
+    materials: [ "wool" ],
+    ai_tags: [ "warm", "winter", "turtleneck", "formal", "long-sleeve" ],
+    user_tags: [ "winter", "work", "formal" ]
   },
   {
     name: "Navy Fleece Pullover",
     description: "Cozy navy blue fleece pullover",
     category: "tops",
     brand: "Patagonia",
-    colors: ["navy"],
-    materials: ["fleece", "polyester"],
-    ai_tags: ["warm", "winter", "casual", "pullover", "fleece"],
-    user_tags: ["winter", "outdoor", "casual"]
+    colors: [ "navy" ],
+    materials: [ "fleece", "polyester" ],
+    ai_tags: [ "warm", "winter", "casual", "pullover", "fleece" ],
+    user_tags: [ "winter", "outdoor", "casual" ]
   },
   {
     name: "Burgundy Cardigan",
     description: "Classic burgundy wool cardigan sweater",
     category: "tops",
     brand: "L.L.Bean",
-    colors: ["burgundy", "red"],
-    materials: ["wool"],
-    ai_tags: ["warm", "winter", "cardigan", "casual", "button-up"],
-    user_tags: ["fall", "winter", "casual"]
+    colors: [ "burgundy", "red" ],
+    materials: [ "wool" ],
+    ai_tags: [ "warm", "winter", "cardigan", "casual", "button-up" ],
+    user_tags: [ "fall", "winter", "casual" ]
   },
   # All-season tops
   {
@@ -312,50 +312,50 @@ demo_user.clothing_items.create!([
     description: "Casual olive green cotton henley shirt",
     category: "tops",
     brand: "J.Crew",
-    colors: ["olive", "green"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "long-sleeve", "henley", "versatile"],
-    user_tags: ["casual", "fall", "spring"]
+    colors: [ "olive", "green" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "long-sleeve", "henley", "versatile" ],
+    user_tags: [ "casual", "fall", "spring" ]
   },
   {
     name: "Gray V-Neck T-Shirt",
     description: "Simple gray v-neck cotton t-shirt",
     category: "tops",
     brand: "Everlane",
-    colors: ["gray"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "short-sleeve", "v-neck", "basic"],
-    user_tags: ["casual", "everyday", "all-season"]
+    colors: [ "gray" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "short-sleeve", "v-neck", "basic" ],
+    user_tags: [ "casual", "everyday", "all-season" ]
   },
   {
     name: "Plaid Flannel Shirt",
     description: "Red and black plaid flannel button-down",
     category: "tops",
     brand: "Pendleton",
-    colors: ["red", "black"],
-    materials: ["cotton", "flannel"],
-    ai_tags: ["casual", "warm", "plaid", "long-sleeve", "flannel"],
-    user_tags: ["fall", "casual", "outdoor"]
+    colors: [ "red", "black" ],
+    materials: [ "cotton", "flannel" ],
+    ai_tags: [ "casual", "warm", "plaid", "long-sleeve", "flannel" ],
+    user_tags: [ "fall", "casual", "outdoor" ]
   },
   {
     name: "White Oxford Shirt",
     description: "Classic white oxford cloth button-down",
     category: "tops",
     brand: "Brooks Brothers",
-    colors: ["white"],
-    materials: ["cotton"],
-    ai_tags: ["formal", "button-down", "oxford", "long-sleeve", "dress-shirt"],
-    user_tags: ["work", "formal", "all-season"]
+    colors: [ "white" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "formal", "button-down", "oxford", "long-sleeve", "dress-shirt" ],
+    user_tags: [ "work", "formal", "all-season" ]
   },
   {
     name: "Black Polo Shirt",
     description: "Black cotton piqué polo shirt",
     category: "tops",
     brand: "Lacoste",
-    colors: ["black"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "polo", "short-sleeve", "collar"],
-    user_tags: ["casual", "golf", "spring"]
+    colors: [ "black" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "polo", "short-sleeve", "collar" ],
+    user_tags: [ "casual", "golf", "spring" ]
   },
   # New bottoms - summer
   {
@@ -363,20 +363,20 @@ demo_user.clothing_items.create!([
     description: "Classic khaki cotton chino shorts",
     category: "bottoms",
     brand: "Bonobos",
-    colors: ["khaki", "tan"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "summer", "lightweight", "shorts", "breathable"],
-    user_tags: ["summer", "casual", "vacation"]
+    colors: [ "khaki", "tan" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "summer", "lightweight", "shorts", "breathable" ],
+    user_tags: [ "summer", "casual", "vacation" ]
   },
   {
     name: "Navy Chino Shorts",
     description: "Navy blue cotton chino shorts",
     category: "bottoms",
     brand: "J.Crew",
-    colors: ["navy"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "summer", "shorts", "breathable"],
-    user_tags: ["summer", "casual", "weekend"]
+    colors: [ "navy" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "summer", "shorts", "breathable" ],
+    user_tags: [ "summer", "casual", "weekend" ]
   },
   # All-season bottoms
   {
@@ -384,60 +384,60 @@ demo_user.clothing_items.create!([
     description: "Light wash blue denim jeans",
     category: "bottoms",
     brand: "Levi's",
-    colors: ["light blue"],
-    materials: ["denim", "cotton"],
-    ai_tags: ["casual", "jeans", "light-wash", "denim"],
-    user_tags: ["casual", "spring", "summer"]
+    colors: [ "light blue" ],
+    materials: [ "denim", "cotton" ],
+    ai_tags: [ "casual", "jeans", "light-wash", "denim" ],
+    user_tags: [ "casual", "spring", "summer" ]
   },
   {
     name: "Gray Joggers",
     description: "Comfortable gray athletic joggers",
     category: "bottoms",
     brand: "Nike",
-    colors: ["gray"],
-    materials: ["cotton", "polyester"],
-    ai_tags: ["athletic", "casual", "joggers", "elastic-waist"],
-    user_tags: ["gym", "casual", "all-season"]
+    colors: [ "gray" ],
+    materials: [ "cotton", "polyester" ],
+    ai_tags: [ "athletic", "casual", "joggers", "elastic-waist" ],
+    user_tags: [ "gym", "casual", "all-season" ]
   },
   {
     name: "Olive Cargo Pants",
     description: "Olive green cotton cargo pants",
     category: "bottoms",
     brand: "Carhartt",
-    colors: ["olive", "green"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "cargo", "utilitarian", "pockets"],
-    user_tags: ["casual", "outdoor", "fall"]
+    colors: [ "olive", "green" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "cargo", "utilitarian", "pockets" ],
+    user_tags: [ "casual", "outdoor", "fall" ]
   },
   {
     name: "Charcoal Dress Pants",
     description: "Charcoal gray wool dress trousers",
     category: "bottoms",
     brand: "Hugo Boss",
-    colors: ["charcoal", "gray"],
-    materials: ["wool", "polyester"],
-    ai_tags: ["formal", "dress-pants", "tailored", "business"],
-    user_tags: ["work", "formal", "all-season"]
+    colors: [ "charcoal", "gray" ],
+    materials: [ "wool", "polyester" ],
+    ai_tags: [ "formal", "dress-pants", "tailored", "business" ],
+    user_tags: [ "work", "formal", "all-season" ]
   },
   {
     name: "Navy Corduroy Pants",
     description: "Navy blue corduroy pants",
     category: "bottoms",
     brand: "Dockers",
-    colors: ["navy"],
-    materials: ["corduroy", "cotton"],
-    ai_tags: ["casual", "warm", "corduroy", "textured"],
-    user_tags: ["fall", "winter", "casual"]
+    colors: [ "navy" ],
+    materials: [ "corduroy", "cotton" ],
+    ai_tags: [ "casual", "warm", "corduroy", "textured" ],
+    user_tags: [ "fall", "winter", "casual" ]
   },
   {
     name: "Black Athletic Leggings",
     description: "Black moisture-wicking athletic leggings",
     category: "bottoms",
     brand: "Under Armour",
-    colors: ["black"],
-    materials: ["polyester", "spandex"],
-    ai_tags: ["athletic", "fitted", "moisture-wicking", "stretchy"],
-    user_tags: ["gym", "running", "all-season"]
+    colors: [ "black" ],
+    materials: [ "polyester", "spandex" ],
+    ai_tags: [ "athletic", "fitted", "moisture-wicking", "stretchy" ],
+    user_tags: [ "gym", "running", "all-season" ]
   },
   # New outerwear
   {
@@ -445,80 +445,80 @@ demo_user.clothing_items.create!([
     description: "Bright yellow waterproof rain jacket",
     category: "outerwear",
     brand: "Columbia",
-    colors: ["yellow"],
-    materials: ["nylon", "waterproof"],
-    ai_tags: ["waterproof", "rain", "lightweight", "hooded"],
-    user_tags: ["rainy", "spring", "outdoor"]
+    colors: [ "yellow" ],
+    materials: [ "nylon", "waterproof" ],
+    ai_tags: [ "waterproof", "rain", "lightweight", "hooded" ],
+    user_tags: [ "rainy", "spring", "outdoor" ]
   },
   {
     name: "Black Windbreaker",
     description: "Lightweight black nylon windbreaker",
     category: "outerwear",
     brand: "The North Face",
-    colors: ["black"],
-    materials: ["nylon", "polyester"],
-    ai_tags: ["lightweight", "wind-resistant", "athletic", "packable"],
-    user_tags: ["running", "spring", "fall"]
+    colors: [ "black" ],
+    materials: [ "nylon", "polyester" ],
+    ai_tags: [ "lightweight", "wind-resistant", "athletic", "packable" ],
+    user_tags: [ "running", "spring", "fall" ]
   },
   {
     name: "Camel Wool Overcoat",
     description: "Luxurious camel-colored wool overcoat",
     category: "outerwear",
     brand: "Burberry",
-    colors: ["camel", "tan"],
-    materials: ["wool", "cashmere"],
-    ai_tags: ["formal", "warm", "winter", "overcoat", "tailored"],
-    user_tags: ["winter", "formal", "dressy"]
+    colors: [ "camel", "tan" ],
+    materials: [ "wool", "cashmere" ],
+    ai_tags: [ "formal", "warm", "winter", "overcoat", "tailored" ],
+    user_tags: [ "winter", "formal", "dressy" ]
   },
   {
     name: "Gray Puffer Jacket",
     description: "Warm gray down puffer jacket",
     category: "outerwear",
     brand: "Uniqlo",
-    colors: ["gray"],
-    materials: ["down", "nylon"],
-    ai_tags: ["warm", "winter", "puffer", "insulated", "down"],
-    user_tags: ["winter", "cold", "casual"]
+    colors: [ "gray" ],
+    materials: [ "down", "nylon" ],
+    ai_tags: [ "warm", "winter", "puffer", "insulated", "down" ],
+    user_tags: [ "winter", "cold", "casual" ]
   },
   {
     name: "Black Pea Coat",
     description: "Classic black wool pea coat",
     category: "outerwear",
     brand: "Schott NYC",
-    colors: ["black"],
-    materials: ["wool"],
-    ai_tags: ["warm", "winter", "pea-coat", "double-breasted", "formal"],
-    user_tags: ["winter", "formal", "classic"]
+    colors: [ "black" ],
+    materials: [ "wool" ],
+    ai_tags: [ "warm", "winter", "pea-coat", "double-breasted", "formal" ],
+    user_tags: [ "winter", "formal", "classic" ]
   },
   {
     name: "Olive Bomber Jacket",
     description: "Olive green bomber jacket with ribbed cuffs",
     category: "outerwear",
     brand: "Alpha Industries",
-    colors: ["olive", "green"],
-    materials: ["nylon", "polyester"],
-    ai_tags: ["casual", "bomber", "lightweight", "spring"],
-    user_tags: ["spring", "fall", "casual"]
+    colors: [ "olive", "green" ],
+    materials: [ "nylon", "polyester" ],
+    ai_tags: [ "casual", "bomber", "lightweight", "spring" ],
+    user_tags: [ "spring", "fall", "casual" ]
   },
   {
     name: "Brown Leather Jacket",
     description: "Classic brown leather moto jacket",
     category: "outerwear",
     brand: "Schott",
-    colors: ["brown"],
-    materials: ["leather"],
-    ai_tags: ["casual", "leather", "moto", "edgy", "warm"],
-    user_tags: ["fall", "spring", "style"]
+    colors: [ "brown" ],
+    materials: [ "leather" ],
+    ai_tags: [ "casual", "leather", "moto", "edgy", "warm" ],
+    user_tags: [ "fall", "spring", "style" ]
   },
   {
     name: "Gray Zip-Up Hoodie",
     description: "Comfortable gray cotton zip-up hoodie",
     category: "outerwear",
     brand: "Champion",
-    colors: ["gray"],
-    materials: ["cotton", "polyester"],
-    ai_tags: ["casual", "athletic", "hoodie", "zip-up", "comfortable"],
-    user_tags: ["casual", "gym", "all-season"]
+    colors: [ "gray" ],
+    materials: [ "cotton", "polyester" ],
+    ai_tags: [ "casual", "athletic", "hoodie", "zip-up", "comfortable" ],
+    user_tags: [ "casual", "gym", "all-season" ]
   },
   # New shoes
   {
@@ -526,60 +526,60 @@ demo_user.clothing_items.create!([
     description: "Brown leather Chelsea boots",
     category: "shoes",
     brand: "Clarks",
-    colors: ["brown"],
-    materials: ["leather"],
-    ai_tags: ["boots", "casual", "leather", "chelsea"],
-    user_tags: ["fall", "winter", "casual"]
+    colors: [ "brown" ],
+    materials: [ "leather" ],
+    ai_tags: [ "boots", "casual", "leather", "chelsea" ],
+    user_tags: [ "fall", "winter", "casual" ]
   },
   {
     name: "Navy Canvas Sneakers",
     description: "Navy canvas low-top sneakers",
     category: "shoes",
     brand: "Vans",
-    colors: ["navy"],
-    materials: ["canvas", "rubber"],
-    ai_tags: ["casual", "sneaker", "canvas", "low-top"],
-    user_tags: ["casual", "everyday", "all-season"]
+    colors: [ "navy" ],
+    materials: [ "canvas", "rubber" ],
+    ai_tags: [ "casual", "sneaker", "canvas", "low-top" ],
+    user_tags: [ "casual", "everyday", "all-season" ]
   },
   {
     name: "Black Running Shoes",
     description: "Black mesh athletic running shoes",
     category: "shoes",
     brand: "Nike",
-    colors: ["black"],
-    materials: ["mesh", "rubber", "synthetic"],
-    ai_tags: ["athletic", "running", "breathable", "sneaker"],
-    user_tags: ["gym", "running", "all-season"]
+    colors: [ "black" ],
+    materials: [ "mesh", "rubber", "synthetic" ],
+    ai_tags: [ "athletic", "running", "breathable", "sneaker" ],
+    user_tags: [ "gym", "running", "all-season" ]
   },
   {
     name: "Tan Boat Shoes",
     description: "Tan leather boat shoes",
     category: "shoes",
     brand: "Sperry",
-    colors: ["tan", "brown"],
-    materials: ["leather", "rubber"],
-    ai_tags: ["casual", "summer", "boat-shoes", "preppy"],
-    user_tags: ["summer", "casual", "beach"]
+    colors: [ "tan", "brown" ],
+    materials: [ "leather", "rubber" ],
+    ai_tags: [ "casual", "summer", "boat-shoes", "preppy" ],
+    user_tags: [ "summer", "casual", "beach" ]
   },
   {
     name: "Gray Slip-On Sneakers",
     description: "Gray canvas slip-on sneakers",
     category: "shoes",
     brand: "Vans",
-    colors: ["gray"],
-    materials: ["canvas", "rubber"],
-    ai_tags: ["casual", "slip-on", "sneaker", "easy"],
-    user_tags: ["casual", "everyday", "all-season"]
+    colors: [ "gray" ],
+    materials: [ "canvas", "rubber" ],
+    ai_tags: [ "casual", "slip-on", "sneaker", "easy" ],
+    user_tags: [ "casual", "everyday", "all-season" ]
   },
   {
     name: "Burgundy Loafers",
     description: "Burgundy leather penny loafers",
     category: "shoes",
     brand: "Cole Haan",
-    colors: ["burgundy", "red"],
-    materials: ["leather"],
-    ai_tags: ["formal", "loafer", "leather", "dressy"],
-    user_tags: ["work", "formal", "dressy"]
+    colors: [ "burgundy", "red" ],
+    materials: [ "leather" ],
+    ai_tags: [ "formal", "loafer", "leather", "dressy" ],
+    user_tags: [ "work", "formal", "dressy" ]
   },
   # New accessories
   {
@@ -587,50 +587,50 @@ demo_user.clothing_items.create!([
     description: "Navy cotton baseball cap",
     category: "accessories",
     brand: "New Era",
-    colors: ["navy"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "hat", "baseball-cap", "sun-protection"],
-    user_tags: ["casual", "summer", "outdoor"]
+    colors: [ "navy" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "hat", "baseball-cap", "sun-protection" ],
+    user_tags: [ "casual", "summer", "outdoor" ]
   },
   {
     name: "Black Sunglasses",
     description: "Black frame aviator sunglasses",
     category: "accessories",
     brand: "Ray-Ban",
-    colors: ["black"],
-    materials: ["metal", "glass"],
-    ai_tags: ["accessories", "sunglasses", "sun-protection", "aviator"],
-    user_tags: ["summer", "driving", "all-season"]
+    colors: [ "black" ],
+    materials: [ "metal", "glass" ],
+    ai_tags: [ "accessories", "sunglasses", "sun-protection", "aviator" ],
+    user_tags: [ "summer", "driving", "all-season" ]
   },
   {
     name: "Gray Knit Scarf",
     description: "Soft gray wool knit scarf",
     category: "accessories",
     brand: "Banana Republic",
-    colors: ["gray"],
-    materials: ["wool"],
-    ai_tags: ["warm", "winter", "scarf", "knit"],
-    user_tags: ["winter", "cold", "dressy"]
+    colors: [ "gray" ],
+    materials: [ "wool" ],
+    ai_tags: [ "warm", "winter", "scarf", "knit" ],
+    user_tags: [ "winter", "cold", "dressy" ]
   },
   {
     name: "Brown Leather Watch",
     description: "Classic brown leather strap watch",
     category: "accessories",
     brand: "Timex",
-    colors: ["brown"],
-    materials: ["leather", "metal"],
-    ai_tags: ["accessories", "watch", "classic", "leather"],
-    user_tags: ["everyday", "work", "all-season"]
+    colors: [ "brown" ],
+    materials: [ "leather", "metal" ],
+    ai_tags: [ "accessories", "watch", "classic", "leather" ],
+    user_tags: [ "everyday", "work", "all-season" ]
   },
   {
     name: "Black Backpack",
     description: "Black nylon backpack with laptop compartment",
     category: "accessories",
     brand: "Herschel",
-    colors: ["black"],
-    materials: ["nylon", "polyester"],
-    ai_tags: ["accessories", "backpack", "practical", "laptop"],
-    user_tags: ["work", "school", "all-season"]
+    colors: [ "black" ],
+    materials: [ "nylon", "polyester" ],
+    ai_tags: [ "accessories", "backpack", "practical", "laptop" ],
+    user_tags: [ "work", "school", "all-season" ]
   }
 ])
 
@@ -640,40 +640,40 @@ rudy_user.clothing_items.create!([
     description: "Classic navy blue cotton t-shirt, casual wear",
     category: "tops",
     brand: "Uniqlo",
-    colors: ["blue", "navy"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "regular", "short-sleeve", "summer"],
-    user_tags: ["casual", "weekend", "summer"]
+    colors: [ "blue", "navy" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "regular", "short-sleeve", "summer" ],
+    user_tags: [ "casual", "weekend", "summer" ]
   },
   {
     name: "White Button-Down Shirt",
     description: "Crisp white dress shirt for professional settings",
     category: "tops",
     brand: "Brooks Brothers",
-    colors: ["white"],
-    materials: ["cotton"],
-    ai_tags: ["formal", "tailored", "spread-collar", "dress-shirt"],
-    user_tags: ["work", "formal", "all-season"]
+    colors: [ "white" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "formal", "tailored", "spread-collar", "dress-shirt" ],
+    user_tags: [ "work", "formal", "all-season" ]
   },
   {
     name: "Red Wool Sweater",
     description: "Cozy red merino wool pullover sweater",
     category: "tops",
     brand: "J.Crew",
-    colors: ["red", "burgundy"],
-    materials: ["wool", "merino"],
-    ai_tags: ["casual", "relaxed", "warm", "pullover"],
-    user_tags: ["casual", "date", "winter"]
+    colors: [ "red", "burgundy" ],
+    materials: [ "wool", "merino" ],
+    ai_tags: [ "casual", "relaxed", "warm", "pullover" ],
+    user_tags: [ "casual", "date", "winter" ]
   },
   {
     name: "Black Hoodie",
     description: "Comfortable black cotton hoodie with kangaroo pocket",
     category: "tops",
     brand: "Nike",
-    colors: ["black"],
-    materials: ["cotton", "polyester"],
-    ai_tags: ["athletic", "loose", "hooded", "casual"],
-    user_tags: ["gym", "casual", "fall"]
+    colors: [ "black" ],
+    materials: [ "cotton", "polyester" ],
+    ai_tags: [ "athletic", "loose", "hooded", "casual" ],
+    user_tags: [ "gym", "casual", "fall" ]
   }
 ])
 
@@ -684,30 +684,30 @@ rudy_user.clothing_items.create!([
     description: "Classic dark wash denim jeans, straight fit",
     category: "bottoms",
     brand: "Levi's",
-    colors: ["blue", "indigo"],
-    materials: ["denim", "cotton"],
-    ai_tags: ["casual", "straight-fit", "dark-wash", "denim"],
-    user_tags: ["casual", "everyday", "all-season"]
+    colors: [ "blue", "indigo" ],
+    materials: [ "denim", "cotton" ],
+    ai_tags: [ "casual", "straight-fit", "dark-wash", "denim" ],
+    user_tags: [ "casual", "everyday", "all-season" ]
   },
   {
     name: "Black Dress Pants",
     description: "Formal black trousers for business attire",
     category: "bottoms",
     brand: "Hugo Boss",
-    colors: ["black"],
-    materials: ["wool", "polyester"],
-    ai_tags: ["formal", "tailored", "flat-front", "dress-pants"],
-    user_tags: ["work", "formal", "all-season"]
+    colors: [ "black" ],
+    materials: [ "wool", "polyester" ],
+    ai_tags: [ "formal", "tailored", "flat-front", "dress-pants" ],
+    user_tags: [ "work", "formal", "all-season" ]
   },
   {
     name: "Khaki Chinos",
     description: "Casual khaki cotton chino pants",
     category: "bottoms",
     brand: "Dockers",
-    colors: ["tan", "khaki"],
-    materials: ["cotton"],
-    ai_tags: ["casual", "slim-fit", "regular-length", "chinos"],
-    user_tags: ["casual", "weekend", "spring"]
+    colors: [ "tan", "khaki" ],
+    materials: [ "cotton" ],
+    ai_tags: [ "casual", "slim-fit", "regular-length", "chinos" ],
+    user_tags: [ "casual", "weekend", "spring" ]
   }
 ])
 
@@ -718,20 +718,20 @@ rudy_user.clothing_items.create!([
     description: "Classic navy blue wool overcoat for cold weather",
     category: "outerwear",
     brand: "Burberry",
-    colors: ["navy", "blue"],
-    materials: ["wool", "cashmere"],
-    ai_tags: ["formal", "tailored", "warm", "overcoat"],
-    user_tags: ["work", "formal", "winter"]
+    colors: [ "navy", "blue" ],
+    materials: [ "wool", "cashmere" ],
+    ai_tags: [ "formal", "tailored", "warm", "overcoat" ],
+    user_tags: [ "work", "formal", "winter" ]
   },
   {
     name: "Denim Jacket",
     description: "Light blue denim jacket, vintage style",
     category: "outerwear",
     brand: "Wrangler",
-    colors: ["blue", "light blue"],
-    materials: ["denim", "cotton"],
-    ai_tags: ["casual", "regular-fit", "vintage", "denim-jacket"],
-    user_tags: ["casual", "weekend", "spring"]
+    colors: [ "blue", "light blue" ],
+    materials: [ "denim", "cotton" ],
+    ai_tags: [ "casual", "regular-fit", "vintage", "denim-jacket" ],
+    user_tags: [ "casual", "weekend", "spring" ]
   }
 ])
 
@@ -742,20 +742,20 @@ rudy_user.clothing_items.create!([
     description: "Clean white leather sneakers for everyday wear",
     category: "shoes",
     brand: "Adidas",
-    colors: ["white"],
-    materials: ["leather", "rubber"],
-    ai_tags: ["casual", "sneaker", "rubber-sole", "athletic"],
-    user_tags: ["casual", "gym", "all-season"]
+    colors: [ "white" ],
+    materials: [ "leather", "rubber" ],
+    ai_tags: [ "casual", "sneaker", "rubber-sole", "athletic" ],
+    user_tags: [ "casual", "gym", "all-season" ]
   },
   {
     name: "Black Dress Shoes",
     description: "Formal black leather oxford shoes",
     category: "shoes",
     brand: "Cole Haan",
-    colors: ["black"],
-    materials: ["leather"],
-    ai_tags: ["formal", "oxford", "cap-toe", "dress-shoes"],
-    user_tags: ["work", "formal", "all-season"]
+    colors: [ "black" ],
+    materials: [ "leather" ],
+    ai_tags: [ "formal", "oxford", "cap-toe", "dress-shoes" ],
+    user_tags: [ "work", "formal", "all-season" ]
   }
 ])
 
@@ -766,20 +766,20 @@ rudy_user.clothing_items.create!([
     description: "Classic brown leather belt with silver buckle",
     category: "accessories",
     brand: "Coach",
-    colors: ["brown", "cognac"],
-    materials: ["leather"],
-    ai_tags: ["classic", "silver-buckle", "standard-width", "leather-belt"],
-    user_tags: ["work", "casual", "all-season"]
+    colors: [ "brown", "cognac" ],
+    materials: [ "leather" ],
+    ai_tags: [ "classic", "silver-buckle", "standard-width", "leather-belt" ],
+    user_tags: [ "work", "casual", "all-season" ]
   },
   {
     name: "Black Wool Beanie",
     description: "Warm black wool beanie for cold weather",
     category: "accessories",
     brand: "Patagonia",
-    colors: ["black"],
-    materials: ["wool"],
-    ai_tags: ["casual", "warm", "snug-fit", "winter-hat"],
-    user_tags: ["casual", "outdoor", "winter"]
+    colors: [ "black" ],
+    materials: [ "wool" ],
+    ai_tags: [ "casual", "warm", "snug-fit", "winter-hat" ],
+    user_tags: [ "casual", "outdoor", "winter" ]
   }
 ])
 
@@ -925,7 +925,7 @@ ClothingItem.find_each do |item|
     model_version = "fashionclip-2.0"
     preprocessing_metadata = {
       generated_method: "deterministic_seed",
-      attributes_used: ["name", "category", "colors", "materials"]
+      attributes_used: [ "name", "category", "colors", "materials" ]
     }
     puts "Generated new embedding for: #{item.name}"
   end

@@ -9,7 +9,7 @@ class CreateOutfitItems < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :outfit_items, [:outfit_id, :slot], unique: true
+    add_index :outfit_items, [ :outfit_id, :slot ], unique: true
     # Note: index on clothing_item_id is automatically created by t.references
   end
 end

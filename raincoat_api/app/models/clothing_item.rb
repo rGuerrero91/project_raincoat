@@ -7,11 +7,11 @@ class ClothingItem < ApplicationRecord
 
   validates :category, presence: true, inclusion: {
     in: %w[tops bottoms outerwear shoes accessories],
-    message: "must be one of: tops, bottoms, outerwear, shoes, accessories"
+    message: 'must be one of: tops, bottoms, outerwear, shoes, accessories'
   }
   # Images are optional to allow demo/API creation without file uploads
   # validates :images, presence: true
- 
+
   enum :processing_status, [
     :pending,
     :processing,
@@ -20,7 +20,7 @@ class ClothingItem < ApplicationRecord
     :embedding_failed,
     :failed
   ]
- 
+
   def similar_items(limit: 10, **filters)
     return [] unless clothing_embedding&.vector_data
 
@@ -31,11 +31,11 @@ class ClothingItem < ApplicationRecord
       {
         item: embedding.clothing_item,
         similarity_score: similarity_score,
-        distance_metric: "cosine"
+        distance_metric: 'cosine'
       }
     end
   end
- 
+
   def has_embedding?
     clothing_embedding.present?
   end
@@ -43,5 +43,4 @@ class ClothingItem < ApplicationRecord
   def image_url
     images.first&.url
   end
-
 end

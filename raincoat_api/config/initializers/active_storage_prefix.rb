@@ -16,4 +16,3 @@ ActiveSupport.on_load(:active_storage_blob) do
     end
   end
 end
-
