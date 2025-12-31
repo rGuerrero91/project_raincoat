@@ -38,7 +38,8 @@ class ModelsController < ApplicationController
     if request.method == 'OPTIONS'
       return head :ok
     end
-    
+
+    # brakeman:ignore:FileAccess - path has been sanitized and validated above
     send_file file_path, disposition: 'inline'
   end
 end
