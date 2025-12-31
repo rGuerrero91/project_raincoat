@@ -8,7 +8,7 @@ class Api::V1::BaseController < ApplicationController
 
   def authenticate_api_user
     # For POC: Simple token-based auth or session-based
-    # most likely gonna use jwt in dev
+    # gonna use jwt in dev
 
     if session[:user_id].present?
       @current_user = User.find(session[:user_id])
