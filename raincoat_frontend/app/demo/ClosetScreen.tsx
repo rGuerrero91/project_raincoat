@@ -1,10 +1,10 @@
-import Container from "@/components/Container";
-import Button from "@/components/Button";
-import Card from "@/components/Card";
-import { Plus, ExternalLink } from "lucide-react";
-import { ClothingItem } from "./page";
-import { useEffect } from "react";
-import imageCache from "@/lib/image-cache";
+import Container from '@/components/Container';
+import Button from '@/components/Button';
+import Card from '@/components/Card';
+import { Plus, ExternalLink } from 'lucide-react';
+import { ClothingItem } from './page';
+import { useEffect } from 'react';
+import imageCache from '@/lib/image-cache';
 
 interface ClosetScreenProps {
   items: ClothingItem[];
@@ -12,11 +12,7 @@ interface ClosetScreenProps {
   onAddMore: () => void;
 }
 
-export default function ClosetScreen({
-  items,
-  onNext,
-  onAddMore,
-}: ClosetScreenProps) {
+export default function ClosetScreen({ items, onNext, onAddMore }: ClosetScreenProps) {
   // Save processed images to cache when items are added
   useEffect(() => {
     const saveImagesToCache = async () => {
@@ -28,10 +24,7 @@ export default function ClosetScreen({
             if (!hasCached) {
               console.log(`[ClosetScreen] Saving processed image for item ${item.id} to cache`);
               // Use Blob if available (prevents blob URL revocation issues), otherwise fall back to URL
-              await imageCache.saveImage(
-                item.id,
-                item.processedImageBlob || item.processedImage!
-              );
+              await imageCache.saveImage(item.id, item.processedImageBlob || item.processedImage!);
             }
           } catch (error) {
             console.warn(`[ClosetScreen] Failed to cache image for item ${item.id}:`, error);
@@ -51,7 +44,7 @@ export default function ClosetScreen({
           Your <strong className="text-primary">closet</strong>
         </h2>
         <p className="text-lg text-neutral-medium">
-          {items.length} {items.length === 1 ? "item" : "items"} added
+          {items.length} {items.length === 1 ? 'item' : 'items'} added
         </p>
       </div>
 
@@ -60,16 +53,12 @@ export default function ClosetScreen({
         {items.map((item, index) => (
           <a
             key={index}
-            href={item.id ? `demo/items/${item.id}` : "#"}
+            href={item.id ? `demo/items/${item.id}` : '#'}
             target="_blank"
             rel="noopener noreferrer"
-            className={`block ${!item.id ? "pointer-events-none" : ""}`}
+            className={`block ${!item.id ? 'pointer-events-none' : ''}`}
           >
-            <Card
-              padding="sm"
-              hover
-              className="cursor-pointer h-full relative group"
-            >
+            <Card padding="sm" hover className="cursor-pointer h-full relative group">
               {/* External Link Icon */}
               {item.id && (
                 <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -106,11 +95,11 @@ export default function ClosetScreen({
               {/* Category Badge */}
               {item.category && (
                 <span className="mt-2 text-xs text-medium capitalize">
-                  {item.category + " "} <br/>
+                  {item.category + ' '} <br />
                 </span>
               )}
-              <span className="mt-2 text-xs text-neutral-medium capitalize" >
-                {"(tap for Similar Items)"}
+              <span className="mt-2 text-xs text-neutral-medium capitalize">
+                {'(tap for Similar Items)'}
               </span>
             </Card>
           </a>
@@ -127,21 +116,14 @@ export default function ClosetScreen({
             <div className="flex justify-center mb-2">
               <Plus className="w-12 h-12 text-primary" strokeWidth={2} />
             </div>
-            <p className="text-sm font-semibold text-neutral-medium">
-              Add Item
-            </p>
+            <p className="text-sm font-semibold text-neutral-medium">Add Item</p>
           </div>
         </Card>
       </div>
 
       {/* Action Buttons */}
       <div className="space-y-4">
-        <Button
-          variant="primary"
-          fullWidth
-          onClick={onNext}
-          className="text-lg py-4"
-        >
+        <Button variant="primary" fullWidth onClick={onNext} className="text-lg py-4">
           Get Outfit Ideas
         </Button>
 

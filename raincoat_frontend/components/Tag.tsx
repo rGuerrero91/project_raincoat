@@ -7,24 +7,23 @@ interface TagProps {
   className?: string;
 }
 
-export default function Tag({
-  label,
-  removable = false,
-  onRemove,
-  className = '',
-}: TagProps) {
+export default function Tag({ label, removable = false, onRemove, className = '' }: TagProps) {
   return (
     <span
       className={`tag ${removable ? 'tag-removable' : ''} ${className}`}
       onClick={removable ? onRemove : undefined}
       role={removable ? 'button' : undefined}
       tabIndex={removable ? 0 : undefined}
-      onKeyDown={removable && onRemove ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onRemove();
-        }
-      } : undefined}
+      onKeyDown={
+        removable && onRemove
+          ? e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onRemove();
+              }
+            }
+          : undefined
+      }
     >
       {label}
       {removable && (

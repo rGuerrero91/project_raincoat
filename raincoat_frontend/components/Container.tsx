@@ -6,9 +6,5 @@ interface ContainerProps {
 }
 
 export default function Container({ children, className = '' }: ContainerProps) {
-  return (
-    <div className={`container-app ${className}`}>
-      {children}
-    </div>
-  );
+  return <div className={`container-app ${className}`}>{children}</div>;
 }

@@ -11,7 +11,15 @@
 
   body {
     @apply bg-neutral-bg text-ink antialiased;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     line-height: 1.6;
@@ -21,7 +29,12 @@
     @apply box-border;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold;
     letter-spacing: -0.02em;
   }
@@ -118,7 +131,9 @@
   .screen-transition-enter-active {
     opacity: 1;
     transform: translateX(0);
-    transition: opacity 300ms, transform 300ms;
+    transition:
+      opacity 300ms,
+      transform 300ms;
   }
 
   .screen-transition-exit {
@@ -129,7 +144,9 @@
   .screen-transition-exit-active {
     opacity: 0;
     transform: translateX(-100%);
-    transition: opacity 300ms, transform 300ms;
+    transition:
+      opacity 300ms,
+      transform 300ms;
   }
 }
 
@@ -140,7 +157,10 @@
   }
 
   /* Touch Target Minimum Size */
-  button, a, input[type="button"], input[type="submit"] {
+  button,
+  a,
+  input[type='button'],
+  input[type='submit'] {
     min-height: 44px;
     min-width: 44px;
   }
@@ -153,7 +173,8 @@
 
   /* Subtle pulse animation */
   @keyframes pulse-subtle {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 1;
     }
     50% {
@@ -167,7 +188,8 @@
 
   /* Float Animation for Weather Icons */
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0);
     }
     50% {
