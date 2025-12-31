@@ -4,7 +4,7 @@
   "private": true,
   "description": "Raincoat Labs - AI-powered clothing recommendations monorepo",
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install || true"
   },
   "devDependencies": {
     "husky": "^8.0.3",
