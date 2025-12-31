@@ -1,5 +1,4 @@
 class ModelsController < ApplicationController
-
   def show
     # Sanitize path to prevent path traversal attacks
     # Remove any directory traversal attempts and absolute paths
@@ -21,11 +20,11 @@ class ModelsController < ApplicationController
     unless file_path.to_s.start_with?(allowed_dir + '/')
       return head :forbidden
     end
-    
+
     unless File.exist?(file_path)
       return head :not_found
     end
-    
+
     # Set proper headers for ONNX files
     response.headers['Content-Type'] = 'application/octet-stream'
     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -33,13 +32,12 @@ class ModelsController < ApplicationController
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
     response.headers['Cache-Control'] = 'public, max-age=31536000' # Cache for 1 year
-    
+
     # Handle preflight requests
     if request.method == 'OPTIONS'
       return head :ok
     end
 
-    brakeman:ignore:FileAccess #path has been sanitized and validated above
     send_file file_path, disposition: 'inline'
   end
 end
