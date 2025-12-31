@@ -39,7 +39,7 @@ class ModelsController < ApplicationController
       return head :ok
     end
 
-    # brakeman:ignore:FileAccess - path has been sanitized and validated above
+    brakeman:ignore:FileAccess #path has been sanitized and validated above
     send_file file_path, disposition: 'inline'
   end
 end
