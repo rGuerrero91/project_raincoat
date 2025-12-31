@@ -1,7 +1,7 @@
 // Client-side ONNX model processing
 // Based on the Rails implementation in raincoat_api/public/js/
 
-import * as ort from "onnxruntime-web";
+import * as ort from 'onnxruntime-web';
 
 // Import ModelCache type (global from model_cache.js)
 declare global {
@@ -31,7 +31,7 @@ interface PlatformInfo {
 }
 
 function detectPlatform(): PlatformInfo {
-  if (typeof window === "undefined" || typeof navigator === "undefined") {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
     // Server-side rendering - assume desktop with full capabilities
     return {
       isIOS: false,
@@ -47,13 +47,10 @@ function detectPlatform(): PlatformInfo {
   const userAgent = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(userAgent);
   const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
-  const isMobile =
-    /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
-      userAgent
-    );
+  const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
 
   // Detect available memory (Chrome/Edge only, but gives us a hint)
-  // @ts-ignore - deviceMemory is non-standard
+  // @ts-expect-error - deviceMemory is non-standard
   const deviceMemoryGB = navigator.deviceMemory || 4; // Default to 4GB if not available
   const estimatedMemoryMB = deviceMemoryGB * 1024;
 
@@ -88,11 +85,11 @@ function checkWASMSIMDSupport(): boolean {
     // Check if WebAssembly.validate supports SIMD
     // SIMD test module (minimal v128 instruction)
     const simdTest = new Uint8Array([
-      0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10,
-      1, 8, 0, 65, 0, 253, 15, 253, 98, 11,
+      0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253,
+      15, 253, 98, 11,
     ]);
     return WebAssembly.validate(simdTest);
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -100,14 +97,14 @@ function checkWASMSIMDSupport(): boolean {
 function checkWebGPUSupport(): boolean {
   try {
     // Check if navigator.gpu exists (WebGPU API entry point)
-    if (typeof navigator === "undefined" || !("gpu" in navigator)) {
+    if (typeof navigator === 'undefined' || !('gpu' in navigator)) {
       return false;
     }
 
     // WebGPU is available (but actual adapter may not be available)
     // ONNX Runtime Web will handle adapter request failures gracefully
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -117,17 +114,13 @@ function checkStorageQuota(): Promise<{
   quotaMB: number;
   usageMB: number;
 }> {
-  if (
-    typeof navigator === "undefined" ||
-    !navigator.storage ||
-    !navigator.storage.estimate
-  ) {
+  if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.estimate) {
     return Promise.resolve({ available: false, quotaMB: 0, usageMB: 0 });
   }
 
   return navigator.storage
     .estimate()
-    .then((estimate) => {
+    .then(estimate => {
       const quotaMB = (estimate.quota || 0) / (1024 * 1024);
       const usageMB = (estimate.usage || 0) / (1024 * 1024);
       const availableMB = quotaMB - usageMB;
@@ -162,18 +155,18 @@ function checkMemoryPressure(): {
 } {
   // Default response for environments without memory API
   const defaultResult = {
-    level: "unknown",
+    level: 'unknown',
     usedJSHeapMB: 0,
     recommendations: [],
   };
 
-  if (typeof window === "undefined" || typeof performance === "undefined") {
+  if (typeof window === 'undefined' || typeof performance === 'undefined') {
     return defaultResult;
   }
 
   try {
     // Check for Performance Memory API (Chrome/Edge only)
-    // @ts-ignore - memory is non-standard
+    // memory is non-standard, only available in Chrome/Edge
     const memory = (performance as any).memory;
 
     if (!memory) {
@@ -181,12 +174,12 @@ function checkMemoryPressure(): {
       // Use platform heuristics instead
       if (PLATFORM_INFO.isIOS || PLATFORM_INFO.isLowMemoryDevice) {
         return {
-          level: "medium",
+          level: 'medium',
           usedJSHeapMB: 0,
           recommendations: [
-            "Low-memory device detected",
-            "Using conservative memory settings",
-            "Models will load individually to avoid OOM",
+            'Low-memory device detected',
+            'Using conservative memory settings',
+            'Models will load individually to avoid OOM',
           ],
         };
       }
@@ -203,30 +196,30 @@ function checkMemoryPressure(): {
     let recommendations: string[] = [];
 
     if (usagePercent < 50) {
-      level = "low";
-      recommendations = ["Memory usage normal", "All optimizations available"];
+      level = 'low';
+      recommendations = ['Memory usage normal', 'All optimizations available'];
     } else if (usagePercent < 70) {
-      level = "medium";
+      level = 'medium';
       recommendations = [
-        "Moderate memory usage",
-        "Using lazy model loading",
-        "Canvas cleanup enforced",
+        'Moderate memory usage',
+        'Using lazy model loading',
+        'Canvas cleanup enforced',
       ];
     } else if (usagePercent < 85) {
-      level = "high";
+      level = 'high';
       recommendations = [
-        "High memory usage detected",
-        "Consider closing other browser tabs",
-        "Background removal may use lower quality",
-        "Aggressive canvas cleanup enabled",
+        'High memory usage detected',
+        'Consider closing other browser tabs',
+        'Background removal may use lower quality',
+        'Aggressive canvas cleanup enabled',
       ];
     } else {
-      level = "critical";
+      level = 'critical';
       recommendations = [
-        "Critical memory pressure!",
-        "Close other browser tabs immediately",
-        "Reduce image sizes",
-        "Consider using a desktop browser",
+        'Critical memory pressure!',
+        'Close other browser tabs immediately',
+        'Reduce image sizes',
+        'Consider using a desktop browser',
       ];
     }
 
@@ -236,7 +229,7 @@ function checkMemoryPressure(): {
 
     return { level, usedJSHeapMB, recommendations };
   } catch (e) {
-    console.warn("[ONNX] Failed to check memory pressure:", e);
+    console.warn('[ONNX] Failed to check memory pressure:', e);
     return defaultResult;
   }
 }
@@ -247,11 +240,7 @@ function checkMemoryPressure(): {
  * Prevents iOS Safari from hanging indefinitely on stuck operations.
  * iOS Safari can suspend tabs after ~30s of unresponsiveness, leading to crashes.
  */
-function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  operation: string
-): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, operation: string): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
@@ -268,7 +257,7 @@ function withTimeout<T>(
             `- Reloading the page\n` +
             `- Using a different browser`
         );
-        error.name = "TimeoutError";
+        error.name = 'TimeoutError';
         reject(error);
       }, timeoutMs)
     ),
@@ -293,8 +282,8 @@ const TIMEOUTS = {
 };
 
 // Log platform info for debugging
-if (typeof window !== "undefined") {
-  console.log("[ONNX] Platform detection:", PLATFORM_INFO);
+if (typeof window !== 'undefined') {
+  console.log('[ONNX] Platform detection:', PLATFORM_INFO);
 }
 
 // ============================================================================
@@ -302,12 +291,10 @@ if (typeof window !== "undefined") {
 // ============================================================================
 
 // Configure ONNX Runtime - WASM files served from CDN/API endpoint
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   // Get CDN URL from environment or fall back to localhost
   const CDN_URL =
-    process.env.NEXT_PUBLIC_CDN_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:3000";
+    process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
   // Serve WASM files from CDN - they're in /js/onnx/ directory
   // Required files: ort-wasm-simd-threaded.wasm and ort-wasm-simd-threaded.jsep.wasm (for WebGPU)
@@ -320,15 +307,15 @@ if (typeof window !== "undefined") {
 
   // WebGPU configuration (required for JSEP)
   if (PLATFORM_INFO.supportsWebGPU) {
-    ort.env.webgpu.powerPreference = "high-performance";
+    ort.env.webgpu.powerPreference = 'high-performance';
     // Enable validation in development for better error messages
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === 'development') {
       ort.env.webgpu.validateInputContent = true;
     }
   }
 
   // Suppress ONNX Runtime warnings to prevent Next.js dev overlay spam
-  ort.env.logLevel = "warning"; // Show warnings for debugging WebGPU issues
+  ort.env.logLevel = 'warning'; // Show warnings for debugging WebGPU issues
 
   console.log(`[ONNX] WASM paths: ${ort.env.wasm.wasmPaths}`);
   console.log(
@@ -341,12 +328,9 @@ if (typeof window !== "undefined") {
   // Suppress console warnings from ONNX Runtime WASM
   const originalWarn = console.warn;
   console.warn = (...args: any[]) => {
-    const message = args[0]?.toString() || "";
+    const message = args[0]?.toString() || '';
     // Filter out ONNX Runtime CPU vendor warnings
-    if (
-      message.includes("cpuid_info") ||
-      message.includes("Unknown CPU vendor")
-    ) {
+    if (message.includes('cpuid_info') || message.includes('Unknown CPU vendor')) {
       return; // Suppress this warning
     }
     originalWarn.apply(console, args);
@@ -371,13 +355,13 @@ export interface ProcessingResult {
 // ONNX Runtime Web only supports "webgpu" and "wasm" execution providers
 const EXECUTION_PROVIDERS: ort.InferenceSession.ExecutionProviderConfig[] =
   PLATFORM_INFO.supportsWebGPU && !PLATFORM_INFO.isIOS
-    ? ["webgpu", "wasm"] // Try WebGPU first, fallback to WASM
-    : ["wasm"];
+    ? ['webgpu', 'wasm'] // Try WebGPU first, fallback to WASM
+    : ['wasm'];
 
 // Log execution providers after definition
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   console.log(
-    `[ONNX] Execution providers: ${EXECUTION_PROVIDERS.join(" → ")} (WebGPU detected but not enabled: ${PLATFORM_INFO.supportsWebGPU})`
+    `[ONNX] Execution providers: ${EXECUTION_PROVIDERS.join(' → ')} (WebGPU detected but not enabled: ${PLATFORM_INFO.supportsWebGPU})`
   );
 }
 
@@ -388,14 +372,12 @@ const MAX_IMAGE_SIZE = 400; // Maximum width/height for processing (reduce compu
 // Note: U2-Net model is trained for 320×320 input - cannot be changed without retraining
 // For iOS memory optimization, models have been quantized down to FP16/INT8
 const U2NET_INPUT_SIZE = 320; // Fixed at 320×320 as required by the model
-const U2NET_QUALITY_MODE = PLATFORM_INFO.isMobile ? "low" : "medium"; // Mobile: faster, Desktop: better quality
+const U2NET_QUALITY_MODE = PLATFORM_INFO.isMobile ? 'low' : 'medium'; // Mobile: faster, Desktop: better quality
 const USE_FAST_MASK_APPLICATION = true; // Use optimized mask application (faster, slight quality loss)
 
 // Mobile-specific configuration
 const MOBILE_MAX_IMAGE_SIZE = 320; // Smaller max size for mobile to reduce memory pressure
-const EFFECTIVE_MAX_IMAGE_SIZE = PLATFORM_INFO.isMobile
-  ? MOBILE_MAX_IMAGE_SIZE
-  : MAX_IMAGE_SIZE;
+const EFFECTIVE_MAX_IMAGE_SIZE = PLATFORM_INFO.isMobile ? MOBILE_MAX_IMAGE_SIZE : MAX_IMAGE_SIZE;
 
 class ONNXProcessor {
   private u2netSession: ort.InferenceSession | null = null;
@@ -421,23 +403,21 @@ class ONNXProcessor {
    */
   async preloadModels() {
     if (PLATFORM_INFO.isLowMemoryDevice) {
-      console.warn(
-        "[ONNX] Preload skipped on low-memory device. Models will load on-demand."
-      );
+      console.warn('[ONNX] Preload skipped on low-memory device. Models will load on-demand.');
       return;
     }
 
     if (this.modelsLoaded) {
-      console.log("[ONNX] Models already loaded");
+      console.log('[ONNX] Models already loaded');
       return;
     }
 
     if (this.loadingPromise) {
-      console.log("[ONNX] Models already loading, waiting...");
+      console.log('[ONNX] Models already loading, waiting...');
       return this.loadingPromise;
     }
 
-    console.log("[ONNX] Starting background preload of models...");
+    console.log('[ONNX] Starting background preload of models...');
     this.loadingPromise = this.loadModels();
     return this.loadingPromise;
   }
@@ -473,26 +453,19 @@ class ONNXProcessor {
       const CDN_URL =
         process.env.NEXT_PUBLIC_CDN_URL ||
         process.env.NEXT_PUBLIC_API_URL ||
-        "http://localhost:3000";
-      const useCache = typeof window !== "undefined" && window.modelCache;
+        'http://localhost:3000';
+      const useCache = typeof window !== 'undefined' && window.modelCache;
 
       try {
         // Check memory pressure before loading large model
         const memoryStatus = checkMemoryPressure();
-        if (memoryStatus.level === "critical") {
-          console.warn(
-            "[ONNX] Critical memory pressure detected before loading U2-Net!"
-          );
-          memoryStatus.recommendations.forEach((rec) =>
-            console.warn(`  - ${rec}`)
-          );
+        if (memoryStatus.level === 'critical') {
+          console.warn('[ONNX] Critical memory pressure detected before loading U2-Net!');
+          memoryStatus.recommendations.forEach(rec => console.warn(`  - ${rec}`));
         }
 
-        console.log("[ONNX] Loading U2-Net model (168 MB)...");
-        console.log(
-          "[ONNX] Using execution providers:",
-          JSON.stringify(EXECUTION_PROVIDERS)
-        );
+        console.log('[ONNX] Loading U2-Net model (168 MB)...');
+        console.log('[ONNX] Using execution providers:', JSON.stringify(EXECUTION_PROVIDERS));
 
         // Wrap model loading with timeout
         await withTimeout(
@@ -503,10 +476,9 @@ class ONNXProcessor {
               const u2netBuffer = await window.modelCache!.loadONNXModel(
                 `${CDN_URL}/models/u2net_fp16_tiny.onnx`
               );
-              this.u2netSession = await ort.InferenceSession.create(
-                u2netBuffer,
-                { executionProviders: EXECUTION_PROVIDERS }
-              );
+              this.u2netSession = await ort.InferenceSession.create(u2netBuffer, {
+                executionProviders: EXECUTION_PROVIDERS,
+              });
             } else {
               this.u2netSession = await ort.InferenceSession.create(
                 `${CDN_URL}/models/u2net_fp16_tiny.onnx`,
@@ -515,36 +487,28 @@ class ONNXProcessor {
             }
           })(),
           TIMEOUTS.modelLoad,
-          "U2-Net model loading"
+          'U2-Net model loading'
         );
 
-        console.log("[ONNX] U2-Net loaded successfully");
+        console.log('[ONNX] U2-Net loaded successfully');
       } catch (error) {
         this.u2netLoadingPromise = null; // Reset so we can retry
-        console.error("[ONNX] Failed to load U2-Net:", error);
+        console.error('[ONNX] Failed to load U2-Net:', error);
 
         // User-friendly error messages for common iOS issues
         if (error instanceof Error) {
-          if (error.name === "TimeoutError") {
+          if (error.name === 'TimeoutError') {
             throw error; // Pass through timeout errors with full message
-          } else if (
-            error.message.includes("memory") ||
-            error.message.includes("allocation")
-          ) {
+          } else if (error.message.includes('memory') || error.message.includes('allocation')) {
             throw new Error(
-              "Unable to load background removal model due to memory constraints. " +
-                "Try closing other browser tabs and reload the page."
+              'Unable to load background removal model due to memory constraints. ' +
+                'Try closing other browser tabs and reload the page.'
             );
-          } else if (
-            error.message.includes("storage") ||
-            error.message.includes("quota")
-          ) {
+          } else if (error.message.includes('storage') || error.message.includes('quota')) {
             throw error; // Already has user-friendly message
           }
         }
-        throw new Error(
-          "Failed to load background removal model: " + (error as Error).message
-        );
+        throw new Error('Failed to load background removal model: ' + (error as Error).message);
       }
     })();
 
@@ -565,25 +529,18 @@ class ONNXProcessor {
       const CDN_URL =
         process.env.NEXT_PUBLIC_CDN_URL ||
         process.env.NEXT_PUBLIC_API_URL ||
-        "http://localhost:3000";
-      const useCache = typeof window !== "undefined" && window.modelCache;
+        'http://localhost:3000';
+      const useCache = typeof window !== 'undefined' && window.modelCache;
 
       try {
         // Check memory pressure before loading large model
         const memoryStatus = checkMemoryPressure();
-        if (
-          memoryStatus.level === "critical" ||
-          memoryStatus.level === "high"
-        ) {
-          console.warn(
-            "[ONNX] High memory pressure detected before loading FashionCLIP!"
-          );
-          memoryStatus.recommendations.forEach((rec) =>
-            console.warn(`  - ${rec}`)
-          );
+        if (memoryStatus.level === 'critical' || memoryStatus.level === 'high') {
+          console.warn('[ONNX] High memory pressure detected before loading FashionCLIP!');
+          memoryStatus.recommendations.forEach(rec => console.warn(`  - ${rec}`));
         }
 
-        console.log("[ONNX] Loading FashionCLIP model (335 MB)...");
+        console.log('[ONNX] Loading FashionCLIP model (335 MB)...');
 
         // Wrap model loading with timeout
         await withTimeout(
@@ -594,10 +551,9 @@ class ONNXProcessor {
               const fashionClipBuffer = await window.modelCache!.loadONNXModel(
                 `${CDN_URL}/models/fashionclip_image_encoder_fp16.onnx`
               );
-              this.fashionClipSession = await ort.InferenceSession.create(
-                fashionClipBuffer,
-                { executionProviders: EXECUTION_PROVIDERS }
-              );
+              this.fashionClipSession = await ort.InferenceSession.create(fashionClipBuffer, {
+                executionProviders: EXECUTION_PROVIDERS,
+              });
             } else {
               this.fashionClipSession = await ort.InferenceSession.create(
                 `${CDN_URL}/models/fashionclip_image_encoder_fp16.onnx`,
@@ -606,36 +562,28 @@ class ONNXProcessor {
             }
           })(),
           TIMEOUTS.modelLoad,
-          "FashionCLIP model loading"
+          'FashionCLIP model loading'
         );
 
-        console.log("[ONNX] FashionCLIP loaded successfully");
+        console.log('[ONNX] FashionCLIP loaded successfully');
       } catch (error) {
         this.fashionClipLoadingPromise = null; // Reset so we can retry
-        console.error("[ONNX] Failed to load FashionCLIP:", error);
+        console.error('[ONNX] Failed to load FashionCLIP:', error);
 
         // User-friendly error messages for common iOS issues
         if (error instanceof Error) {
-          if (error.name === "TimeoutError") {
+          if (error.name === 'TimeoutError') {
             throw error; // Pass through timeout errors with full message
-          } else if (
-            error.message.includes("memory") ||
-            error.message.includes("allocation")
-          ) {
+          } else if (error.message.includes('memory') || error.message.includes('allocation')) {
             throw new Error(
-              "Unable to load image analysis model due to memory constraints. " +
-                "Try closing other browser tabs and reload the page."
+              'Unable to load image analysis model due to memory constraints. ' +
+                'Try closing other browser tabs and reload the page.'
             );
-          } else if (
-            error.message.includes("storage") ||
-            error.message.includes("quota")
-          ) {
+          } else if (error.message.includes('storage') || error.message.includes('quota')) {
             throw error; // Already has user-friendly message
           }
         }
-        throw new Error(
-          "Failed to load image analysis model: " + (error as Error).message
-        );
+        throw new Error('Failed to load image analysis model: ' + (error as Error).message);
       }
     })();
 
@@ -656,11 +604,11 @@ class ONNXProcessor {
       const CDN_URL =
         process.env.NEXT_PUBLIC_CDN_URL ||
         process.env.NEXT_PUBLIC_API_URL ||
-        "http://localhost:3000";
-      const useCache = typeof window !== "undefined" && window.modelCache;
+        'http://localhost:3000';
+      const useCache = typeof window !== 'undefined' && window.modelCache;
 
       try {
-        console.log("[ONNX] Loading label embeddings (7 MB)...");
+        console.log('[ONNX] Loading label embeddings (7 MB)...');
 
         if (useCache) {
           await window.modelCache!.initialize();
@@ -668,22 +616,18 @@ class ONNXProcessor {
             `${CDN_URL}/models/label_embeddings.json`
           );
         } else {
-          const response = await fetch(
-            `${CDN_URL}/models/label_embeddings.json`
-          );
+          const response = await fetch(`${CDN_URL}/models/label_embeddings.json`);
           this.labelEmbeddings = await response.json();
         }
         console.log(
-          "[ONNX] Label embeddings loaded:",
+          '[ONNX] Label embeddings loaded:',
           Object.keys(this.labelEmbeddings).length,
-          "labels"
+          'labels'
         );
       } catch (error) {
         this.labelEmbeddingsLoadingPromise = null; // Reset so we can retry
-        console.error("[ONNX] Failed to load label embeddings:", error);
-        throw new Error(
-          "Failed to load label data: " + (error as Error).message
-        );
+        console.error('[ONNX] Failed to load label embeddings:', error);
+        throw new Error('Failed to load label data: ' + (error as Error).message);
       }
     })();
 
@@ -699,7 +643,7 @@ class ONNXProcessor {
   async loadModels() {
     if (this.modelsLoaded) return;
 
-    console.log("[ONNX] Loading all models...");
+    console.log('[ONNX] Loading all models...');
 
     try {
       // Load all models in sequence (not parallel to reduce memory spikes)
@@ -708,15 +652,15 @@ class ONNXProcessor {
       await this.loadLabelEmbeddings();
 
       this.modelsLoaded = true;
-      console.log("[ONNX] All models loaded successfully");
+      console.log('[ONNX] All models loaded successfully');
 
-      const useCache = typeof window !== "undefined" && window.modelCache;
+      const useCache = typeof window !== 'undefined' && window.modelCache;
       if (useCache) {
         const stats = await window.modelCache!.getStats();
-        console.log("[ONNX] Cache stats:", stats);
+        console.log('[ONNX] Cache stats:', stats);
       }
     } catch (error) {
-      console.error("[ONNX] Failed to load models:", error);
+      console.error('[ONNX] Failed to load models:', error);
       throw error;
     }
   }
@@ -727,44 +671,37 @@ class ONNXProcessor {
   ): Promise<ProcessingResult> {
     try {
       // Step 1: Load image
-      onProgress?.("Loading image...");
+      onProgress?.('Loading image...');
       const img = await this.loadImage(imageFile);
 
       // Step 2: Lazy load U2-Net and remove background
-      onProgress?.("Loading background removal model...");
+      onProgress?.('Loading background removal model...');
       await this.loadU2Net();
-      onProgress?.("Removing background...");
-      const { url: processedImageUrl, blob: processedImageBlob } =
-        await this.removeBackground(img);
+      onProgress?.('Removing background...');
+      const { url: processedImageUrl, blob: processedImageBlob } = await this.removeBackground(img);
 
       // Step 3: Lazy load FashionCLIP and generate embedding
-      onProgress?.("Loading image analysis model...");
+      onProgress?.('Loading image analysis model...');
       await this.loadFashionClip();
-      onProgress?.("Analyzing item...");
+      onProgress?.('Analyzing item...');
       const embedding = await this.generateEmbedding(img);
 
       // Validate embedding quality to prevent garbage tags
-      const embeddingMagnitude = Math.sqrt(
-        embedding.reduce((sum, val) => sum + val * val, 0)
-      );
+      const embeddingMagnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
 
       if (embeddingMagnitude < 0.1) {
-        console.warn(
-          `[ONNX] Embedding magnitude too low: ${embeddingMagnitude.toFixed(4)}`
-        );
+        console.warn(`[ONNX] Embedding magnitude too low: ${embeddingMagnitude.toFixed(4)}`);
         throw new Error(
-          "Failed to generate valid embedding - image may be blank or corrupted. Please try uploading the photo again."
+          'Failed to generate valid embedding - image may be blank or corrupted. Please try uploading the photo again.'
         );
       }
 
-      console.log(
-        `[ONNX] Embedding magnitude: ${embeddingMagnitude.toFixed(3)}`
-      );
+      console.log(`[ONNX] Embedding magnitude: ${embeddingMagnitude.toFixed(3)}`);
 
       // Step 4: Lazy load label embeddings and generate tags
-      onProgress?.("Loading label data...");
+      onProgress?.('Loading label data...');
       await this.loadLabelEmbeddings();
-      onProgress?.("Generating tags...");
+      onProgress?.('Generating tags...');
       const tags = this.generateTags(embedding);
 
       return {
@@ -775,7 +712,7 @@ class ONNXProcessor {
         tags,
       };
     } catch (error) {
-      console.error("[ONNX] Image processing failed:", error);
+      console.error('[ONNX] Image processing failed:', error);
       throw error;
     }
   }
@@ -799,7 +736,7 @@ class ONNXProcessor {
       };
       img.onerror = () => {
         URL.revokeObjectURL(objectUrl);
-        reject(new Error("Failed to load image"));
+        reject(new Error('Failed to load image'));
       };
       img.src = objectUrl;
     });
@@ -811,10 +748,7 @@ class ONNXProcessor {
    *
    * Uses Blob URLs instead of data URLs to reduce memory pressure (2-3x savings)
    */
-  private async resizeImage(
-    img: HTMLImageElement,
-    maxSize: number
-  ): Promise<HTMLImageElement> {
+  private async resizeImage(img: HTMLImageElement, maxSize: number): Promise<HTMLImageElement> {
     const { width, height } = img;
 
     // If image is already small enough, return as-is
@@ -836,20 +770,18 @@ class ONNXProcessor {
 
     // Create resized image with proper async handling to avoid race condition
     return new Promise((resolve, reject) => {
-      const canvas = document.createElement("canvas");
+      const canvas = document.createElement('canvas');
       canvas.width = newWidth;
       canvas.height = newHeight;
-      const ctx = canvas.getContext("2d")!;
+      const ctx = canvas.getContext('2d')!;
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
       // Use toBlob instead of toDataURL to reduce memory pressure (2-3x savings)
-      canvas.toBlob((blob) => {
+      canvas.toBlob(blob => {
         if (!blob) {
-          reject(
-            new Error("Failed to resize image - canvas conversion failed")
-          );
+          reject(new Error('Failed to resize image - canvas conversion failed'));
           return;
         }
 
@@ -873,27 +805,25 @@ class ONNXProcessor {
 
         resizedImg.onerror = () => {
           URL.revokeObjectURL(blobUrl);
-          reject(new Error("Failed to resize image - image load failed"));
+          reject(new Error('Failed to resize image - image load failed'));
         };
 
         resizedImg.src = blobUrl;
-      }, "image/png");
+      }, 'image/png');
     });
   }
 
-  private async removeBackground(
-    img: HTMLImageElement
-  ): Promise<{ url: string; blob: Blob }> {
-    if (!this.u2netSession) throw new Error("U2-Net model not loaded");
+  private async removeBackground(img: HTMLImageElement): Promise<{ url: string; blob: Blob }> {
+    if (!this.u2netSession) throw new Error('U2-Net model not loaded');
 
     const inputSize = U2NET_INPUT_SIZE;
     const startTime = performance.now();
 
     // Create canvas and resize to configured input size (iOS: 256x256, Desktop: 320x320)
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     canvas.width = inputSize;
     canvas.height = inputSize;
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext('2d')!;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = U2NET_QUALITY_MODE;
     ctx.drawImage(img, 0, 0, inputSize, inputSize);
@@ -914,18 +844,11 @@ class ONNXProcessor {
     for (let i = 0; i < pixelCount; i++) {
       const pixelIndex = i * 4;
       tensorData[i] = (imageData.data[pixelIndex] / 255.0 - mean[0]) / std[0];
-      tensorData[pixelCount + i] =
-        (imageData.data[pixelIndex + 1] / 255.0 - mean[1]) / std[1];
-      tensorData[2 * pixelCount + i] =
-        (imageData.data[pixelIndex + 2] / 255.0 - mean[2]) / std[2];
+      tensorData[pixelCount + i] = (imageData.data[pixelIndex + 1] / 255.0 - mean[1]) / std[1];
+      tensorData[2 * pixelCount + i] = (imageData.data[pixelIndex + 2] / 255.0 - mean[2]) / std[2];
     }
 
-    const tensor = new ort.Tensor("float32", tensorData, [
-      1,
-      3,
-      inputSize,
-      inputSize,
-    ]);
+    const tensor = new ort.Tensor('float32', tensorData, [1, 3, inputSize, inputSize]);
     const feeds = { input: tensor };
 
     // Run inference with timeout
@@ -933,7 +856,7 @@ class ONNXProcessor {
     const outputs = await withTimeout(
       this.u2netSession.run(feeds),
       TIMEOUTS.inference,
-      "U2-Net background removal inference"
+      'U2-Net background removal inference'
     );
     const inferenceTime = performance.now() - inferenceStart;
 
@@ -941,22 +864,18 @@ class ONNXProcessor {
     const mask = outputs[outputName].data as Float32Array;
 
     // Validate mask has meaningful content (not blank/corrupted)
-    const nonZeroCount = Array.from(mask).filter((v) => v > 0.1).length;
+    const nonZeroCount = Array.from(mask).filter(v => v > 0.1).length;
     const nonZeroPercentage = (nonZeroCount / mask.length) * 100;
 
     if (nonZeroCount < mask.length * 0.01) {
       // Less than 1% of mask is non-zero - likely failed to detect object
-      console.warn(
-        `[ONNX] U2-Net mask appears empty (${nonZeroPercentage.toFixed(2)}% non-zero)`
-      );
+      console.warn(`[ONNX] U2-Net mask appears empty (${nonZeroPercentage.toFixed(2)}% non-zero)`);
       throw new Error(
-        "Failed to detect object in image - mask is empty. Please ensure the photo clearly shows a clothing item."
+        'Failed to detect object in image - mask is empty. Please ensure the photo clearly shows a clothing item.'
       );
     }
 
-    console.log(
-      `[ONNX] U2-Net mask coverage: ${nonZeroPercentage.toFixed(1)}%`
-    );
+    console.log(`[ONNX] U2-Net mask coverage: ${nonZeroPercentage.toFixed(1)}%`);
 
     // Apply mask to original image
     const result = await this.applyMask(img, mask, inputSize, inputSize);
@@ -968,10 +887,8 @@ class ONNXProcessor {
 
     // Check memory pressure after intensive operation
     const memoryStatus = checkMemoryPressure();
-    if (memoryStatus.level === "high" || memoryStatus.level === "critical") {
-      console.warn(
-        `[ONNX] Memory pressure after background removal: ${memoryStatus.level}`
-      );
+    if (memoryStatus.level === 'high' || memoryStatus.level === 'critical') {
+      console.warn(`[ONNX] Memory pressure after background removal: ${memoryStatus.level}`);
     }
 
     return result;
@@ -987,31 +904,24 @@ class ONNXProcessor {
     maskWidth: number,
     maskHeight: number
   ): Promise<{ url: string; blob: Blob }> {
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     canvas.width = img.width;
     canvas.height = img.height;
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext('2d')!;
     ctx.drawImage(img, 0, 0);
 
     const imageData = ctx.getImageData(0, 0, img.width, img.height);
 
     // Process pixels with optional yielding to prevent iOS tab suspension
-    await this.applyMaskToImageData(
-      imageData,
-      mask,
-      maskWidth,
-      maskHeight,
-      img.width,
-      img.height
-    );
+    await this.applyMaskToImageData(imageData, mask, maskWidth, maskHeight, img.width, img.height);
 
     ctx.putImageData(imageData, 0, 0);
 
     // Use toBlob for memory efficiency (2-3x less memory than toDataURL)
     return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
+      canvas.toBlob(blob => {
         if (!blob) {
-          reject(new Error("Failed to create blob from canvas"));
+          reject(new Error('Failed to create blob from canvas'));
           return;
         }
 
@@ -1024,7 +934,7 @@ class ONNXProcessor {
 
         // Return both URL and blob for caching
         resolve({ url: blobUrl, blob });
-      }, "image/png");
+      }, 'image/png');
     });
   }
 
@@ -1068,9 +978,7 @@ class ONNXProcessor {
 
         // Yield to browser every chunk (only on iOS/mobile to avoid overhead on desktop)
         if (PLATFORM_INFO.isMobile && startY + CHUNK_SIZE < totalRows) {
-          await new Promise((resolve) =>
-            requestAnimationFrame(() => resolve(undefined))
-          );
+          await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
         }
       }
     } else {
@@ -1093,25 +1001,22 @@ class ONNXProcessor {
 
         // Yield to browser every chunk (only on iOS/mobile)
         if (PLATFORM_INFO.isMobile && startY + CHUNK_SIZE < totalRows) {
-          await new Promise((resolve) =>
-            requestAnimationFrame(() => resolve(undefined))
-          );
+          await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
         }
       }
     }
   }
 
   private async generateEmbedding(img: HTMLImageElement): Promise<number[]> {
-    if (!this.fashionClipSession)
-      throw new Error("FashionCLIP model not loaded");
+    if (!this.fashionClipSession) throw new Error('FashionCLIP model not loaded');
 
     // Resize to 224x224 for FashionCLIP
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     canvas.width = 224;
     canvas.height = 224;
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext('2d')!;
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, 0, 0, 224, 224);
 
     const imageData = ctx.getImageData(0, 0, 224, 224);
@@ -1129,37 +1034,29 @@ class ONNXProcessor {
     for (let i = 0; i < 224 * 224; i++) {
       const pixelIndex = i * 4;
       tensorData[i] = (imageData.data[pixelIndex] / 255.0 - mean[0]) / std[0];
-      tensorData[224 * 224 + i] =
-        (imageData.data[pixelIndex + 1] / 255.0 - mean[1]) / std[1];
-      tensorData[2 * 224 * 224 + i] =
-        (imageData.data[pixelIndex + 2] / 255.0 - mean[2]) / std[2];
+      tensorData[224 * 224 + i] = (imageData.data[pixelIndex + 1] / 255.0 - mean[1]) / std[1];
+      tensorData[2 * 224 * 224 + i] = (imageData.data[pixelIndex + 2] / 255.0 - mean[2]) / std[2];
     }
 
-    const tensor = new ort.Tensor("float32", tensorData, [1, 3, 224, 224]);
+    const tensor = new ort.Tensor('float32', tensorData, [1, 3, 224, 224]);
     const feeds = { pixel_values: tensor };
 
     // Run inference with timeout
     const outputs = await withTimeout(
       this.fashionClipSession.run(feeds),
       TIMEOUTS.inference,
-      "FashionCLIP embedding generation"
+      'FashionCLIP embedding generation'
     );
-    const rawEmbedding = Array.from(
-      outputs[Object.keys(outputs)[0]].data as Float32Array
-    );
+    const rawEmbedding = Array.from(outputs[Object.keys(outputs)[0]].data as Float32Array);
 
     // Normalize embedding (from Rails implementation)
-    const norm = Math.sqrt(
-      rawEmbedding.reduce((sum, val) => sum + val * val, 0)
-    );
-    const normalizedEmbedding = rawEmbedding.map((val) => val / norm);
+    const norm = Math.sqrt(rawEmbedding.reduce((sum, val) => sum + val * val, 0));
+    const normalizedEmbedding = rawEmbedding.map(val => val / norm);
 
     return normalizedEmbedding;
   }
 
-  private generateTags(
-    embedding: number[]
-  ): { label: string; score: number }[] {
+  private generateTags(embedding: number[]): { label: string; score: number }[] {
     const similarities: { label: string; score: number }[] = [];
 
     for (const [label, textEmbed] of Object.entries(this.labelEmbeddings)) {
@@ -1182,8 +1079,8 @@ class ONNXProcessor {
         `[ONNX] Tag confidence suspiciously low (best: ${topTags[0].score.toFixed(3)}). ` +
           `Top tags: ${topTags
             .slice(0, 3)
-            .map((t) => `${t.label} (${t.score.toFixed(2)})`)
-            .join(", ")}`
+            .map(t => `${t.label} (${t.score.toFixed(2)})`)
+            .join(', ')}`
       );
     }
 
@@ -1205,7 +1102,7 @@ class ONNXProcessor {
   private async imageUrlToImageData(url: string): Promise<ImageData> {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      const isBlobUrl = url.startsWith("blob:");
+      const isBlobUrl = url.startsWith('blob:');
 
       img.onload = () => {
         // Clean up blob URL if it was one
@@ -1213,12 +1110,12 @@ class ONNXProcessor {
           URL.revokeObjectURL(url);
         }
 
-        const canvas = document.createElement("canvas");
+        const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext('2d');
         if (!ctx) {
-          reject(new Error("Failed to get canvas context"));
+          reject(new Error('Failed to get canvas context'));
           return;
         }
         ctx.drawImage(img, 0, 0);
@@ -1235,7 +1132,7 @@ class ONNXProcessor {
         if (isBlobUrl) {
           URL.revokeObjectURL(url);
         }
-        reject(new Error("Failed to load processed image"));
+        reject(new Error('Failed to load processed image'));
       };
 
       img.src = url;

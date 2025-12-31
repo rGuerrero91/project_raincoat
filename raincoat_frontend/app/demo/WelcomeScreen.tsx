@@ -2,7 +2,6 @@ import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import { Umbrella, AlertCircle, Wifi, HardDrive, Smartphone } from 'lucide-react';
-import onnxProcessor from '@/lib/onnx-processor';
 import { useState, useEffect } from 'react';
 
 interface WelcomeScreenProps {
@@ -69,20 +68,20 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
           <div className="flex justify-center mb-6">
             <Umbrella className="w-24 h-24 text-primary animate-float" strokeWidth={1.5} />
           </div>
-          <h1 className="text-hero font-bold mb-4">
-            Raincoat
-          </h1>
+          <h1 className="text-hero font-bold mb-4">Raincoat</h1>
           <p className="text-eyebrow mb-2">Weather-Smart Wardrobe</p>
         </div>
 
         {/* Hero Content */}
         <h2 className="text-headline font-bold mb-6 leading-tight">
-          Smart outfits.<br />
+          Smart outfits.
+          <br />
           <strong className="text-primary">Zero privacy compromise.</strong>
         </h2>
 
         <p className="text-lg text-neutral-medium mb-10 leading-relaxed max-w-xl mx-auto">
-          AI-powered outfit recommendations that respect your privacy. All processing happens on your device—your photos never leave your phone.
+          AI-powered outfit recommendations that respect your privacy. All processing happens on
+          your device—your photos never leave your phone.
         </p>
 
         {/* CTA Button */}
@@ -113,9 +112,9 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
                   <div>
                     <p className="font-semibold text-amber-900">iPhone/iPad Notice</p>
                     <p className="text-sm text-amber-800">
-                      This demo is currently experiencing compatibility issues on iOS devices.
-                      You may encounter crashes or performance problems. For the best experience,
-                      please use a desktop browser or Android device.
+                      This demo is currently experiencing compatibility issues on iOS devices. You
+                      may encounter crashes or performance problems. For the best experience, please
+                      use a desktop browser or Android device.
                     </p>
                   </div>
                 </div>
@@ -125,7 +124,9 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
                 <HardDrive className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                 <div>
                   <p className="font-semibold">Storage Required</p>
-                  <p className="text-sm text-neutral-medium">AI models require ~500MB of storage space on your device.</p>
+                  <p className="text-sm text-neutral-medium">
+                    AI models require ~500MB of storage space on your device.
+                  </p>
                 </div>
               </div>
 
@@ -133,7 +134,10 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
                 <Wifi className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                 <div>
                   <p className="font-semibold">Data Download</p>
-                  <p className="text-sm text-neutral-medium">We recommend using WiFi to avoid mobile data charges. Models download once and are cached for future use.</p>
+                  <p className="text-sm text-neutral-medium">
+                    We recommend using WiFi to avoid mobile data charges. Models download once and
+                    are cached for future use.
+                  </p>
                 </div>
               </div>
 
@@ -141,7 +145,10 @@ export default function WelcomeScreen({ onNext }: WelcomeScreenProps) {
                 <Umbrella className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                 <div>
                   <p className="font-semibold">Privacy First</p>
-                  <p className="text-sm text-neutral-medium">All processing happens locally on your device. Your photos never leave your phone.</p>
+                  <p className="text-sm text-neutral-medium">
+                    All processing happens locally on your device. Your photos never leave your
+                    phone.
+                  </p>
                 </div>
               </div>
             </div>

@@ -1,36 +1,34 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import WelcomeScreen from "./WelcomeScreen";
-import PrivacyScreen from "./PrivacyScreen";
-import AddItemScreen from "./AddItemScreen";
-import ObjectDetectionScreen from "./ObjectDetectionScreen";
-import CategoryScreen from "./CategoryScreen";
-import ObjectDetectionAndCategoryScreen from "./ObjectDetectionAndCategoryScreen";
-import ProcessingScreen from "./ProcessingScreen";
-import TagsScreen from "./TagsScreen";
-import ClosetScreen from "./ClosetScreen";
-import LocationScreen from "./LocationScreen";
-import WeatherScreen from "./WeatherScreen";
-import RecommendationsScreen from "./RecommendationsScreen";
-import CompleteScreen from "./CompleteScreen";
-import apiClient from "@/lib/api";
-import imageCache from "@/lib/image-cache";
+import { useState } from 'react';
+import WelcomeScreen from './WelcomeScreen';
+import PrivacyScreen from './PrivacyScreen';
+import AddItemScreen from './AddItemScreen';
+import ObjectDetectionAndCategoryScreen from './ObjectDetectionAndCategoryScreen';
+import ProcessingScreen from './ProcessingScreen';
+import TagsScreen from './TagsScreen';
+import ClosetScreen from './ClosetScreen';
+import LocationScreen from './LocationScreen';
+import WeatherScreen from './WeatherScreen';
+import RecommendationsScreen from './RecommendationsScreen';
+import CompleteScreen from './CompleteScreen';
+import apiClient from '@/lib/api';
+import imageCache from '@/lib/image-cache';
 
 export type DemoStep =
-  | "welcome"
-  | "privacy"
-  | "add-item"
+  | 'welcome'
+  | 'privacy'
+  | 'add-item'
   // | "object-detection"
   // | "category"
-  | "object-detection-category"
-  | "processing"
-  | "tags"
-  | "closet"
-  | "location"
-  | "weather"
-  | "recommendations"
-  | "complete";
+  | 'object-detection-category'
+  | 'processing'
+  | 'tags'
+  | 'closet'
+  | 'location'
+  | 'weather'
+  | 'recommendations'
+  | 'complete';
 
 export interface ClothingItem {
   id?: number;
@@ -50,7 +48,7 @@ export interface ClothingItem {
 }
 
 export default function DemoPage() {
-  const [currentStep, setCurrentStep] = useState<DemoStep>("welcome");
+  const [currentStep, setCurrentStep] = useState<DemoStep>('welcome');
   const [closetItems, setClosetItems] = useState<ClothingItem[]>([]);
   const [currentItem, setCurrentItem] = useState<ClothingItem | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -70,19 +68,19 @@ export default function DemoPage() {
 
   const nextStep = () => {
     const steps: DemoStep[] = [
-      "welcome",
-      "privacy",
-      "add-item",
+      'welcome',
+      'privacy',
+      'add-item',
       // "object-detection",
       // "category",
-      "object-detection-category",
-      "processing",
-      "tags",
-      "closet",
-      "location",
-      "weather",
-      "recommendations",
-      "complete",
+      'object-detection-category',
+      'processing',
+      'tags',
+      'closet',
+      'location',
+      'weather',
+      'recommendations',
+      'complete',
     ];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
@@ -96,7 +94,7 @@ export default function DemoPage() {
 
   const addItemToCloset = async (item: ClothingItem) => {
     try {
-      console.log("Saving item to backend...", item);
+      console.log('Saving item to backend...', item);
 
       // Create clothing item in backend
       const response = await apiClient.createClothingItem({
@@ -108,33 +106,30 @@ export default function DemoPage() {
 
       if (response.success && response.data) {
         const savedItem = response.data as any;
-        console.log("Item saved with ID:", savedItem.id);
+        console.log('Item saved with ID:', savedItem.id);
 
         // Upload embedding if available
         if (item.embedding && savedItem.id) {
-          console.log("Uploading embedding...");
+          console.log('Uploading embedding...');
           await apiClient.uploadEmbedding(savedItem.id, item.embedding);
         }
 
         // Save processed image to browser cache if available
         // Use Blob if available (prevents blob URL revocation issues), otherwise fall back to URL
         if (savedItem.id && (item.processedImageBlob || item.processedImage)) {
-          console.log("Saving processed image to cache...");
-          await imageCache.saveImage(
-            savedItem.id,
-            item.processedImageBlob || item.processedImage!
-          );
+          console.log('Saving processed image to cache...');
+          await imageCache.saveImage(savedItem.id, item.processedImageBlob || item.processedImage!);
         }
 
         // Update item with backend ID
         const itemWithId = { ...item, id: savedItem.id as number };
         setClosetItems([...closetItems, itemWithId]);
       } else {
-        console.warn("Failed to save to backend, adding to local closet only");
+        console.warn('Failed to save to backend, adding to local closet only');
         setClosetItems([...closetItems, item]);
       }
     } catch (error) {
-      console.error("Error saving item:", error);
+      console.error('Error saving item:', error);
       // Still add to local closet even if backend save fails
       setClosetItems([...closetItems, item]);
     }
@@ -144,20 +139,20 @@ export default function DemoPage() {
 
   const renderStep = () => {
     switch (currentStep) {
-      case "welcome":
+      case 'welcome':
         return <WelcomeScreen onNext={nextStep} />;
 
-      case "privacy":
+      case 'privacy':
         return <PrivacyScreen onNext={nextStep} />;
 
-      case "add-item":
+      case 'add-item':
         return (
           <AddItemScreen
-            onNext={(file) => {
+            onNext={file => {
               setCurrentItem({
                 image: URL.createObjectURL(file),
                 fileObject: file, // Store File for ONNX processing
-                category: "",
+                category: '',
                 tags: [],
               });
               nextStep();
@@ -209,10 +204,10 @@ export default function DemoPage() {
       //     />
       //   );
 
-      case "object-detection-category":
+      case 'object-detection-category':
         return (
           <ObjectDetectionAndCategoryScreen
-            imageFile={currentItem?.fileObject!}
+            imageFile={currentItem!.fileObject}
             onNext={(category, croppedImageUrl) => {
               if (currentItem) {
                 setCurrentItem({
@@ -226,12 +221,12 @@ export default function DemoPage() {
           />
         );
 
-      case "processing":
+      case 'processing':
         return (
           <ProcessingScreen
-            imageFile={currentItem?.fileObject!}
+            imageFile={currentItem!.fileObject}
             croppedImageUrl={currentItem?.croppedImage}
-            onComplete={(result) => {
+            onComplete={result => {
               if (currentItem) {
                 setCurrentItem({
                   ...currentItem,
@@ -247,11 +242,11 @@ export default function DemoPage() {
           />
         );
 
-      case "tags":
+      case 'tags':
         return (
           <TagsScreen
             item={currentItem!}
-            onNext={(updatedTags) => {
+            onNext={updatedTags => {
               if (currentItem) {
                 const finalItem = { ...currentItem, tags: updatedTags };
                 addItemToCloset(finalItem);
@@ -261,19 +256,19 @@ export default function DemoPage() {
           />
         );
 
-      case "closet":
+      case 'closet':
         return (
           <ClosetScreen
             items={closetItems}
             onNext={nextStep}
-            onAddMore={() => goToStep("add-item")}
+            onAddMore={() => goToStep('add-item')}
           />
         );
 
-      case "location":
+      case 'location':
         return (
           <LocationScreen
-            onNext={(location) => {
+            onNext={location => {
               console.log('Location set for demo:', location);
               setSelectedLocation(location);
               nextStep();
@@ -281,18 +276,18 @@ export default function DemoPage() {
           />
         );
 
-      case "weather":
+      case 'weather':
         return (
           <WeatherScreen
             location={selectedLocation || { city: 'San Francisco', country: 'United States' }}
-            onNext={(weather) => {
+            onNext={weather => {
               setWeatherData(weather);
               nextStep();
             }}
           />
         );
 
-      case "recommendations":
+      case 'recommendations':
         return (
           <RecommendationsScreen
             items={closetItems}
@@ -302,11 +297,11 @@ export default function DemoPage() {
           />
         );
 
-      case "complete":
+      case 'complete':
         return (
           <CompleteScreen
             onRestart={() => {
-              setCurrentStep("welcome");
+              setCurrentStep('welcome');
               setClosetItems([]);
               setCurrentItem(null);
               setSelectedLocation(null);
@@ -320,9 +315,5 @@ export default function DemoPage() {
     }
   };
 
-  return (
-    <main className="min-h-screen bg-neutral-bg">
-      {renderStep()}
-    </main>
-  );
+  return <main className="min-h-screen bg-neutral-bg">{renderStep()}</main>;
 }

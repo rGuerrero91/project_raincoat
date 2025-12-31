@@ -1,50 +1,50 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState } from 'react';
+import Link from 'next/link';
 
 export default function LandingPage() {
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [messageColor, setMessageColor] = useState("var(--accent)");
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [messageColor, setMessageColor] = useState('var(--accent)');
 
   const handleSignup = async () => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setMessage("Please enter a valid email address.");
-      setMessageColor("#d32f2f");
+      setMessage('Please enter a valid email address.');
+      setMessageColor('#d32f2f');
       return;
     }
 
-    setMessage("Thanks! We will reach out with early access details.");
-    setMessageColor("var(--accent)");
+    setMessage('Thanks! We will reach out with early access details.');
+    setMessageColor('var(--accent)');
 
     const apiUrl =
-      window.location.hostname === "localhost"
-        ? "http://localhost:3002/api/early-access"
-        : "/api/early-access";
+      window.location.hostname === 'localhost'
+        ? 'http://localhost:3002/api/early-access'
+        : '/api/early-access';
 
     try {
       const response = await fetch(apiUrl, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email: email }),
       });
 
       const data = await response.json();
-      console.log("Early access request successful:", data);
+      console.log('Early access request successful:', data);
 
       if (data.duplicate) {
-        setMessage("You are already registered for early access.");
+        setMessage('You are already registered for early access.');
       }
     } catch (error) {
-      console.error("Early access request failed:", error);
-      setMessage("There was an error. Please try again later.");
-      setMessageColor("#d32f2f");
+      console.error('Early access request failed:', error);
+      setMessage('There was an error. Please try again later.');
+      setMessageColor('#d32f2f');
     }
 
-    setEmail("");
+    setEmail('');
   };
 
   return (
@@ -75,12 +75,12 @@ export default function LandingPage() {
 
         body {
           font-family:
-            "Inter",
+            'Inter',
             -apple-system,
             BlinkMacSystemFont,
-            "Segoe UI",
+            'Segoe UI',
             Roboto,
-            "Helvetica Neue",
+            'Helvetica Neue',
             Arial,
             sans-serif;
           background: var(--bg);
@@ -145,15 +145,12 @@ export default function LandingPage() {
                 >
                   Visual intelligence.
                   <br />
-                  <strong className="text-[var(--accent)] font-bold">
-                    Privacy-first.
-                  </strong>
+                  <strong className="text-[var(--accent)] font-bold">Privacy-first.</strong>
                 </h1>
                 <p className="text-[var(--muted)] text-[21px] mb-12 max-w-[65ch] leading-[1.6] font-normal">
-                  On-device computer vision pipelines and a licensable
-                  similarity engine for fashion and retail. Add visual search,
-                  recommendations, and private personalization without uploading
-                  photos.
+                  On-device computer vision pipelines and a licensable similarity engine for fashion
+                  and retail. Add visual search, recommendations, and private personalization
+                  without uploading photos.
                 </p>
 
                 <div className="flex gap-4 items-center flex-wrap mb-6">
@@ -191,14 +188,7 @@ export default function LandingPage() {
                             stroke="currentColor"
                             strokeWidth="2"
                           >
-                            <rect
-                              x="3"
-                              y="11"
-                              width="18"
-                              height="11"
-                              rx="2"
-                              ry="2"
-                            />
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                           </svg>
                         </div>
@@ -321,8 +311,7 @@ export default function LandingPage() {
                 Built for the <strong>future of privacy</strong>
               </h2>
               <p className="text-[21px] text-[var(--muted)] max-w-[65ch] mx-auto">
-                Everything runs client side. Your images never leave your
-                device.
+                Everything runs client side. Your images never leave your device.
               </p>
             </div>
 
@@ -332,9 +321,8 @@ export default function LandingPage() {
                   Client-side inference
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Run optimized ONNX models on device with WebGPU/WASM for
-                  real-time detection and embedding generation. Zero server
-                  uploads.
+                  Run optimized ONNX models on device with WebGPU/WASM for real-time detection and
+                  embedding generation. Zero server uploads.
                 </p>
               </div>
 
@@ -343,8 +331,8 @@ export default function LandingPage() {
                   Vector similarity engine
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  512D embeddings and pgvector-compatible search for "find
-                  similar" and cross-catalog matching with low-latency results.
+                  512D embeddings and pgvector-compatible search for &quot;find similar&quot; and
+                  cross-catalog matching with low-latency results.
                 </p>
               </div>
 
@@ -353,9 +341,8 @@ export default function LandingPage() {
                   Privacy by design
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Only embeddings and user-validated metadata are shared. Reduce
-                  data liability while preserving personalization and conversion
-                  uplift.
+                  Only embeddings and user-validated metadata are shared. Reduce data liability
+                  while preserving personalization and conversion uplift.
                 </p>
               </div>
 
@@ -364,8 +351,8 @@ export default function LandingPage() {
                   Retail SDK & API
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Lightweight SDKs and REST APIs for easy integration into
-                  e-commerce platforms, AR try-ons, and discovery features.
+                  Lightweight SDKs and REST APIs for easy integration into e-commerce platforms, AR
+                  try-ons, and discovery features.
                 </p>
               </div>
 
@@ -374,8 +361,8 @@ export default function LandingPage() {
                   Model ops & export
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Production-ready model export (PyTorch → ONNX), progressive
-                  loading, quantization, and cross-platform optimization.
+                  Production-ready model export (PyTorch → ONNX), progressive loading, quantization,
+                  and cross-platform optimization.
                 </p>
               </div>
 
@@ -384,8 +371,8 @@ export default function LandingPage() {
                   Encrypted compute roadmap
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Research into obfuscated client-server compute and homomorphic
-                  encryption to enable encrypted inference workflows.
+                  Research into obfuscated client-server compute and homomorphic encryption to
+                  enable encrypted inference workflows.
                 </p>
               </div>
             </div>
@@ -401,20 +388,16 @@ export default function LandingPage() {
                   About Raincoat Labs
                 </h3>
                 <p className="text-[19px] text-[var(--muted)] leading-[1.7] mb-6">
-                  We build modular visual intelligence edge-AI that lets
-                  developers add vision-powered features while keeping user data
-                  private. Our first production use case is Raincoat, a consumer
-                  app that demonstrates the tech and drives early adoption.
+                  We build modular visual intelligence edge-AI that lets developers add
+                  vision-powered features while keeping user data private. Our first production use
+                  case is Raincoat, a consumer app that demonstrates the tech and drives early
+                  adoption.
                 </p>
               </div>
 
               <div className="bg-[var(--card)] p-6 rounded-[var(--radius)]">
-                <h4 className="text-[21px] font-semibold mb-4">
-                  Interested in a pilot or SDK?
-                </h4>
-                <p className="text-[var(--muted)] text-[15px] mb-4">
-                  Request early access
-                </p>
+                <h4 className="text-[21px] font-semibold mb-4">Interested in a pilot or SDK?</h4>
+                <p className="text-[var(--muted)] text-[15px] mb-4">Request early access</p>
                 <div className="flex gap-2 mt-4 flex-col sm:flex-row">
                   <input
                     className="flex-1 py-[14px] px-5 border border-black/10 rounded-full text-[17px] font-inherit transition-colors duration-200 focus:outline-none focus:border-[var(--accent)]"
@@ -423,7 +406,7 @@ export default function LandingPage() {
                     placeholder="name@company.com"
                     aria-label="email for early access"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={e => setEmail(e.target.value)}
                   />
                   <button
                     className="inline-flex items-center justify-center py-[14px] px-[28px] rounded-full bg-[var(--accent)] text-white no-underline font-semibold text-[17px] transition-all duration-200 border-none cursor-pointer hover:bg-[var(--accent-hover)] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(212,168,154,0.25)]"
@@ -433,10 +416,7 @@ export default function LandingPage() {
                   </button>
                 </div>
                 {message && (
-                  <div
-                    className="mt-2 text-[15px]"
-                    style={{ color: messageColor }}
-                  >
+                  <div className="mt-2 text-[15px]" style={{ color: messageColor }}>
                     {message}
                   </div>
                 )}
@@ -446,16 +426,11 @@ export default function LandingPage() {
         </section>
 
         {/* Footer */}
-        <footer
-          id="contact"
-          className="py-12 border-t border-black/[0.08] mt-[var(--spacing-xl)]"
-        >
+        <footer id="contact" className="py-12 border-t border-black/[0.08] mt-[var(--spacing-xl)]">
           <div className="max-w-[var(--max-width)] mx-auto px-[var(--container-padding)]">
             <div className="flex justify-between items-center flex-wrap gap-6 flex-col md:flex-row md:items-center">
               <div className="flex flex-col gap-2 items-start">
-                <strong className="text-[17px] font-semibold">
-                  Raincoat Labs
-                </strong>
+                <strong className="text-[17px] font-semibold">Raincoat Labs</strong>
                 <a
                   href="mailto:hello@raincoatlabs.nyc"
                   className="text-[var(--muted)] no-underline text-[15px] hover:text-[var(--accent)]"
@@ -491,9 +466,7 @@ export default function LandingPage() {
                 >
                   LinkedIn
                 </a>
-                <small className="text-[var(--muted)] text-sm">
-                  Built with privacy-first AI
-                </small>
+                <small className="text-[var(--muted)] text-sm">Built with privacy-first AI</small>
               </div>
             </div>
           </div>
