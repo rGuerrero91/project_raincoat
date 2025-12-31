@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Outfits', type: :request do
-  let(:user) { User.create!(email: 'test@example.com') }
+  let(:user) { User.create!(email: 'test@example.com', name: 'Test User') }
   let(:location) { Location.create!(city: 'New York', country: 'US', latitude: 40.7128, longitude: -74.0060, user: user) }
 
   describe 'GET /api/v1/outfits' do
