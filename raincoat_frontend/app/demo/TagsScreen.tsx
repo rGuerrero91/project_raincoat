@@ -73,14 +73,12 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
         {/* Edit Mode */}
         {isEditing && (
           <div className="mb-8 p-6 bg-neutral-light rounded-2xl">
-            <p className="text-base font-semibold text-ink mb-4">
-              Add More Tags
-            </p>
+            <p className="text-base font-semibold text-ink mb-4">Add More Tags</p>
 
             {/* Suggested Tags */}
             <div className="flex flex-wrap gap-2 mb-4">
               {suggestedTags
-                .filter((tag) => !tags.includes(tag))
+                .filter(tag => !tags.includes(tag))
                 .map((tag, index) => (
                   <button
                     key={index}
@@ -97,8 +95,8 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
               <input
                 type="text"
                 value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                onChange={e => setNewTag(e.target.value)}
+                onKeyPress={e => e.key === 'Enter' && handleAddTag()}
                 placeholder="Custom tag..."
                 className="flex-1 px-5 py-3 border-2 border-neutral-medium/30 rounded-full focus:border-primary focus:outline-none transition-colors"
               />
@@ -113,11 +111,7 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
         <div className="flex gap-3">
           {isEditing ? (
             <>
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => setIsEditing(false)}
-              >
+              <Button variant="secondary" fullWidth onClick={() => setIsEditing(false)}>
                 Cancel
               </Button>
               <Button
@@ -133,11 +127,7 @@ export default function TagsScreen({ item, onNext }: TagsScreenProps) {
             </>
           ) : (
             <>
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => setIsEditing(true)}
-              >
+              <Button variant="secondary" fullWidth onClick={() => setIsEditing(true)}>
                 Edit Tags
               </Button>
               <Button variant="primary" fullWidth onClick={handleNext}>

@@ -1,6 +1,6 @@
 class Api::V1::OutfitsController < ApplicationController
   before_action :set_user
-  before_action :set_outfit, only: [:show, :destroy]
+  before_action :set_outfit, only: [ :show, :destroy ]
 
   # GET /api/v1/outfits
   # Get all saved outfits for the user
@@ -16,8 +16,8 @@ class Api::V1::OutfitsController < ApplicationController
       outfit_items: {
         include: {
           clothing_item: {
-            methods: [:image_url],
-            only: [:id, :name, :category, :colors, :materials, :ai_tags, :user_tags]
+            methods: [ :image_url ],
+            only: [ :id, :name, :category, :colors, :materials, :ai_tags, :user_tags ]
           }
         }
       }
@@ -44,7 +44,7 @@ class Api::V1::OutfitsController < ApplicationController
     serialized_outfits = outfit_recommendations.map do |outfit|
       serialized_items = {}
 
-      outfit["items"]&.each do |slot, item_name|
+      outfit['items']&.each do |slot, item_name|
         # Find the clothing item by name
         item = items_by_category.values.flatten.find { |i| i.name == item_name }
 
@@ -54,9 +54,9 @@ class Api::V1::OutfitsController < ApplicationController
       end
 
       {
-        description: outfit["description"],
+        description: outfit['description'],
         items: serialized_items,
-        style_tags: outfit["style_tags"]
+        style_tags: outfit['style_tags']
       }
     end
 
@@ -116,19 +116,19 @@ class Api::V1::OutfitsController < ApplicationController
     # For now, use the first user or user from params
     @user = if params[:user_id].present?
               User.find(params[:user_id])
-            else
+    else
               User.first
-            end
+    end
 
     unless @user
-      render json: { error: "User not found" }, status: :not_found
+      render json: { error: 'User not found' }, status: :not_found
     end
   end
 
   def set_outfit
     @outfit = @user.outfits.find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    render json: { error: "Outfit not found" }, status: :not_found
+    render json: { error: 'Outfit not found' }, status: :not_found
   end
 
   def fetch_weather_data
@@ -180,12 +180,12 @@ class Api::V1::OutfitsController < ApplicationController
           }
         else
           # Fallback to default weather if API fails
-          { temperature_c: 20, condition_text: "Clear", humidity: 50, precipitation_mm: 0 }
+          { temperature_c: 20, condition_text: 'Clear', humidity: 50, precipitation_mm: 0 }
         end
       end
     else
       # Default weather if no location
-      { temperature_c: 20, condition_text: "Clear", humidity: 50, precipitation_mm: 0 }
+      { temperature_c: 20, condition_text: 'Clear', humidity: 50, precipitation_mm: 0 }
     end
   end
 

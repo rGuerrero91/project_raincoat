@@ -1,27 +1,26 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ProductPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
   const autoplayRef = useRef<NodeJS.Timeout | null>(null);
 
   const slides = [
-    "/demo_screens/Screenshot_20251031-191142.png",
-    "/demo_screens/Screenshot_20251031-191151.png",
-    "/demo_screens/Screenshot_20251031-191233.png",
-    "/demo_screens/Screenshot_20251031-203116.png",
+    '/demo_screens/Screenshot_20251031-191142.png',
+    '/demo_screens/Screenshot_20251031-191151.png',
+    '/demo_screens/Screenshot_20251031-191233.png',
+    '/demo_screens/Screenshot_20251031-203116.png',
   ];
 
   const totalSlides = slides.length;
 
   const startAutoplay = () => {
     autoplayRef.current = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+      setCurrentSlide(prev => (prev + 1) % totalSlides);
     }, 4000);
   };
 
@@ -60,8 +59,8 @@ export default function ProductPage() {
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    setTouchEnd(e.changedTouches[0].screenX);
-    const diff = touchStart - e.changedTouches[0].screenX;
+    const touchEnd = e.changedTouches[0].screenX;
+    const diff = touchStart - touchEnd;
     if (diff > 50) {
       nextSlide();
     } else if (diff < -50) {
@@ -99,12 +98,12 @@ export default function ProductPage() {
 
         body {
           font-family:
-            "Inter",
+            'Inter',
             -apple-system,
             BlinkMacSystemFont,
-            "Segoe UI",
+            'Segoe UI',
             Roboto,
-            "Helvetica Neue",
+            'Helvetica Neue',
             Arial,
             sans-serif;
           background: var(--bg);
@@ -179,9 +178,8 @@ export default function ProductPage() {
                   </strong>
                 </h1>
                 <p className="text-[var(--muted)] text-[21px] mb-12 max-w-[65ch] leading-[1.6] font-normal">
-                  Upload your closet once and get daily, weather-based outfit
-                  suggestions. All image processing runs locally. Your photos
-                  never leave your device.
+                  Upload your closet once and get daily, weather-based outfit suggestions. All image
+                  processing runs locally. Your photos never leave your device.
                 </p>
 
                 <div className="flex gap-4 items-center flex-wrap mb-6">
@@ -203,13 +201,11 @@ export default function ProductPage() {
                   id="privacy"
                   className="mt-6 p-6 bg-[rgba(212,168,154,0.08)] rounded-[var(--radius)] border-l-4 border-[var(--accent)]"
                 >
-                  <h3 className="text-[21px] font-semibold mb-2">
-                    Your photos stay private
-                  </h3>
+                  <h3 className="text-[21px] font-semibold mb-2">Your photos stay private</h3>
                   <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                    Raincoat runs background removal, detection, and embedding
-                    generation on-device with ONNX Runtime Web and WebGPU. We
-                    only receive anonymized vectors and user-validated tags.
+                    Raincoat runs background removal, detection, and embedding generation on-device
+                    with ONNX Runtime Web and WebGPU. We only receive anonymized vectors and
+                    user-validated tags.
                   </p>
                 </div>
               </div>
@@ -273,11 +269,11 @@ export default function ProductPage() {
                   </div> */}
                   <div className="mt-2 text-center">
                     <Link
-                    href="/demo"
-                    className="inline-flex items-center justify-center py-[12px] px-[16px] rounded-full bg-transparent text-[var(--ink)] no-underline font-semibold text-[17px] transition-all duration-200 border border-[rgba(212,168,154,0.4)] cursor-pointer hover:bg-[rgba(212,168,154,0.08)]"
-                  >
-                    Try the demo
-                  </Link> 
+                      href="/demo"
+                      className="inline-flex items-center justify-center py-[12px] px-[16px] rounded-full bg-transparent text-[var(--ink)] no-underline font-semibold text-[17px] transition-all duration-200 border border-[rgba(212,168,154,0.4)] cursor-pointer hover:bg-[rgba(212,168,154,0.08)]"
+                    >
+                      Try the demo
+                    </Link>
                     {/*  <Link
                       href=""
                       className="inline-flex items-center justify-center py-[12px] px-[16px] rounded-full bg-transparent text-[var(--ink)] no-underline font-semibold text-[17px] transition-all duration-200 border border-[rgba(212,168,154,0.4)] cursor-pointer hover:bg-[rgba(212,168,154,0.08)]"
@@ -314,8 +310,8 @@ export default function ProductPage() {
                   Smart Auto-Tagging
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Automatic clothing classification and attribute detection to
-                  eliminate manual tagging and speed up closet organization.
+                  Automatic clothing classification and attribute detection to eliminate manual
+                  tagging and speed up closet organization.
                 </p>
               </div>
 
@@ -324,8 +320,8 @@ export default function ProductPage() {
                   Weather-Based Suggestions
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Personalized outfit recommendations matched to local weather
-                  and forecast data so you're always prepared.
+                  Personalized outfit recommendations matched to local weather and forecast data so
+                  you&apos;re always prepared.
                 </p>
               </div>
 
@@ -334,8 +330,8 @@ export default function ProductPage() {
                   Similarity Search
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Find visually similar items across your wardrobe and discover
-                  alternatives from partner catalogs using vector search.
+                  Find visually similar items across your wardrobe and discover alternatives from
+                  partner catalogs using vector search.
                 </p>
               </div>
 
@@ -344,8 +340,8 @@ export default function ProductPage() {
                   Multi-Location Support
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Manage multiple closets for different cities, offices, or
-                  travel destinations with location-aware recommendations.
+                  Manage multiple closets for different cities, offices, or travel destinations with
+                  location-aware recommendations.
                 </p>
               </div>
 
@@ -354,18 +350,16 @@ export default function ProductPage() {
                   Instant Client Processing
                 </h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  ONNX models running on device with progressive loading and
-                  WebGPU acceleration for near-instant results.
+                  ONNX models running on device with progressive loading and WebGPU acceleration for
+                  near-instant results.
                 </p>
               </div>
 
               <div className="bg-[var(--bg)] p-6 rounded-[var(--radius)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-                <h3 className="text-2xl font-semibold m-0 mb-2 tracking-[-0.01em]">
-                  Travel Mode
-                </h3>
+                <h3 className="text-2xl font-semibold m-0 mb-2 tracking-[-0.01em]">Travel Mode</h3>
                 <p className="text-[var(--muted)] text-[17px] m-0 leading-[1.6]">
-                  Pack smarter with suggested packing lists and outfits tailored
-                  to the forecast at your destination.
+                  Pack smarter with suggested packing lists and outfits tailored to the forecast at
+                  your destination.
                 </p>
               </div>
             </div>
@@ -380,21 +374,21 @@ export default function ProductPage() {
                 Built with modern tech
               </h3>
               <p className="text-[19px] text-[var(--muted)] mb-6 max-w-[65ch] mx-auto">
-                Privacy-first architecture powered by on-device inference and
-                efficient vector search.
+                Privacy-first architecture powered by on-device inference and efficient vector
+                search.
               </p>
               <div className="flex flex-wrap gap-4 justify-center mt-6">
                 {[
-                  "Next.js",
-                  "Ruby on Rails",
-                  "PostgreSQL + pgvector",
-                  "ONNX Runtime Web",
-                  "YOLOv8",
-                  "FashionCLIP",
-                  "U²-Net",
-                  "WebGPU",
-                  "TypeScript",
-                ].map((tech) => (
+                  'Next.js',
+                  'Ruby on Rails',
+                  'PostgreSQL + pgvector',
+                  'ONNX Runtime Web',
+                  'YOLOv8',
+                  'FashionCLIP',
+                  'U²-Net',
+                  'WebGPU',
+                  'TypeScript',
+                ].map(tech => (
                   <div
                     key={tech}
                     className="bg-gradient-to-br from-[var(--accent)] to-[var(--accent-2)] text-[var(--ink)] py-[10px] px-5 rounded-[20px] font-semibold text-[15px] transition-all duration-200 hover:-translate-y-[2px] hover:shadow-[0_4px_12px_rgba(156,163,175,0.25)]"
@@ -433,9 +427,7 @@ export default function ProductPage() {
                 >
                   Contact
                 </a>
-                <small className="text-[var(--muted)] text-sm">
-                  © 2025 Raincoat — Prototype
-                </small>
+                <small className="text-[var(--muted)] text-sm">© 2025 Raincoat — Prototype</small>
               </div>
             </div>
           </div>

@@ -5,6 +5,7 @@ Lightweight Next.js frontend demo for the Raincoat weather-smart wardrobe applic
 ## Overview
 
 This is a mobile-first demo experience that showcases:
+
 - Privacy-first photo processing (client-side AI)
 - Smart auto-tagging with ONNX models
 - Weather-based outfit recommendations
@@ -23,11 +24,13 @@ This is a mobile-first demo experience that showcases:
 Based on `docs/Demo_Design_Expectations_Full.md`:
 
 ### Colors
+
 - **Primary**: Fresh Green (#e1f5e1), Sky Blue (#e3f2fd), Warm Amber (#fff3e0)
 - **Accent**: Success Green (#c8e6c9), Warning Orange (#f57c00), Info Blue (#1976d2)
 - **Neutrals**: Dark (#212121), Medium (#757575), Light (#fafafa)
 
 ### Typography
+
 - Headlines: 28-32px, medium weight
 - Body: 16px, 1.5-1.6 line height
 - Mobile-first, 320px minimum width
@@ -114,6 +117,7 @@ The demo follows this 11-screen journey:
 The frontend communicates with the Rails API at `http://localhost:3000`:
 
 ### Key Endpoints
+
 - `POST /signup` - User registration
 - `POST /login` - User login
 - `GET /api/v1/clothing_items` - List closet items
@@ -127,6 +131,7 @@ See `lib/api.ts` for full API client implementation.
 ## Client-Side AI
 
 ### ONNX Models
+
 The frontend loads and runs AI models directly in the browser:
 
 - **U2-Net** (~167MB) - Background removal
@@ -136,6 +141,7 @@ The frontend loads and runs AI models directly in the browser:
 Models are served from the Rails API at `/models/*.onnx`.
 
 ### Processing Pipeline
+
 1. Load image from file input
 2. Remove background with U2-Net
 3. Generate 512D embedding with FashionCLIP

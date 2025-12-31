@@ -22,23 +22,25 @@ export default function CompleteScreen({ onRestart }: CompleteScreenProps) {
         {/* Success Icon with Animation */}
         <div className="flex justify-center mb-8 gap-4">
           <Umbrella className="w-24 h-24 text-primary animate-float" strokeWidth={1.5} />
-          <Sparkles className="w-20 h-20 text-primary animate-float" style={{ animationDelay: '0.3s' }} strokeWidth={1.5} />
+          <Sparkles
+            className="w-20 h-20 text-primary animate-float"
+            style={{ animationDelay: '0.3s' }}
+            strokeWidth={1.5}
+          />
         </div>
 
         {/* Headline */}
         <h2 className="text-headline font-bold mb-4">
-          That's a <strong className="text-primary">Raincoat!</strong>
+          That&apos;s a <strong className="text-primary">Raincoat!</strong>
         </h2>
 
         <p className="text-lg text-neutral-medium mb-10 leading-relaxed">
-          You've experienced the future of weather-smart outfit planning
+          You&apos;ve experienced the future of weather-smart outfit planning
         </p>
 
         {/* Features Checklist */}
         <div className="bg-neutral-light rounded-3xl p-8 mb-10 text-left">
-          <p className="font-semibold text-ink text-lg mb-6">
-            What you experienced:
-          </p>
+          <p className="font-semibold text-ink text-lg mb-6">What you experienced:</p>
           <div className="space-y-4">
             {featuresExperienced.map((feature, index) => (
               <div key={index} className="flex items-start gap-4">

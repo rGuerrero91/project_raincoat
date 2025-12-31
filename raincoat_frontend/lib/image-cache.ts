@@ -38,7 +38,7 @@ class ImageCache {
         resolve(request.result);
       };
 
-      request.onupgradeneeded = (event) => {
+      request.onupgradeneeded = event => {
         const db = (event.target as IDBOpenDBRequest).result;
 
         // Create object store if it doesn't exist
@@ -78,7 +78,10 @@ class ImageCache {
             blob = await response.blob();
           } catch (fetchError) {
             // Blob URL might have been revoked or is inaccessible
-            console.warn('[ImageCache] Blob URL is no longer accessible (may have been revoked):', fetchError);
+            console.warn(
+              '[ImageCache] Blob URL is no longer accessible (may have been revoked):',
+              fetchError
+            );
             return;
           }
         } else if (imageSource.startsWith('data:')) {
@@ -109,7 +112,9 @@ class ImageCache {
         request.onerror = () => reject(request.error);
       });
 
-      console.log(`[ImageCache] Saved processed image for item ${itemId} (${(blob.size / 1024).toFixed(1)}KB)`);
+      console.log(
+        `[ImageCache] Saved processed image for item ${itemId} (${(blob.size / 1024).toFixed(1)}KB)`
+      );
     } catch (error) {
       console.error('[ImageCache] Failed to save image:', error);
     }

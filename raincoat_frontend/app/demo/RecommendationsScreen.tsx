@@ -102,9 +102,12 @@ export default function RecommendationsScreen({
                     id: backendItem.id,
                     name: backendItem.name,
                     category: backendItem.category,
-                    image: backendItem.images && backendItem.images.length > 0 ? backendItem.images[0] : '',
+                    image:
+                      backendItem.images && backendItem.images.length > 0
+                        ? backendItem.images[0]
+                        : '',
                     images: backendItem.images || [], // Array of image URLs from backend
-                    tags: [...(backendItem.ai_tags || []), ...(backendItem.user_tags || [])]
+                    tags: [...(backendItem.ai_tags || []), ...(backendItem.user_tags || [])],
                   };
 
                   // Add to items array and track index
@@ -116,7 +119,7 @@ export default function RecommendationsScreen({
               return {
                 name: `Outfit ${index + 1}`,
                 itemCount: itemCount,
-                reason: outfit.description || 'Perfect for today\'s weather',
+                reason: outfit.description || "Perfect for today's weather",
                 items: itemIndices.length > 0 ? itemIndices : [0], // Fallback to first item if no matches
               };
             });
@@ -154,12 +157,8 @@ export default function RecommendationsScreen({
           <div className="flex justify-center mb-6 animate-float">
             <Shirt className="w-24 h-24 text-primary" strokeWidth={1.5} />
           </div>
-          <h2 className="text-headline font-bold mb-2">
-            Creating outfit ideas...
-          </h2>
-          <p className="text-neutral-medium">
-            Analyzing your closet and weather
-          </p>
+          <h2 className="text-headline font-bold mb-2">Creating outfit ideas...</h2>
+          <p className="text-neutral-medium">Analyzing your closet and weather</p>
         </Card>
       </Container>
     );
@@ -169,11 +168,7 @@ export default function RecommendationsScreen({
     <Container className="py-8 min-h-screen">
       {/* Header */}
       <div className="mb-8 text-center">
-        {error && (
-          <div className="mb-2 text-xs text-neutral-medium italic">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-2 text-xs text-neutral-medium italic">{error}</div>}
         <h2 className="text-headline font-bold mb-3">
           Perfect for <strong className="text-primary">today</strong>
         </h2>
@@ -189,12 +184,8 @@ export default function RecommendationsScreen({
             {/* Outfit Header */}
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="text-xl font-semibold text-ink mb-1">
-                  {outfit.name}
-                </h3>
-                <p className="text-sm text-neutral-medium">
-                  {outfit.itemCount} items
-                </p>
+                <h3 className="text-xl font-semibold text-ink mb-1">{outfit.name}</h3>
+                <p className="text-sm text-neutral-medium">{outfit.itemCount} items</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center">
                 <Shirt className="w-6 h-6 text-primary" strokeWidth={2} />
@@ -203,13 +194,14 @@ export default function RecommendationsScreen({
 
             {/* Item Thumbnails */}
             <div className="flex gap-2 mb-3 overflow-x-auto">
-              {outfit.items.map((itemIndex) => {
+              {outfit.items.map(itemIndex => {
                 const item = items[itemIndex];
                 if (!item) return null;
                 // Get image URL - prioritize processed image, then regular image, then backend images array
-                const imageUrl = item.processedImage ||
-                                item.image ||
-                                (item.images && item.images.length > 0 ? item.images[0] : null);
+                const imageUrl =
+                  item.processedImage ||
+                  item.image ||
+                  (item.images && item.images.length > 0 ? item.images[0] : null);
 
                 return (
                   <div
@@ -244,9 +236,7 @@ export default function RecommendationsScreen({
             </div>
 
             {/* Reason */}
-            <p className="text-sm text-neutral-medium italic mb-3">
-              "{outfit.reason}"
-            </p>
+            <p className="text-sm text-neutral-medium italic mb-3">&quot;{outfit.reason}&quot;</p>
 
             {/* Match Badge */}
             <div className="inline-flex items-center gap-2 bg-primary-light text-primary px-3 py-1.5 rounded-full text-sm font-semibold">

@@ -9,13 +9,19 @@ import { WiDaySunnyOvercast } from 'weather-icons-react';
 import apiClient from '@/lib/api';
 
 interface LocationScreenProps {
-  onNext: (location: { city: string; country: string; latitude: number; longitude: number; id?: number }) => void;
+  onNext: (location: {
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    id?: number;
+  }) => void;
 }
 
 // Mock locations for demo
 const demoLocations = [
   { city: 'San Francisco', country: 'United States', latitude: 37.7749, longitude: -122.4194 },
-  { city: 'New York', country: 'United States', latitude: 40.7128, longitude: -74.0060 },
+  { city: 'New York', country: 'United States', latitude: 40.7128, longitude: -74.006 },
   { city: 'London', country: 'United Kingdom', latitude: 51.5074, longitude: -0.1278 },
   { city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503 },
 ];
@@ -125,7 +131,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
 
         {/* Headline */}
         <h2 className="text-headline font-bold mb-4">
-          What's the weather <strong className="text-primary">like?</strong>
+          What&apos;s the weather <strong className="text-primary">like?</strong>
         </h2>
 
         {/* Body Text */}
@@ -134,7 +140,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
         </p>
 
         <p className="text-sm text-neutral-medium mb-8 opacity-75">
-          We only need the city, nothing specific since we aren't selling your data.
+          We only need the city, nothing specific since we aren&apos;t selling your data.
         </p>
 
         {/* Location Selection */}
@@ -152,9 +158,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
                 }
               `}
             >
-              <p className="font-semibold text-ink">
-                {location.city}
-              </p>
+              <p className="font-semibold text-ink">{location.city}</p>
               <p className="text-sm text-neutral-medium">{location.country}</p>
             </button>
           ))}
@@ -166,7 +170,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
           <input
             type="text"
             value={customCity}
-            onChange={(e) => handleSearchCity(e.target.value)}
+            onChange={e => handleSearchCity(e.target.value)}
             placeholder="e.g., Paris, France"
             className="w-full px-5 py-3 border-2 border-neutral-medium/30 rounded-full focus:border-primary focus:outline-none transition-colors"
           />
@@ -180,11 +184,10 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
                   onClick={() => handleSelectSearchResult(result)}
                   className="w-full p-3 text-left hover:bg-primary-light transition-colors border-b border-neutral-medium/20 last:border-b-0"
                 >
-                  <p className="font-semibold text-ink">
-                    {result.name || result.city}
-                  </p>
+                  <p className="font-semibold text-ink">{result.name || result.city}</p>
                   <p className="text-sm text-neutral-medium">
-                    {result.region && `${result.region}, `}{result.country}
+                    {result.region && `${result.region}, `}
+                    {result.country}
                   </p>
                 </button>
               ))}
@@ -193,9 +196,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
 
           {/* Searching Indicator */}
           {isSearching && (
-            <div className="absolute right-4 top-11 text-sm text-neutral-medium">
-              Searching...
-            </div>
+            <div className="absolute right-4 top-11 text-sm text-neutral-medium">Searching...</div>
           )}
         </div>
 
@@ -208,12 +209,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
 
         {/* Action Buttons */}
         <div className="space-y-3">
-          <Button
-            variant="primary"
-            fullWidth
-            onClick={handleNext}
-            disabled={isLoading}
-          >
+          <Button variant="primary" fullWidth onClick={handleNext} disabled={isLoading}>
             {isLoading ? 'Setting location...' : 'Set City'}
           </Button>
 
@@ -231,9 +227,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
         <div className="mt-8 p-5 bg-primary-light rounded-2xl">
           <div className="flex items-center justify-center gap-3">
             <WiDaySunnyOvercast size={32} color="#8bb8e8" />
-            <p className="text-sm text-ink">
-              Example: San Francisco, 68°F
-            </p>
+            <p className="text-sm text-ink">Example: San Francisco, 68°F</p>
           </div>
         </div>
       </Card>

@@ -1,5 +1,5 @@
 class Api::V1::ClothingItemsController < Api::V1::BaseController
-  before_action :set_clothing_item, only: [:show, :get_embedding, :save_embedding, :similar]
+  before_action :set_clothing_item, only: [ :show, :get_embedding, :save_embedding, :similar ]
 
   def index
     items = current_user.clothing_items.includes(:clothing_embedding)
@@ -23,7 +23,7 @@ class Api::V1::ClothingItemsController < Api::V1::BaseController
 
   def create
     item = current_user.clothing_items.build(clothing_item_params)
-    
+
     if item.save
       render json: {
         success: true,
@@ -102,7 +102,7 @@ class Api::V1::ClothingItemsController < Api::V1::BaseController
     end
 
     # Parse query parameters
-    limit = [params[:limit]&.to_i || 10, 50].min # Max 50 results
+    limit = [ params[:limit]&.to_i || 10, 50 ].min # Max 50 results
     filters = build_similarity_filters
 
     similar_items = @clothing_item.similar_items(limit: limit, **filters)
@@ -193,7 +193,7 @@ class Api::V1::ClothingItemsController < Api::V1::BaseController
 
     data
   end
-  
+
   def serialize_embedding(embedding)
     {
       id: embedding.id,

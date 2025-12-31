@@ -1,8 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
-import { Shirt, RectangleHorizontal, Backpack, Footprints, MapPinned as Hoodie } from 'lucide-react';
+import {
+  Shirt,
+  RectangleHorizontal,
+  Backpack,
+  Footprints,
+  MapPinned as Hoodie,
+} from 'lucide-react';
 import { yoloDetector, YOLODetection } from '@/lib/yolo-detector';
 
 interface CategoryScreenProps {
@@ -26,11 +32,10 @@ export default function CategoryScreen({
   croppedImageUrl,
   originalImage,
   allDetections,
-  onNext
+  onNext,
 }: CategoryScreenProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(detectedCategory || null);
   const [currentCroppedUrl, setCurrentCroppedUrl] = useState<string | undefined>(croppedImageUrl);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (detectedCategory) {
@@ -49,7 +54,11 @@ export default function CategoryScreen({
     if (matchingDetection) {
       // cropToBbox is now async, so we need to await it
       (async () => {
-        const newCroppedUrl = await yoloDetector.cropToBbox(originalImage, matchingDetection.bbox, 0.05);
+        const newCroppedUrl = await yoloDetector.cropToBbox(
+          originalImage,
+          matchingDetection.bbox,
+          0.05
+        );
         setCurrentCroppedUrl(newCroppedUrl);
         console.log('[CategoryScreen] Updated crop preview for category:', selectedCategory);
       })();
@@ -73,7 +82,8 @@ export default function CategoryScreen({
       <Card padding="xl" className="text-center max-w-4xl w-full">
         {/* Headline */}
         <h2 className="text-headline font-bold mb-4">
-          {detectedCategory ? 'Confirm' : 'Select'} <strong className="text-primary">Category</strong>
+          {detectedCategory ? 'Confirm' : 'Select'}{' '}
+          <strong className="text-primary">Category</strong>
         </h2>
 
         {/* Subheading */}
@@ -110,7 +120,7 @@ export default function CategoryScreen({
               {currentCroppedUrl ? 'Change Category' : 'Select Category'}
             </h3>
             <div className="grid grid-cols-2 gap-4">
-              {categories.map((category) => {
+              {categories.map(category => {
                 const IconComponent = category.icon;
                 if (!IconComponent) {
                   console.error(`Icon component is undefined for category: ${category.id}`);
@@ -132,12 +142,17 @@ export default function CategoryScreen({
                     `}
                   >
                     <div className="flex justify-center mb-2">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        selectedCategory === category.id ? 'bg-primary' : 'bg-primary-light'
-                      }`}>
-                        <IconComponent className={`w-6 h-6 ${
-                          selectedCategory === category.id ? 'text-white' : 'text-primary'
-                        }`} strokeWidth={2} />
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                          selectedCategory === category.id ? 'bg-primary' : 'bg-primary-light'
+                        }`}
+                      >
+                        <IconComponent
+                          className={`w-6 h-6 ${
+                            selectedCategory === category.id ? 'text-white' : 'text-primary'
+                          }`}
+                          strokeWidth={2}
+                        />
                       </div>
                     </div>
                     <p className="font-semibold text-ink">{category.label}</p>

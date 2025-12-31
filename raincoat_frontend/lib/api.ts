@@ -1,6 +1,6 @@
 // API client for Rails backend communication
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -108,43 +108,40 @@ class ApiClient {
     this.baseUrl = baseUrl;
 
     // Load session from localStorage if available
-    if (typeof window !== "undefined") {
-      this.sessionId = localStorage.getItem("raincoat_session_id");
+    if (typeof window !== 'undefined') {
+      this.sessionId = localStorage.getItem('raincoat_session_id');
     }
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
 
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
 
     // Add demo user authentication for demo mode
     // Backend accepts: Authorization: Bearer <email>
-    headers["Authorization"] = "Bearer demo@sample.com";
+    headers['Authorization'] = 'Bearer demo@sample.com';
 
     // Add session ID if available
     if (this.sessionId) {
-      headers["X-Session-Id"] = this.sessionId;
+      headers['X-Session-Id'] = this.sessionId;
     }
 
     try {
       const response = await fetch(url, {
         ...options,
         headers,
-        credentials: "include",
+        credentials: 'include',
       });
 
       // Store session ID from response if present
-      const newSessionId = response.headers.get("X-Session-Id");
-      if (newSessionId && typeof window !== "undefined") {
+      const newSessionId = response.headers.get('X-Session-Id');
+      if (newSessionId && typeof window !== 'undefined') {
         this.sessionId = newSessionId;
-        localStorage.setItem("raincoat_session_id", newSessionId);
+        localStorage.setItem('raincoat_session_id', newSessionId);
       }
 
       const data = await response.json();
@@ -152,7 +149,7 @@ class ApiClient {
       if (!response.ok) {
         return {
           success: false,
-          error: data.error || "An error occurred",
+          error: data.error || 'An error occurred',
         };
       }
 
@@ -161,32 +158,32 @@ class ApiClient {
         data: data.data || data,
       };
     } catch (error) {
-      console.error("API request failed:", error);
+      console.error('API request failed:', error);
       return {
         success: false,
-        error: "Network error occurred",
+        error: 'Network error occurred',
       };
     }
   }
 
   // Authentication
   async signup(email: string, password: string) {
-    return this.request("/signup", {
-      method: "POST",
+    return this.request('/signup', {
+      method: 'POST',
       body: JSON.stringify({ user: { email, password } }),
     });
   }
 
   async login(email: string, password: string) {
-    return this.request("/login", {
-      method: "POST",
+    return this.request('/login', {
+      method: 'POST',
       body: JSON.stringify({ user: { email, password } }),
     });
   }
 
   // Clothing Items
   async getClothingItems() {
-    return this.request("/api/v1/clothing_items");
+    return this.request('/api/v1/clothing_items');
   }
 
   async createClothingItem(data: {
@@ -197,15 +194,15 @@ class ApiClient {
     colors?: string[];
     materials?: string[];
   }) {
-    return this.request("/api/v1/clothing_items", {
-      method: "POST",
+    return this.request('/api/v1/clothing_items', {
+      method: 'POST',
       body: JSON.stringify({ clothing_item: data }),
     });
   }
 
   async uploadEmbedding(itemId: number, embedding: number[]) {
     return this.request(`/api/v1/clothing_items/${itemId}/embedding`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ vector_data: embedding }),
     });
   }
@@ -223,13 +220,11 @@ class ApiClient {
         similarity_percentage: string;
         distance_metric: string;
       }>;
-    }>(
-      `/api/v1/clothing_items/${itemId}/similar?limit=${limit}`
-    );
+    }>(`/api/v1/clothing_items/${itemId}/similar?limit=${limit}`);
 
     // Filter items below the similarity threshold
     if (response.success && response.data) {
-      response.data.similar_items = response.data.similar_items.filter((similarItem) => {
+      response.data.similar_items = response.data.similar_items.filter(similarItem => {
         const percentage = parseFloat(similarItem.similarity_percentage.replace('%', ''));
         return percentage >= minSimilarityPercentage;
       });
@@ -254,7 +249,7 @@ class ApiClient {
 
   // Locations
   async getLocations() {
-    return this.request("/api/v1/locations");
+    return this.request('/api/v1/locations');
   }
 
   async createLocation(data: {
@@ -266,21 +261,19 @@ class ApiClient {
     longitude: number;
     is_default?: boolean;
   }) {
-    return this.request("/api/v1/locations", {
-      method: "POST",
+    return this.request('/api/v1/locations', {
+      method: 'POST',
       body: JSON.stringify({ location: data }),
     });
   }
 
   async searchLocation(query: string) {
-    return this.request(
-      `/api/v1/locations/search?q=${encodeURIComponent(query)}`
-    );
+    return this.request(`/api/v1/locations/search?q=${encodeURIComponent(query)}`);
   }
 
   async setDefaultLocation(locationId: number) {
     return this.request(`/api/v1/locations/${locationId}/set_default`, {
-      method: "POST",
+      method: 'POST',
     });
   }
 
@@ -291,47 +284,45 @@ class ApiClient {
     if (country) params.append('country', country);
 
     const queryString = params.toString();
-    const url = queryString
-      ? `/api/v1/weather/current?${queryString}`
-      : "/api/v1/weather/current";
+    const url = queryString ? `/api/v1/weather/current?${queryString}` : '/api/v1/weather/current';
 
     return this.request<CurrentWeatherResponse>(url);
   }
 
   async getWeatherRecommendations() {
-    return this.request<WeatherRecommendationsResponse>(
-      "/api/v1/weather/recommendations"
-    );
+    return this.request<WeatherRecommendationsResponse>('/api/v1/weather/recommendations');
   }
 
   async refreshWeather() {
-    return this.request("/api/v1/weather/refresh", {
-      method: "POST",
+    return this.request('/api/v1/weather/refresh', {
+      method: 'POST',
     });
   }
 
   // Outfits
-  async generateOutfits(weather?: {
-    temperature_c: number;
-    temperature_f?: number;
-    condition_text: string;
-    humidity?: number;
-    precipitation_mm?: number;
-  } | null) {
+  async generateOutfits(
+    weather?: {
+      temperature_c: number;
+      temperature_f?: number;
+      condition_text: string;
+      humidity?: number;
+      precipitation_mm?: number;
+    } | null
+  ) {
     const body = weather ? { weather } : {};
 
     return this.request<{
       weather: WeatherSnapshot;
       recommendations: Outfit[];
       available_items: { [category: string]: number };
-    }>("/api/v1/outfits/generate", {
-      method: "POST",
+    }>('/api/v1/outfits/generate', {
+      method: 'POST',
       body: JSON.stringify(body),
     });
   }
 
   async getOutfits() {
-    return this.request("/api/v1/outfits");
+    return this.request('/api/v1/outfits');
   }
 
   async saveOutfit(outfit: {
@@ -342,8 +333,8 @@ class ApiClient {
     weather_condition?: string;
     season?: string;
   }) {
-    return this.request("/api/v1/outfits", {
-      method: "POST",
+    return this.request('/api/v1/outfits', {
+      method: 'POST',
       body: JSON.stringify({ outfit }),
     });
   }

@@ -19,8 +19,8 @@ class Outfit < ApplicationRecord
         outfit_items: {
           include: {
             clothing_item: {
-              methods: [:image_url],
-              only: [:id, :name, :category, :colors, :materials, :ai_tags, :user_tags]
+              methods: [ :image_url ],
+              only: [ :id, :name, :category, :colors, :materials, :ai_tags, :user_tags ]
             }
           }
         }

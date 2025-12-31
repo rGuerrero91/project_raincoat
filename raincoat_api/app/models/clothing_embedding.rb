@@ -5,7 +5,7 @@ class ClothingEmbedding < ApplicationRecord
   validates :vector_data, presence: true
   validates :model_version, presence: true
   # Note: vector_data validation is handled by the database schema (limit: 512)
-  
+
   def similar_embeddings(limit: 10, category: nil, min_similarity: 0.0, colors: nil, materials: nil)
     return [] unless vector_data.present?
 
@@ -20,19 +20,21 @@ class ClothingEmbedding < ApplicationRecord
 
     # Filter by colors (JSON array contains any of the specified colors)
     if colors.present?
-      color_conditions = colors.map { |color| "clothing_items.colors @> ?::jsonb" }
-      query = query.where(color_conditions.join(' OR '), *colors.map { |c| [c].to_json })
+      color_conditions = colors.map { |color| 'clothing_items.colors @> ?::jsonb' }
+      query = query.where(color_conditions.join(' OR '), *colors.map { |c| [ c ].to_json })
     end
 
     # Filter by materials (JSON array contains any of the specified materials)
     if materials.present?
-      material_conditions = materials.map { |material| "clothing_items.materials @> ?::jsonb" }
-      query = query.where(material_conditions.join(' OR '), *materials.map { |m| [m].to_json })
+      material_conditions = materials.map { |material| 'clothing_items.materials @> ?::jsonb' }
+      query = query.where(material_conditions.join(' OR '), *materials.map { |m| [ m ].to_json })
     end
 
     # Order by similarity and apply limit
+    # Use parameterized query to prevent SQL injection
+    sanitized_vector = ActiveRecord::Base.connection.quote(vector_data)
     results = query
-      .order(Arel.sql("vector_data <=> '#{vector_data}'"))
+      .order(Arel.sql("vector_data <=> #{sanitized_vector}::vector"))
       .limit(limit * 2)  # Fetch more for filtering
       .includes(:clothing_item)
 
@@ -48,15 +50,16 @@ class ClothingEmbedding < ApplicationRecord
 
     results
   end
-  
+
   # Get similarity score between two embeddings (Do not ask me why this works, I had the AI help me with this one)
   def similarity_to(other_embedding)
     return 0.0 unless other_embedding&.vector_data && vector_data
-    
-    distance = ActiveRecord::Base.connection.execute(
-      "SELECT '#{vector_data}'::vector <=> '#{other_embedding.vector_data}'::vector as distance"
-    ).first['distance'].to_f
-    
+
+    sql = 'SELECT ?::vector <=> ?::vector as distance'
+    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([ sql, vector_data, other_embedding.vector_data ])
+
+    distance = ActiveRecord::Base.connection.execute(sanitized_sql).first['distance'].to_f
+
     # Convert distance to similarity percentage
     similarity = (1 - distance).clamp(0, 1)
     (similarity * 100).round(1)
@@ -74,17 +77,19 @@ class ClothingEmbedding < ApplicationRecord
   # <-> - L2 distance
   # <#> - inner product distance
 
-  
+
   # Class method to search for similar items by vector
   def self.search_similar(vector_array, user_id, limit: 10)
     return [] unless vector_array&.length == 512
 
     vector_string = "[#{vector_array.join(',')}]"
 
+    sanitized_vector = ActiveRecord::Base.connection.quote(vector_string)
+
     ClothingEmbedding
       .joins(:clothing_item)
       .where(clothing_items: { user_id: user_id })
-      .order(Arel.sql("vector_data <=> '#{vector_string}'::vector"))
+      .order(Arel.sql("vector_data <=> #{sanitized_vector}::vector"))
       .limit(limit)
       .includes(:clothing_item)
   end

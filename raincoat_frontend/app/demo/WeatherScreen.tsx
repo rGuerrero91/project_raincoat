@@ -3,7 +3,16 @@
 import { useEffect, useState } from 'react';
 import Container from '@/components/Container';
 import Card from '@/components/Card';
-import { WiDaySunny, WiCloudy, WiDayCloudy, WiRain, WiSnow, WiThunderstorm, WiFog, WiDaySunnyOvercast } from 'weather-icons-react';
+import {
+  WiDaySunny,
+  WiCloudy,
+  WiDayCloudy,
+  WiRain,
+  WiSnow,
+  WiThunderstorm,
+  WiFog,
+  WiDaySunnyOvercast,
+} from 'weather-icons-react';
 import apiClient from '@/lib/api';
 
 interface WeatherScreenProps {
@@ -62,12 +71,10 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
           const condition = conditionText || 'Partly Cloudy';
 
           // Build details string
-          const details = [
-            humidity ? `Humidity: ${humidity}%` : null,
-            windKph ? `Wind: ${windKph} km/h` : null,
-          ]
-            .filter(Boolean)
-            .join(', ') || 'Light breeze, low humidity';
+          const details =
+            [humidity ? `Humidity: ${humidity}%` : null, windKph ? `Wind: ${windKph} km/h` : null]
+              .filter(Boolean)
+              .join(', ') || 'Light breeze, low humidity';
 
           setWeatherData({
             temperature,
@@ -124,14 +131,17 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
   }, [location, onNext]);
 
   // Helper to get weather icon component based on condition
-  const getWeatherIcon = (condition: string): React.ComponentType<{ size?: number; color?: string }> => {
+  const getWeatherIcon = (
+    condition: string
+  ): React.ComponentType<{ size?: number; color?: string }> => {
     const lowerCondition = condition.toLowerCase();
     if (lowerCondition.includes('clear') || lowerCondition.includes('sunny')) return WiDaySunny;
     if (lowerCondition.includes('cloud') && !lowerCondition.includes('partly')) return WiCloudy;
     if (lowerCondition.includes('partly')) return WiDayCloudy;
     if (lowerCondition.includes('rain') && !lowerCondition.includes('storm')) return WiRain;
     if (lowerCondition.includes('snow')) return WiSnow;
-    if (lowerCondition.includes('storm') || lowerCondition.includes('thunder')) return WiThunderstorm;
+    if (lowerCondition.includes('storm') || lowerCondition.includes('thunder'))
+      return WiThunderstorm;
     if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) return WiFog;
     return WiDaySunnyOvercast; // default
   };
@@ -145,9 +155,7 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
           <div className="flex justify-center mb-6 animate-float">
             <LoadingIcon size={96} color="#8bb8e8" />
           </div>
-          <h2 className="text-headline font-bold mb-2">
-            Fetching weather data...
-          </h2>
+          <h2 className="text-headline font-bold mb-2">Fetching weather data...</h2>
           <p className="text-neutral-medium">
             {location.city}, {location.country}
           </p>
@@ -162,11 +170,7 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
     <Container className="flex items-center justify-center min-h-screen">
       <Card padding="xl" className="text-center max-w-2xl w-full">
         {/* Error indicator if using fallback */}
-        {error && (
-          <div className="mb-4 text-xs text-neutral-medium italic">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 text-xs text-neutral-medium italic">{error}</div>}
 
         {/* Location */}
         <p className="text-lg text-neutral-medium mb-6">
@@ -179,25 +183,25 @@ export default function WeatherScreen({ location, onNext }: WeatherScreenProps) 
         </div>
 
         {/* Temperature */}
-        <h2 className="text-hero font-bold mb-4">
-          {weatherData.temperature}°F
-        </h2>
+        <h2 className="text-hero font-bold mb-4">{weatherData.temperature}°F</h2>
 
         {/* Condition */}
-        <p className="text-subhead text-neutral-medium mb-6">
-          {weatherData.condition}
-        </p>
+        <p className="text-subhead text-neutral-medium mb-6">{weatherData.condition}</p>
 
         {/* Additional Details */}
-        <p className="text-base text-neutral-medium mb-8">
-          {weatherData.details}
-        </p>
+        <p className="text-base text-neutral-medium mb-8">{weatherData.details}</p>
 
         {/* Loading Indicator for Next Step */}
         <div className="flex items-center justify-center gap-2 text-primary">
           <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-          <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-          <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+          <div
+            className="w-2 h-2 bg-primary rounded-full animate-pulse"
+            style={{ animationDelay: '0.2s' }}
+          />
+          <div
+            className="w-2 h-2 bg-primary rounded-full animate-pulse"
+            style={{ animationDelay: '0.4s' }}
+          />
           <p className="text-sm ml-2 text-primary">Finding perfect outfits...</p>
         </div>
       </Card>

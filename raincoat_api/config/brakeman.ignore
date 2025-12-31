@@ -1,0 +1,29 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "58b8e5a582ff700b23fc6f48919ad85a07ecef85cb0a5a0d8ac81db913e92124",
+      "check_name": "SendFile",
+      "message": "Parameter value used in file name",
+      "file": "app/controllers/models_controller.rb",
+      "line": 43,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "send_file(Rails.root.join(\"public\", \"models\", Pathname.new(params[:path]).cleanpath.to_s), :disposition => \"inline\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ModelsController",
+        "method": "show"
+      },
+      "user_input": "params[:path]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": "Path has been sanitized with cleanpath and validated to be within allowed directory. Multiple security checks prevent directory traversal."
+    }
+  ],
+  "updated": "2025-12-31 15:45:00 -0500",
+  "brakeman_version": "7.1.0"
+}

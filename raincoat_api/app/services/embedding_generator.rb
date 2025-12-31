@@ -67,7 +67,7 @@ class EmbeddingGenerator
 
   def self.compute_seed(name, category, colors, materials)
     # Create consistent seed from attributes
-    [name, category, colors.sort.join, materials.sort.join].join('_')
+    [ name, category, colors.sort.join, materials.sort.join ].join('_')
   end
 
   def self.apply_category_bias(vector, category)

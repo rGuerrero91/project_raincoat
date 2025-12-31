@@ -14,7 +14,7 @@ interface ProcessingScreenProps {
     tags: string[];
     topTag: string; // Highest confidence tag to use as item name
     processedImageUrl: string;
-    processedImageBlob: Blob
+    processedImageBlob: Blob;
   }) => void;
 }
 
@@ -24,7 +24,11 @@ const processingSteps = [
   { label: 'Generating tags...', icon: TagIcon },
 ];
 
-export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplete }: ProcessingScreenProps) {
+export default function ProcessingScreen({
+  imageFile,
+  croppedImageUrl,
+  onComplete,
+}: ProcessingScreenProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -51,20 +55,17 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
           fileToProcess = new File([blob], imageFile.name, { type: imageFile.type });
         }
 
-        const result = await onnxProcessor.processImage(
-          fileToProcess,
-          (step) => {
-            if (isCancelled) return;
+        const result = await onnxProcessor.processImage(fileToProcess, step => {
+          if (isCancelled) return;
 
-            if (step.includes('background')) {
-              setCurrentStep(0);
-            } else if (step.includes('Analyzing')) {
-              setCurrentStep(1);
-            } else if (step.includes('tags')) {
-              setCurrentStep(2);
-            }
+          if (step.includes('background')) {
+            setCurrentStep(0);
+          } else if (step.includes('Analyzing')) {
+            setCurrentStep(1);
+          } else if (step.includes('tags')) {
+            setCurrentStep(2);
           }
-        );
+        });
 
         if (isCancelled) {
           console.log('[ProcessingScreen] Processing cancelled');
@@ -80,7 +81,7 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
           tagCount: result.tags.length,
           tags: tagLabels,
           topTag: topTag,
-          topTagScore: result.tags.length > 0 ? result.tags[0].score.toFixed(3) : 'N/A'
+          topTagScore: result.tags.length > 0 ? result.tags[0].score.toFixed(3) : 'N/A',
         });
 
         onComplete({
@@ -112,9 +113,7 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
         {error && (
           <div className="mb-6 p-5 bg-red-50 border-2 border-red-200 rounded-2xl">
             <p className="text-red-700 font-semibold text-lg mb-2">Error: {error}</p>
-            <p className="text-sm text-red-600">
-              Make sure the Rails API is running on port 3000
-            </p>
+            <p className="text-sm text-red-600">Make sure the Rails API is running on port 3000</p>
           </div>
         )}
 
@@ -123,9 +122,7 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
           Processing <strong className="text-primary">locally</strong>
         </h2>
 
-        <p className="text-lg text-neutral-medium mb-8">
-          Everything happens on your device
-        </p>
+        <p className="text-lg text-neutral-medium mb-8">Everything happens on your device</p>
 
         {/* Image Thumbnail */}
         <div className="mb-10 flex justify-center">
@@ -145,7 +142,7 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
             const isActive = index === currentStep;
             const isComplete = index < currentStep;
             const IconComponent = step.icon;
-            
+
             return (
               <div
                 key={index}
@@ -155,8 +152,8 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
                     isActive
                       ? 'bg-primary-light border-2 border-primary'
                       : isComplete
-                      ? 'bg-primary-light/50 border border-primary/30'
-                      : 'bg-neutral-light border border-neutral-medium/20'
+                        ? 'bg-primary-light/50 border border-primary/30'
+                        : 'bg-neutral-light border border-neutral-medium/20'
                   }
                 `}
               >
@@ -167,7 +164,11 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
                   {isComplete ? (
                     <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                   ) : isActive ? (
@@ -176,7 +177,9 @@ export default function ProcessingScreen({ imageFile, croppedImageUrl, onComplet
                     <div className="w-6 h-6 rounded-full border-2 border-neutral-medium" />
                   )}
                 </div>
-                <p className={`font-medium text-left flex-1 ${isActive ? 'text-primary' : 'text-neutral-medium'}`}>
+                <p
+                  className={`font-medium text-left flex-1 ${isActive ? 'text-primary' : 'text-neutral-medium'}`}
+                >
                   {step.label}
                 </p>
               </div>

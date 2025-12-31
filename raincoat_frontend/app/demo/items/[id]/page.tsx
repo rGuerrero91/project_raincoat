@@ -1,12 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Container from "@/components/Container";
-import Button from "@/components/Button";
-import Card from "@/components/Card";
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Container from '@/components/Container';
+import Button from '@/components/Button';
+import Card from '@/components/Card';
 import {
-  ArrowLeft,
   Tag,
   Palette,
   Shirt,
@@ -17,9 +16,9 @@ import {
   Wind,
   Sparkles,
   TrendingUp,
-} from "lucide-react";
-import apiClient, { ClothingItem } from "@/lib/api";
-import imageCache from "@/lib/image-cache";
+} from 'lucide-react';
+import apiClient, { ClothingItem } from '@/lib/api';
+import imageCache from '@/lib/image-cache';
 
 interface SimilarItem {
   item: ClothingItem;
@@ -43,24 +42,24 @@ export default function ClothingItemViewPage() {
   useEffect(() => {
     const fetchItemData = async () => {
       try {
-        console.log("Fetching clothing item:", itemId);
+        console.log('Fetching clothing item:', itemId);
 
         // Fetch clothing item details
         const itemResponse = await apiClient.getClothingItem(itemId);
 
         if (itemResponse.success && itemResponse.data) {
           setItem(itemResponse.data);
-          console.log("Clothing item loaded:", itemResponse.data);
+          console.log('Clothing item loaded:', itemResponse.data);
 
           // Try to load processed image from cache
           try {
             const cachedImage = await imageCache.getImage(itemId);
             if (cachedImage) {
               setProcessedImageUrl(cachedImage);
-              console.log("Loaded processed image from cache");
+              console.log('Loaded processed image from cache');
             }
           } catch (cacheErr) {
-            console.warn("Failed to load cached image:", cacheErr);
+            console.warn('Failed to load cached image:', cacheErr);
           }
 
           // Fetch similar items if embedding exists
@@ -71,11 +70,11 @@ export default function ClothingItemViewPage() {
             }
           }
         } else {
-          setError("Clothing item not found");
+          setError('Clothing item not found');
         }
       } catch (err) {
-        console.error("Failed to load clothing item:", err);
-        setError("Failed to load clothing item details");
+        console.error('Failed to load clothing item:', err);
+        setError('Failed to load clothing item details');
       } finally {
         setIsLoading(false);
       }
@@ -104,7 +103,7 @@ export default function ClothingItemViewPage() {
           setShowEmbedding(true);
         }
       } catch (err) {
-        console.error("Failed to load embedding:", err);
+        console.error('Failed to load embedding:', err);
       }
     } else {
       // Data already loaded, just show it
@@ -123,7 +122,7 @@ export default function ClothingItemViewPage() {
       windy: 0,
     };
 
-    const tagStr = tags.join(" ").toLowerCase();
+    const tagStr = tags.join(' ').toLowerCase();
 
     // Hot weather indicators
     if (tagStr.match(/tank|shorts|summer|lightweight|breathable|sleeveless/)) {
@@ -132,9 +131,7 @@ export default function ClothingItemViewPage() {
     }
 
     // Cold weather indicators
-    if (
-      tagStr.match(/coat|jacket|sweater|hoodie|winter|warm|thermal|fleece|down/)
-    ) {
+    if (tagStr.match(/coat|jacket|sweater|hoodie|winter|warm|thermal|fleece|down/)) {
       suitability.cold = 2;
       suitability.cool = 1;
     }
@@ -166,9 +163,7 @@ export default function ClothingItemViewPage() {
     return (
       <div
         className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-          level === 2
-            ? "bg-primary text-white"
-            : "bg-primary-light text-primary"
+          level === 2 ? 'bg-primary text-white' : 'bg-primary-light text-primary'
         }`}
       >
         <Icon className="w-4 h-4" />
@@ -194,9 +189,7 @@ export default function ClothingItemViewPage() {
     return (
       <Container className="py-8 min-h-screen">
         <Card padding="xl" className="text-center">
-          <p className="text-red-500 mb-4">
-            {error || "Clothing item not found"}
-          </p>
+          <p className="text-red-500 mb-4">{error || 'Clothing item not found'}</p>
           <Button variant="secondary" onClick={() => router.back()}>
             Go Back
           </Button>
@@ -211,7 +204,7 @@ export default function ClothingItemViewPage() {
   ]);
 
   return (
-    <div style={{ width: "50%", margin: "0 auto", padding: "2rem 0" }}>
+    <div style={{ width: '50%', margin: '0 auto', padding: '2rem 0' }}>
       {/* Header */}
       <div className="mb-6">
         {/* <Button
@@ -223,12 +216,8 @@ export default function ClothingItemViewPage() {
           Back
         </Button> */}
 
-        <h1 className="text-headline font-bold mb-2">
-          {item.name || `${item.category} Item`}
-        </h1>
-        {item.description && (
-          <p className="text-lg text-neutral-medium">{item.description}</p>
-        )}
+        <h1 className="text-headline font-bold mb-2">{item.name || `${item.category} Item`}</h1>
+        {item.description && <p className="text-lg text-neutral-medium">{item.description}</p>}
       </div>
 
       {/* Main Content */}
@@ -238,16 +227,13 @@ export default function ClothingItemViewPage() {
           <div className="aspect-square bg-neutral-light rounded-xl overflow-hidden mb-4">
             {processedImageUrl || (item.images && item.images.length > 0) ? (
               <img
-                src={processedImageUrl || (item.images && item.images[0].url) || ""}
-                alt={item.name || "Clothing item"}
+                src={processedImageUrl || (item.images && item.images[0].url) || ''}
+                alt={item.name || 'Clothing item'}
                 className="w-full h-full object-cover"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <Shirt
-                  className="w-24 h-24 text-neutral-medium"
-                  strokeWidth={1}
-                />
+                <Shirt className="w-24 h-24 text-neutral-medium" strokeWidth={1} />
               </div>
             )}
           </div>
@@ -257,9 +243,7 @@ export default function ClothingItemViewPage() {
             <div>
               <p>
                 <a className="text-sm text-neutral-medium mb-1">Category: </a>
-                <span className="font-semibold capitalize">
-                  {item.category}
-                </span>
+                <span className="font-semibold capitalize">{item.category}</span>
               </p>
             </div>
 
@@ -292,10 +276,7 @@ export default function ClothingItemViewPage() {
                 <p className="text-sm text-neutral-medium mb-2">Materials</p>
                 <div className="flex gap-2 flex-wrap">
                   {item.materials.map((material, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1.5 bg-neutral-light rounded-full text-sm"
-                    >
+                    <span key={idx} className="px-3 py-1.5 bg-neutral-light rounded-full text-sm">
                       {material}
                     </span>
                   ))}
@@ -305,7 +286,7 @@ export default function ClothingItemViewPage() {
           </div>
           <h3 className="text-xl font-semibold mb-4">Similar Items</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {similarItems.map((similar) => (
+            {similarItems.map(similar => (
               <button
                 key={similar.item.id}
                 onClick={() => router.push(`/demo/items/${similar.item.id}`)}
@@ -315,15 +296,12 @@ export default function ClothingItemViewPage() {
                   {similar.item.images && similar.item.images.length > 0 ? (
                     <img
                       src={similar.item.images[0].url}
-                      alt={similar.item.name || "Similar item"}
+                      alt={similar.item.name || 'Similar item'}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Shirt
-                        className="w-12 h-12 text-neutral-medium"
-                        strokeWidth={1}
-                      />
+                      <Shirt className="w-12 h-12 text-neutral-medium" strokeWidth={1} />
                     </div>
                   )}
                 </div>
@@ -388,38 +366,14 @@ export default function ClothingItemViewPage() {
               <h3 className="font-semibold">Weather Suitability</h3>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <WeatherBadge
-                icon={Sun}
-                label="Hot"
-                level={weatherSuitability.hot}
-              />
-              <WeatherBadge
-                icon={Sun}
-                label="Warm"
-                level={weatherSuitability.warm}
-              />
-              <WeatherBadge
-                icon={Wind}
-                label="Cool"
-                level={weatherSuitability.cool}
-              />
-              <WeatherBadge
-                icon={Snowflake}
-                label="Cold"
-                level={weatherSuitability.cold}
-              />
-              <WeatherBadge
-                icon={CloudRain}
-                label="Rainy"
-                level={weatherSuitability.rainy}
-              />
-              <WeatherBadge
-                icon={Wind}
-                label="Windy"
-                level={weatherSuitability.windy}
-              />
+              <WeatherBadge icon={Sun} label="Hot" level={weatherSuitability.hot} />
+              <WeatherBadge icon={Sun} label="Warm" level={weatherSuitability.warm} />
+              <WeatherBadge icon={Wind} label="Cool" level={weatherSuitability.cool} />
+              <WeatherBadge icon={Snowflake} label="Cold" level={weatherSuitability.cold} />
+              <WeatherBadge icon={CloudRain} label="Rainy" level={weatherSuitability.rainy} />
+              <WeatherBadge icon={Wind} label="Windy" level={weatherSuitability.windy} />
             </div>
-            {Object.values(weatherSuitability).every((v) => v === 0) && (
+            {Object.values(weatherSuitability).every(v => v === 0) && (
               <p className="text-sm text-neutral-medium italic">
                 No weather preferences detected from tags
               </p>
@@ -439,21 +393,17 @@ export default function ClothingItemViewPage() {
                   onClick={toggleEmbeddingVector}
                   className="text-sm px-3 py-1.5"
                 >
-                  {showEmbedding ? "Hide" : "View"} Vector
+                  {showEmbedding ? 'Hide' : 'View'} Vector
                 </Button>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-neutral-medium">Model:</span>
-                  <span className="font-medium">
-                    {item.embedding.model_version}
-                  </span>
+                  <span className="font-medium">{item.embedding.model_version}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-medium">Dimensions:</span>
-                  <span className="font-medium">
-                    {item.embedding.vector_dimensions}
-                  </span>
+                  <span className="font-medium">{item.embedding.vector_dimensions}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-medium">Created:</span>
@@ -472,8 +422,8 @@ export default function ClothingItemViewPage() {
                     [
                     {embeddingData
                       .slice(0, 10)
-                      .map((v) => v.toFixed(4))
-                      .join(", ")}
+                      .map(v => v.toFixed(4))
+                      .join(', ')}
                     ...]
                   </code>
                 </div>

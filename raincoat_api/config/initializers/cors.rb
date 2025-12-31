@@ -8,12 +8,12 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     # Allow Next.js frontend (development and production)
-    origins ENV.fetch("CORS_ORIGINS", "http://localhost:3001,http://localhost:3000,https://raincoatlabs.nyc,https://www.raincoatlabs.nyc").split(",")
+    origins ENV.fetch('CORS_ORIGINS', 'http://localhost:3001,http://localhost:3000,https://raincoatlabs.nyc,https://www.raincoatlabs.nyc').split(',')
 
-    resource "*",
+    resource '*',
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
       credentials: true,
-      expose: ['X-Session-Id']
+      expose: [ 'X-Session-Id' ]
   end
 end

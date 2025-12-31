@@ -1,5 +1,4 @@
 class Api::V1::WeatherController < Api::V1::BaseController
-
   # GET /api/v1/weather/current
   # Returns weather for user's default location, or specified city/country
   # Params: city (optional), country (optional)
@@ -155,7 +154,7 @@ class Api::V1::WeatherController < Api::V1::BaseController
       tag_data.flatten
     else
       # If it's something else, convert to array and process again
-      extract_tag_values([tag_data])
+      extract_tag_values([ tag_data ])
     end
   end
 

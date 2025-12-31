@@ -75,7 +75,8 @@ export default function PrivacyScreen({ onNext }: PrivacyScreenProps) {
         </h2>
 
         <p className="text-lg text-neutral-medium mb-10 leading-relaxed">
-          Raincoat runs background removal, detection, and embedding generation in-browser with ONNX Runtime Web and WebGPU where available.
+          Raincoat runs background removal, detection, and embedding generation in-browser with ONNX
+          Runtime Web and WebGPU where available.
         </p>
 
         {/* Features List */}
@@ -91,9 +92,7 @@ export default function PrivacyScreen({ onNext }: PrivacyScreenProps) {
                   <IconComponent className="w-6 h-6 text-primary" strokeWidth={2} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-ink text-lg mb-2">
-                    {feature.title}
-                  </h3>
+                  <h3 className="font-semibold text-ink text-lg mb-2">{feature.title}</h3>
                   <p className="text-sm text-neutral-medium leading-relaxed">
                     {feature.description}
                   </p>

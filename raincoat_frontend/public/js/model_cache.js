@@ -5,7 +5,7 @@
 
 class ModelCache {
   constructor() {
-    this.dbName = "RaincoatModelCache";
+    this.dbName = 'RaincoatModelCache';
     this.dbVersion = 1;
     this.db = null;
   }
@@ -23,17 +23,17 @@ class ModelCache {
         resolve();
       };
 
-      request.onupgradeneeded = (event) => {
+      request.onupgradeneeded = event => {
         const db = event.target.result;
 
         // Create object store for models
-        if (!db.objectStoreNames.contains("models")) {
-          db.createObjectStore("models", { keyPath: "url" });
+        if (!db.objectStoreNames.contains('models')) {
+          db.createObjectStore('models', { keyPath: 'url' });
         }
 
         // Create store for JSON data
-        if (!db.objectStoreNames.contains("json")) {
-          db.createObjectStore("json", { keyPath: "url" });
+        if (!db.objectStoreNames.contains('json')) {
+          db.createObjectStore('json', { keyPath: 'url' });
         }
       };
     });
@@ -45,7 +45,7 @@ class ModelCache {
    */
   async checkStorageQuota() {
     if (!navigator.storage || !navigator.storage.estimate) {
-      console.warn("[Cache] Storage API not available - quota check skipped");
+      console.warn('[Cache] Storage API not available - quota check skipped');
       return { available: true, quotaMB: 0, usageMB: 0, availableMB: 0 };
     }
 
@@ -72,16 +72,16 @@ class ModelCache {
             `- Removing unused files/apps\n` +
             `- Checking storage in Settings`
         );
-        error.name = "QuotaExceededError";
+        error.name = 'QuotaExceededError';
         throw error;
       }
 
       return { available: true, quotaMB, usageMB, availableMB };
     } catch (err) {
-      if (err.name === "QuotaExceededError") {
+      if (err.name === 'QuotaExceededError') {
         throw err; // Re-throw quota errors
       }
-      console.warn("[Cache] Failed to check storage quota:", err);
+      console.warn('[Cache] Failed to check storage quota:', err);
       return { available: false, quotaMB: 0, usageMB: 0, availableMB: 0 };
     }
   }
@@ -90,8 +90,8 @@ class ModelCache {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(["models"], "readonly");
-      const store = transaction.objectStore("models");
+      const transaction = this.db.transaction(['models'], 'readonly');
+      const store = transaction.objectStore('models');
       const request = store.get(url);
 
       request.onsuccess = () => {
@@ -101,7 +101,9 @@ class ModelCache {
           const age = Date.now() - request.result.timestamp;
 
           if (age > SEVEN_DAYS_MS) {
-            console.log(`[Cache] Model cache expired (${Math.floor(age / (24 * 60 * 60 * 1000))} days old): ${url}`);
+            console.log(
+              `[Cache] Model cache expired (${Math.floor(age / (24 * 60 * 60 * 1000))} days old): ${url}`
+            );
             resolve(null); // Return null to trigger fresh fetch
           } else {
             console.log(`[Cache] Model loaded from cache: ${url}`);
@@ -120,8 +122,8 @@ class ModelCache {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(["models"], "readwrite");
-      const store = transaction.objectStore("models");
+      const transaction = this.db.transaction(['models'], 'readwrite');
+      const store = transaction.objectStore('models');
       const request = store.put({
         url: url,
         data: data,
@@ -133,11 +135,11 @@ class ModelCache {
         resolve();
       };
 
-      request.onerror = (event) => {
+      request.onerror = event => {
         const error = event.target.error;
 
         // Handle quota exceeded errors with user-friendly message
-        if (error.name === "QuotaExceededError") {
+        if (error.name === 'QuotaExceededError') {
           const friendlyError = new Error(
             `Storage quota exceeded while caching model.\n\n` +
               `The browser ran out of storage space while saving this AI model.\n\n` +
@@ -147,8 +149,8 @@ class ModelCache {
               `- Use a different browser with more available quota\n\n` +
               `Note: The demo will still work but models won't be cached for offline use.`
           );
-          friendlyError.name = "QuotaExceededError";
-          console.error("[Cache] Quota exceeded:", friendlyError.message);
+          friendlyError.name = 'QuotaExceededError';
+          console.error('[Cache] Quota exceeded:', friendlyError.message);
           reject(friendlyError);
         } else {
           reject(error);
@@ -161,8 +163,8 @@ class ModelCache {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(["json"], "readonly");
-      const store = transaction.objectStore("json");
+      const transaction = this.db.transaction(['json'], 'readonly');
+      const store = transaction.objectStore('json');
       const request = store.get(url);
 
       request.onsuccess = () => {
@@ -172,7 +174,9 @@ class ModelCache {
           const age = Date.now() - request.result.timestamp;
 
           if (age > SEVEN_DAYS_MS) {
-            console.log(`[Cache] JSON cache expired (${Math.floor(age / (24 * 60 * 60 * 1000))} days old): ${url}`);
+            console.log(
+              `[Cache] JSON cache expired (${Math.floor(age / (24 * 60 * 60 * 1000))} days old): ${url}`
+            );
             resolve(null); // Return null to trigger fresh fetch
           } else {
             console.log(`[Cache] JSON loaded from cache: ${url}`);
@@ -191,8 +195,8 @@ class ModelCache {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(["json"], "readwrite");
-      const store = transaction.objectStore("json");
+      const transaction = this.db.transaction(['json'], 'readwrite');
+      const store = transaction.objectStore('json');
       const request = store.put({
         url: url,
         data: data,
@@ -225,10 +229,8 @@ class ModelCache {
     try {
       await this.setModel(url, arrayBuffer);
     } catch (err) {
-      if (err.name === "QuotaExceededError") {
-        console.warn(
-          `[Cache] Could not cache model due to quota limits - will fetch on each use`
-        );
+      if (err.name === 'QuotaExceededError') {
+        console.warn(`[Cache] Could not cache model due to quota limits - will fetch on each use`);
         console.warn(`[Cache] ${err.message}`);
         // Continue without caching - model is still loaded in memory
       } else {
@@ -264,13 +266,13 @@ class ModelCache {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(["models", "json"], "readwrite");
+      const transaction = this.db.transaction(['models', 'json'], 'readwrite');
 
-      transaction.objectStore("models").clear();
-      transaction.objectStore("json").clear();
+      transaction.objectStore('models').clear();
+      transaction.objectStore('json').clear();
 
       transaction.oncomplete = () => {
-        console.log("[Cache] Cache cleared");
+        console.log('[Cache] Cache cleared');
         resolve();
       };
 
@@ -282,8 +284,8 @@ class ModelCache {
   async getStats() {
     if (!this.db) await this.initialize();
 
-    const modelCount = await this._getCount("models");
-    const jsonCount = await this._getCount("json");
+    const modelCount = await this._getCount('models');
+    const jsonCount = await this._getCount('json');
 
     // Get storage quota info
     let storageInfo = { quotaMB: 0, usageMB: 0, availableMB: 0 };
@@ -294,7 +296,7 @@ class ModelCache {
         storageInfo.usageMB = (estimate.usage || 0) / (1024 * 1024);
         storageInfo.availableMB = storageInfo.quotaMB - storageInfo.usageMB;
       } catch (e) {
-        console.warn("[Cache] Failed to get storage estimate:", e);
+        console.warn('[Cache] Failed to get storage estimate:', e);
       }
     }
 
@@ -308,7 +310,7 @@ class ModelCache {
 
   async _getCount(storeName) {
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([storeName], "readonly");
+      const transaction = this.db.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const request = store.count();
 

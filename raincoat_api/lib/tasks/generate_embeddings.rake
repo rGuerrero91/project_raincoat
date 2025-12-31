@@ -1,7 +1,7 @@
 # lib/tasks/generate_embeddings.rake
 namespace :embeddings do
-  desc "Generate embeddings from sample images and save to JSON file"
-  task :generate_from_images => :environment do
+  desc 'Generate embeddings from sample images and save to JSON file'
+  task generate_from_images: :environment do
     require 'json'
     require 'fileutils'
 
@@ -11,18 +11,18 @@ namespace :embeddings do
 
     unless Dir.exist?(images_dir)
       puts "Error: Sample images directory not found at #{images_dir}"
-      puts "Please create the directory and add sample clothing images"
-      puts ""
-      puts "Expected structure:"
-      puts "  db/sample_images/"
-      puts "    ├── tops/"
-      puts "    │   ├── blue_tshirt.jpg"
-      puts "    │   ├── white_shirt.jpg"
-      puts "    ├── bottoms/"
-      puts "    │   ├── dark_jeans.jpg"
-      puts "    │   ├── khaki_chinos.jpg"
-      puts "    └── shoes/"
-      puts "        ├── white_sneakers.jpg"
+      puts 'Please create the directory and add sample clothing images'
+      puts ''
+      puts 'Expected structure:'
+      puts '  db/sample_images/'
+      puts '    ├── tops/'
+      puts '    │   ├── blue_tshirt.jpg'
+      puts '    │   ├── white_shirt.jpg'
+      puts '    ├── bottoms/'
+      puts '    │   ├── dark_jeans.jpg'
+      puts '    │   ├── khaki_chinos.jpg'
+      puts '    └── shoes/'
+      puts '        ├── white_sneakers.jpg'
       exit 1
     end
 
@@ -31,14 +31,14 @@ namespace :embeddings do
 
     embeddings_data = {
       generated_at: Time.current.iso8601,
-      model_version: "fashionclip-2.0",
+      model_version: 'fashionclip-2.0',
       embeddings: []
     }
 
-    puts "Generating embeddings from images..."
+    puts 'Generating embeddings from images...'
     puts "Source: #{images_dir}"
     puts "Output: #{output_file}"
-    puts ""
+    puts ''
 
     # Process each category directory
     %w[tops bottoms shoes outerwear accessories].each do |category|
@@ -77,17 +77,17 @@ namespace :embeddings do
     # Save to JSON file
     File.write(output_file, JSON.pretty_generate(embeddings_data))
 
-    puts ""
+    puts ''
     puts "Successfully generated #{embeddings_data[:embeddings].count} embeddings"
     puts "Saved to: #{output_file}"
-    puts ""
-    puts "Next steps:"
-    puts "1. Review the generated embeddings file"
-    puts "2. Run: rails db:seed:embeddings to load them into the database"
+    puts ''
+    puts 'Next steps:'
+    puts '1. Review the generated embeddings file'
+    puts '2. Run: rails db:seed:embeddings to load them into the database'
   end
 
-  desc "Load pre-generated embeddings from JSON file into database"
-  task :load => :environment do
+  desc 'Load pre-generated embeddings from JSON file into database'
+  task load: :environment do
     embeddings_file = Rails.root.join('db', 'fixtures', 'embeddings.json')
 
     unless File.exist?(embeddings_file)
@@ -100,11 +100,11 @@ namespace :embeddings do
 
     data = JSON.parse(File.read(embeddings_file))
 
-    puts "File info:"
+    puts 'File info:'
     puts "Generated: #{data['generated_at']}"
     puts "Model: #{data['model_version']}"
     puts "Count: #{data['embeddings'].count}"
-    puts ""
+    puts ''
 
     loaded_count = 0
     skipped_count = 0
@@ -139,7 +139,7 @@ namespace :embeddings do
       end
     end
 
-    puts ""
+    puts ''
     puts "!!! Successfully loaded #{loaded_count} embeddings !!!"
     puts "---- Skipped #{skipped_count} item ----"
   end

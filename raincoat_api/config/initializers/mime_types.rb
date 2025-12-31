@@ -5,6 +5,6 @@
 
 # ONNX Runtime Web WASM files
 # Required for proper WASM loading and WebGPU support
-Mime::Type.register "application/wasm", :wasm
+Mime::Type.register 'application/wasm', :wasm
 Rack::Mime::MIME_TYPES['.wasm'] = 'application/wasm'
 Rack::Mime::MIME_TYPES['.mjs'] = 'application/javascript'
