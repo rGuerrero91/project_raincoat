@@ -59,8 +59,8 @@ export default function ProductPage() {
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    setTouchEnd(e.changedTouches[0].screenX);
-    const diff = touchStart - e.changedTouches[0].screenX;
+    const touchEnd = e.changedTouches[0].screenX;
+    const diff = touchStart - touchEnd;
     if (diff > 50) {
       nextSlide();
     } else if (diff < -50) {

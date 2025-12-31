@@ -204,10 +204,12 @@ export default function DemoPage() {
       //     />
       //   );
 
-      case 'object-detection-category':
+      case 'object-detection-category': {
+        const fileObject = currentItem?.fileObject;
+        if (!fileObject) return null;
         return (
           <ObjectDetectionAndCategoryScreen
-            imageFile={currentItem!.fileObject}
+            imageFile={fileObject}
             onNext={(category, croppedImageUrl) => {
               if (currentItem) {
                 setCurrentItem({
@@ -220,11 +222,14 @@ export default function DemoPage() {
             }}
           />
         );
+      }
 
-      case 'processing':
+      case 'processing': {
+        const fileObject = currentItem?.fileObject;
+        if (!fileObject) return null;
         return (
           <ProcessingScreen
-            imageFile={currentItem!.fileObject}
+            imageFile={fileObject}
             croppedImageUrl={currentItem?.croppedImage}
             onComplete={result => {
               if (currentItem) {
@@ -241,6 +246,7 @@ export default function DemoPage() {
             }}
           />
         );
+      }
 
       case 'tags':
         return (
