@@ -66,7 +66,8 @@ class YOLODetector {
 
   private async _doInitialize() {
     // Use CDN URL for models, fallback to API URL if not set
-    const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const CDN_URL =
+      process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     console.log('[YOLO] Initializing detector from', CDN_URL);
 
     try {
@@ -77,13 +78,10 @@ class YOLODetector {
 
       // Load ONNX model with same settings as U2-Net/FashionCLIP
       console.log('[YOLO] Loading ONNX model...');
-      this.session = await ort.InferenceSession.create(
-        `${CDN_URL}/models/yolo_raincoat.onnx`,
-        {
-          executionProviders: ['wasm'],
-          graphOptimizationLevel: 'all'
-        }
-      );
+      this.session = await ort.InferenceSession.create(`${CDN_URL}/models/yolo_raincoat.onnx`, {
+        executionProviders: ['wasm'],
+        graphOptimizationLevel: 'all',
+      });
 
       this.modelLoaded = true;
       this.initializationPromise = null;
@@ -98,7 +96,12 @@ class YOLODetector {
   /**
    * Preprocess image for YOLO
    */
-  private preprocessImage(image: HTMLImageElement): { tensor: ort.Tensor; scale: number; xOffset: number; yOffset: number } {
+  private preprocessImage(image: HTMLImageElement): {
+    tensor: ort.Tensor;
+    scale: number;
+    xOffset: number;
+    yOffset: number;
+  } {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
 
@@ -134,9 +137,9 @@ class YOLODetector {
     const float32Data = new Float32Array(3 * targetSize * targetSize);
 
     for (let i = 0; i < pixels.length / 4; i++) {
-      float32Data[i] = pixels[i * 4] / 255.0;                           // R
-      float32Data[targetSize * targetSize + i] = pixels[i * 4 + 1] / 255.0;  // G
-      float32Data[2 * targetSize * targetSize + i] = pixels[i * 4 + 2] / 255.0;  // B
+      float32Data[i] = pixels[i * 4] / 255.0; // R
+      float32Data[targetSize * targetSize + i] = pixels[i * 4 + 1] / 255.0; // G
+      float32Data[2 * targetSize * targetSize + i] = pixels[i * 4 + 2] / 255.0; // B
     }
 
     const tensor = new ort.Tensor('float32', float32Data, [1, 3, targetSize, targetSize]);
@@ -233,10 +236,10 @@ class YOLODetector {
       // Filter by confidence threshold
       if (maxConf > this.config!.postprocessing.confidence_threshold) {
         // Convert from letterbox coordinates to original image coordinates
-        const x1 = ((xCenter - width / 2) - xOffset) / scale;
-        const y1 = ((yCenter - height / 2) - yOffset) / scale;
-        const x2 = ((xCenter + width / 2) - xOffset) / scale;
-        const y2 = ((yCenter + height / 2) - yOffset) / scale;
+        const x1 = (xCenter - width / 2 - xOffset) / scale;
+        const y1 = (yCenter - height / 2 - yOffset) / scale;
+        const x2 = (xCenter + width / 2 - xOffset) / scale;
+        const y2 = (yCenter + height / 2 - yOffset) / scale;
 
         boxes.push([x1, y1, x2, y2, maxConf, maxClass]);
       }
@@ -257,8 +260,8 @@ class YOLODetector {
         x: Math.max(0, box[0]),
         y: Math.max(0, box[1]),
         width: box[2] - box[0],
-        height: box[3] - box[1]
-      }
+        height: box[3] - box[1],
+      },
     }));
 
     return detections;
@@ -269,7 +272,11 @@ class YOLODetector {
    *
    * Uses Blob URLs instead of Data URLs to reduce memory pressure (2-3x savings)
    */
-  async cropToBbox(image: HTMLImageElement, bbox: YOLODetection['bbox'], paddingPercent: number = 0.05): Promise<string> {
+  async cropToBbox(
+    image: HTMLImageElement,
+    bbox: YOLODetection['bbox'],
+    paddingPercent: number = 0.05
+  ): Promise<string> {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
 
@@ -283,17 +290,13 @@ class YOLODetector {
     canvas.width = width;
     canvas.height = height;
 
-    ctx.drawImage(
-      image,
-      x, y, width, height,
-      0, 0, width, height
-    );
+    ctx.drawImage(image, x, y, width, height, 0, 0, width, height);
 
     // Use toBlob instead of toDataURL to reduce memory pressure
     return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
+      canvas.toBlob(blob => {
         if (!blob) {
-          reject(new Error("Failed to create blob from canvas"));
+          reject(new Error('Failed to create blob from canvas'));
           return;
         }
 
@@ -322,7 +325,7 @@ class YOLODetector {
     ctx.drawImage(image, 0, 0);
 
     // Draw bounding boxes
-    detections.forEach((det, idx) => {
+    detections.forEach(det => {
       const { bbox, category, confidence } = det;
 
       // Draw box
