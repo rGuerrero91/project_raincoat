@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Load model cache for IndexedDB persistence */}
-        <Script src="/js/model_cache.js" strategy="beforeInteractive" />
+        <Script src="/js/model_cache.js" strategy="beforeInteractive" {...({} as any)} />
       </head>
       <body className={`${inter.className} antialiased`}>{children}</body>
     </html>
