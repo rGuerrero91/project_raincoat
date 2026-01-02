@@ -16,7 +16,7 @@
     "raincoat_api"
   ],
   "dependencies": {
-    "eslint-config-next": "^15.5.6",
-    "next": "^15.5.6"
+    "eslint-config-next": "^15.5.9",
+    "next": "^15.5.9"
   }
 }
