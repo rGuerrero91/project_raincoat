@@ -14,5 +14,9 @@
   "workspaces": [
     "raincoat_frontend",
     "raincoat_api"
-  ]
+  ],
+  "dependencies": {
+    "eslint-config-next": "^15.5.6",
+    "next": "^15.5.6"
+  }
 }
