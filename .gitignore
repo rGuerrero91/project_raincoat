@@ -35,6 +35,5 @@ out
 .env.local
 .env.*.local
 
-# IDE
-.vscode/
+# IDE (keep .vscode shared settings, ignore personal files)
 .idea/
