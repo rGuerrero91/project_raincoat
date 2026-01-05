@@ -4,7 +4,11 @@
   "private": true,
   "description": "Raincoat Labs - AI-powered clothing recommendations monorepo",
   "scripts": {
-    "prepare": "husky install || true"
+    "prepare": "husky install || true",
+    "ci:frontend": "./scripts/ci-local-frontend.sh",
+    "ci:backend": "./scripts/ci-local-backend.sh",
+    "ci:all": "./scripts/ci-local-all.sh",
+    "ci": "./scripts/ci-local-all.sh"
   },
   "devDependencies": {
     "husky": "^8.0.3",
