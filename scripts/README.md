@@ -151,13 +151,14 @@ Resets Docker environment by stopping all containers, removing volumes, and clea
 
 ```bash
 ./scripts/reset_docker.sh
+# or: npm run docker:reset
 ```
 
 **Use case**: When you need a clean Docker slate (database issues, volume corruption, etc.)
 
 ---
 
-### 🖼️ Image Processing
+### Image Processing
 
 #### `process_seed_images.py`
 
