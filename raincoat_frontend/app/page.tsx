@@ -49,7 +49,7 @@ export default function LandingPage() {
 
   return (
     <>
-      <style jsx global>{`
+      <style jsx global {...({} as any)}>{`
         :root {
           --bg: #fdfcfb;
           --muted: #8b9199;

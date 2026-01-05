@@ -72,7 +72,7 @@ export default function ProductPage() {
 
   return (
     <>
-      <style jsx global>{`
+      <style jsx global {...({} as any)}>{`
         :root {
           --bg: #fdfcfb;
           --muted: #8b9199;
