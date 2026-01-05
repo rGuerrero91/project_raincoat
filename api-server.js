@@ -49,7 +49,7 @@ app.post('/api/early-access', async (req, res) => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email address'
+        message: 'Invalid email address',
       });
     }
 
@@ -65,7 +65,7 @@ app.post('/api/early-access', async (req, res) => {
       return res.status(200).json({
         success: true,
         message: 'Email already registered',
-        duplicate: true
+        duplicate: true,
       });
     }
 
@@ -73,7 +73,7 @@ app.post('/api/early-access', async (req, res) => {
     const newSubmission = {
       email,
       timestamp: new Date().toISOString(),
-      id: Date.now().toString()
+      id: Date.now().toString(),
     };
 
     submissions.push(newSubmission);
@@ -86,14 +86,13 @@ app.post('/api/early-access', async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Successfully registered for early access',
-      data: newSubmission
+      data: newSubmission,
     });
-
   } catch (error) {
     console.error('Error processing early access request:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 });
@@ -105,13 +104,13 @@ app.get('/api/early-access', async (req, res) => {
     res.json({
       success: true,
       count: submissions.length,
-      data: submissions
+      data: submissions,
     });
   } catch (error) {
     console.error('Error reading submissions:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 });
@@ -128,8 +127,8 @@ app.get('/', (_req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Raincoat Labs website running on http://localhost:${PORT}`);
-  console.log(`📧 Early access data stored in: ${DATA_FILE}`);
-  console.log(`📄 Serving static files from: ${__dirname}`);
-  console.log(`\n🌐 Access the site at: http://localhost:${PORT}`);
+  console.log(`Raincoat Labs website running on http://localhost:${PORT}`);
+  console.log(`Early access data stored in: ${DATA_FILE}`);
+  console.log(`Serving static files from: ${__dirname}`);
+  console.log(`\nAccess the site at: http://localhost:${PORT}`);
 });

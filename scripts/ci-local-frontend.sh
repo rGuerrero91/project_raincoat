@@ -3,39 +3,39 @@
 
 set -e  # Exit on any error
 
-echo "🚀 Running Frontend CI Checks Locally..."
+echo "Running Frontend CI Checks Locally..."
 echo ""
 
 cd raincoat_frontend
 
-echo "📦 Installing dependencies..."
+echo "Installing dependencies..."
 npm ci
-echo "✅ Dependencies installed"
+echo "Dependencies installed"
 echo ""
 
-echo "🔍 Running ESLint..."
+echo "Running ESLint..."
 npm run lint
-echo "✅ ESLint passed"
+echo "ESLint passed"
 echo ""
 
-echo "💅 Running Prettier check..."
+echo "Running Prettier check..."
 npx prettier --check .
-echo "✅ Prettier check passed"
+echo "Prettier check passed"
 echo ""
 
-echo "📘 Running TypeScript type check..."
+echo "Running TypeScript type check..."
 npx tsc --noEmit
-echo "✅ TypeScript check passed"
+echo "TypeScript check passed"
 echo ""
 
-echo "🧪 Running Jest tests..."
+echo "Running Jest tests..."
 npm run test:ci
-echo "✅ Tests passed"
+echo "Tests passed"
 echo ""
 
 echo "🏗️  Building Next.js app..."
 npm run build
-echo "✅ Build successful"
+echo "Build successful"
 echo ""
 
-echo "🎉 All Frontend CI checks passed!"
+echo "All Frontend CI checks passed!"

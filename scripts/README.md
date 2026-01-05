@@ -40,43 +40,6 @@ Or:
 ./scripts/ci-local-backend.sh
 ```
 
-## What Each Script Does
-
-### Frontend CI (`ci-local-frontend.sh`)
-
-Mirrors `.github/workflows/frontend-ci.yml`:
-
-1. ✅ Installs npm dependencies
-2. ✅ Runs ESLint (code quality)
-3. ✅ Runs Prettier (formatting check)
-4. ✅ Runs TypeScript type checker
-5. ✅ Runs Jest tests with coverage
-6. ✅ Builds Next.js for production
-
-### Backend CI (`ci-local-backend.sh`)
-
-Mirrors `.github/workflows/backend-ci.yml`:
-
-1. ✅ Installs Ruby gems
-2. ✅ Sets up test database
-3. ✅ Runs RuboCop (code quality)
-4. ✅ Runs Brakeman (security scan)
-5. ✅ Runs RSpec tests
-
-### All CI (`ci-local-all.sh`)
-
-Runs both frontend and backend checks sequentially.
-
-## When to Use
-
-### Before Every Push
-
-```bash
-npm run ci
-```
-
-If this passes, your PR will likely pass GitHub Actions.
-
 ### During Development (Faster Feedback)
 
 ```bash
@@ -90,19 +53,6 @@ cd raincoat_api
 bundle exec rubocop # Just RuboCop
 bundle exec rspec   # Just tests
 ```
-
-## Requirements
-
-### Frontend
-
-- Node.js 20.x
-- npm
-
-### Backend
-
-- Ruby 3.2
-- PostgreSQL (running locally)
-- Redis (running locally, or script will skip)
 
 ### Using Docker
 
@@ -147,8 +97,8 @@ Or the script will skip the security check gracefully.
 
 ## Exit Codes
 
-- **0**: All checks passed ✅
-- **1**: One or more checks failed ❌
+- **0**: All checks passed
+- **1**: One or more checks failed
 
 ## Performance
 
@@ -162,7 +112,7 @@ Much faster than waiting for GitHub Actions (which also has queue time).
 
 ## All Available Scripts
 
-### 🔄 CI/Testing Scripts
+### CI/Testing Scripts
 
 #### `ci-local-frontend.sh`
 
@@ -193,7 +143,7 @@ Runs both frontend and backend CI checks sequentially.
 
 ---
 
-### 🐳 Docker Utilities
+### Docker Utilities
 
 #### `reset_docker.sh`
 
@@ -221,7 +171,7 @@ python scripts/process_seed_images.py
 
 ---
 
-### 🤖 Model Extraction Scripts
+### Model Extraction Scripts
 
 Located in `scripts/model_extraction_scripts/`:
 
@@ -255,7 +205,7 @@ python scripts/model_extraction_scripts/yolo_interactive_model_improvement.py
 
 **`u2net_onnx_extract.py`**
 
-- Exports U2-Net model to ONNX format
+- Exports U2-Net model to ONNX format FP32
 
 ```bash
 python scripts/model_extraction_scripts/u2net_onnx_extract.py
@@ -263,7 +213,7 @@ python scripts/model_extraction_scripts/u2net_onnx_extract.py
 
 **`u2net_quantized/u2net_onnx_export_v2.py`**
 
-- Exports quantized (optimized) version of U2-Net model
+- Exports quantized (optimized) version of U2-Net model FP16
 
 ```bash
 python scripts/model_extraction_scripts/u2net_quantized/u2net_onnx_export_v2.py
@@ -273,7 +223,7 @@ python scripts/model_extraction_scripts/u2net_quantized/u2net_onnx_export_v2.py
 
 **`fashionclip_onnx_export.py`**
 
-- Exports FashionCLIP model to ONNX format
+- Exports FashionCLIP model to ONNX format FP32
 
 ```bash
 python scripts/model_extraction_scripts/fashionclip_onnx_export.py
@@ -281,7 +231,7 @@ python scripts/model_extraction_scripts/fashionclip_onnx_export.py
 
 **`FCLIP_quantized/FCLIP_onnx_export_V2.py`**
 
-- Exports quantized (optimized) version of FashionCLIP
+- Exports quantized (optimized) version of FashionCLIP FP16
 
 ```bash
 python scripts/model_extraction_scripts/FCLIP_quantized/FCLIP_onnx_export_V2.py
@@ -305,36 +255,6 @@ python scripts/model_extraction_scripts/fclip_generate_label_embeddings.py
 python scripts/model_extraction_scripts/test_exported_models.py
 ```
 
----
-
-## Script Organization
-
-```
-scripts/
-├── ci-local-all.sh              # Run all CI checks
-├── ci-local-backend.sh          # Run backend CI only
-├── ci-local-frontend.sh         # Run frontend CI only
-├── reset_docker.sh              # Reset Docker environment
-├── process_seed_images.py       # Process training images
-│
-└── model_extraction_scripts/    # AI model export/optimization
-    ├── yolo_export_only.py
-    ├── yolo_full_process.py
-    ├── yolo_interactive_model_improvement.py
-    ├── u2net_onnx_extract.py
-    ├── fashionclip_onnx_export.py
-    ├── fclip_generate_label_embeddings.py
-    ├── test_exported_models.py
-    │
-    ├── u2net_quantized/
-    │   └── u2net_onnx_export_v2.py
-    │
-    └── FCLIP_quantized/
-        └── FCLIP_onnx_export_V2.py
-```
-
----
-
 ## Common Workflows
 
 ### Before Pushing Code
@@ -348,26 +268,4 @@ npm run ci  # Run all CI checks
 ```bash
 ./scripts/reset_docker.sh
 docker compose -f docker-compose.dev.yaml up -d
-```
-
-### Export All AI Models
-
-```bash
-# YOLO
-python scripts/model_extraction_scripts/yolo_export_only.py
-
-# U2-Net
-python scripts/model_extraction_scripts/u2net_onnx_extract.py
-
-# FashionCLIP
-python scripts/model_extraction_scripts/fashionclip_onnx_export.py
-
-# Test all exports
-python scripts/model_extraction_scripts/test_exported_models.py
-```
-
-### Process Training Images
-
-```bash
-python scripts/process_seed_images.py
 ```
