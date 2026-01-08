@@ -23,7 +23,7 @@ proxy:
 
 # Credentials for your image host.
 registry:
-  # Specify the registry server, if you're not using Docker Hub
+  # Specify the registry server, if you are not using Docker Hub
   # server: registry.digitalocean.com / ghcr.io / ...
   username: your-user
 
@@ -61,12 +61,10 @@ aliases:
   logs: app logs -f
   dbc: app exec --interactive --reuse "bin/rails dbconsole"
 
-
 # Use a persistent storage volume for sqlite database files and local Active Storage files.
 # Recommended to change this to a mounted volume path that is backed up off server.
 volumes:
-  - "raincoat_api_storage:/rails/storage"
-
+  - 'raincoat_api_storage:/rails/storage'
 
 # Bridge fingerprinted assets, like JS and CSS, between versions to avoid
 # hitting 404 on in-flight requests. Combines all files from new and old
