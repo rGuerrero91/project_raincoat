@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "misogi.ruby-rubocop",
+    "bradlc.vscode-tailwindcss",
+    "Orta.vscode-jest"
+  ]
+}

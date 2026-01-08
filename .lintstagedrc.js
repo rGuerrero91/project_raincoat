@@ -4,13 +4,13 @@ module.exports = {
     const files = filenames.map(f => f.replace(/^raincoat_frontend\//, ''));
     return [
       `cd raincoat_frontend && eslint --fix ${files.join(' ')}`,
-      `prettier --write ${filenames.join(' ')}`,
+      `npx prettier --write ${filenames.join(' ')}`,
     ];
   },
 
   // Frontend styles and config files
   'raincoat_frontend/**/*.{css,json,md}': (filenames) => {
-    return `prettier --write ${filenames.join(' ')}`;
+    return `npx prettier --write ${filenames.join(' ')}`;
   },
 
   // Backend Ruby files
@@ -21,11 +21,11 @@ module.exports = {
 
   // Backend config files
   'raincoat_api/**/*.{yml,yaml,json}': (filenames) => {
-    return `prettier --write ${filenames.join(' ')}`;
+    return `npx prettier --write ${filenames.join(' ')}`;
   },
 
   // Root level config files
   '*.{json,md,yml,yaml}': (filenames) => {
-    return `prettier --write ${filenames.join(' ')}`;
+    return `npx prettier --write ${filenames.join(' ')}`;
   },
 };
