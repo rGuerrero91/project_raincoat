@@ -2,28 +2,30 @@
 services:
   db:
     image: pgvector/pgvector:pg16
+    platform: linux/amd64
     environment:
       POSTGRES_DB: raincoat_api_development
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
+    platform: linux/amd64
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
-      
+
   rails:
     build:
       context: ./raincoat_api
@@ -33,7 +35,7 @@ services:
       - ./raincoat_api:/app
       - bundle_cache:/usr/local/bundle
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       db:
         condition: service_healthy
