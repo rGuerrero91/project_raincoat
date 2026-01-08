@@ -10,6 +10,7 @@
     "ci:backend": "./scripts/ci-local-backend.sh",
     "ci:all": "./scripts/ci-local-all.sh",
     "ci": "./scripts/ci-local-all.sh",
+    "ci:clean": "./scripts/ci-clean.sh",
     "docker:reset": "./scripts/reset_docker.sh"
   },
   "devDependencies": {
