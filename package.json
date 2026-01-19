@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "eslint-config-next": "^15.5.9",
-    "next": "^15.5.9"
+    "next": "^15.5.9",
+    "zod": "^4.3.5"
   }
 }
