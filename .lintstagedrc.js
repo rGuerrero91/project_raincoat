@@ -26,6 +26,8 @@ module.exports = {
 
   // Root level config files
   '*.{json,md,yml,yaml}': (filenames) => {
-    return `prettier --write ${filenames.join(' ')}`;
+    const filtered = filenames.filter(f => !f.endsWith('CLAUDE.md'));
+    if (filtered.length === 0) return [];
+    return `prettier --write ${filtered.join(' ')}`;
   },
 };
