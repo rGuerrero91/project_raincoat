@@ -1,11 +1,10 @@
-class Api::V1::OutfitsController < ApplicationController
-  before_action :set_user
+class Api::V1::OutfitsController < Api::V1::BaseController
   before_action :set_outfit, only: [ :show, :destroy ]
 
   # GET /api/v1/outfits
   # Get all saved outfits for the user
   def index
-    @outfits = @user.outfits.recent.includes(outfit_items: :clothing_item)
+    @outfits = current_user.outfits.recent.includes(outfit_items: :clothing_item)
 
     # Optional filtering
     if params[:weather_condition].present?
@@ -74,14 +73,14 @@ class Api::V1::OutfitsController < ApplicationController
   # POST /outfits
   # Save a generated outfit
   def create
-    @outfit = @user.outfits.build(outfit_params)
+    @outfit = current_user.outfits.build(outfit_params)
 
     if @outfit.save
       # Add clothing items to the outfit
       if params[:items].present?
         params[:items].each do |slot, item_data|
           item_id = item_data.is_a?(Hash) ? item_data[:id] : item_data
-          clothing_item = @user.clothing_items.find_by(id: item_id)
+          clothing_item = current_user.clothing_items.find_by(id: item_id)
 
           if clothing_item
             @outfit.outfit_items.create!(
@@ -112,21 +111,8 @@ class Api::V1::OutfitsController < ApplicationController
 
   private
 
-  def set_user
-    # For now, use the first user or user from params
-    @user = if params[:user_id].present?
-              User.find(params[:user_id])
-    else
-              User.first
-    end
-
-    unless @user
-      render json: { error: 'User not found' }, status: :not_found
-    end
-  end
-
   def set_outfit
-    @outfit = @user.outfits.find(params[:id])
+    @outfit = current_user.outfits.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Outfit not found' }, status: :not_found
   end
@@ -146,7 +132,7 @@ class Api::V1::OutfitsController < ApplicationController
     end
 
     # Otherwise, fetch from user's default location
-    location = @user.default_location
+    location = current_user.default_location
 
     if location
       # Only use cached weather if it's less than 6 hours old
@@ -194,7 +180,7 @@ class Api::V1::OutfitsController < ApplicationController
     items = {}
 
     categories.each do |category|
-      items[category] = @user.clothing_items.where(category: category).to_a
+      items[category] = current_user.clothing_items.where(category: category).to_a
     end
 
     items

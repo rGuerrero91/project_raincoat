@@ -29,17 +29,23 @@ puts "Creating users..."
 
 rudy_user = User.create!(
   name: "Rudy Rudo",
-  email: "rudy@email.com"
+  email: "rudy@email.com",
+  password: "password123",
+  password_confirmation: "password123"
 )
 
 test_user = User.create!(
   name: "Test User2",
-  email: "test@example.com"
+  email: "test@example.com",
+  password: "password123",
+  password_confirmation: "password123"
 )
 
 demo_user = User.create!(
   name: "Demo User",
-  email: "demo@sample.com"
+  email: "demo@sample.com",
+  password: "password123",
+  password_confirmation: "password123"
 )
 
 puts "Created #{User.count} users"

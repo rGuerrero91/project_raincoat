@@ -1,8 +1,15 @@
 class Api::V1::ClothingItemsController < Api::V1::BaseController
-  before_action :set_clothing_item, only: [ :show, :get_embedding, :save_embedding, :similar ]
+  before_action :set_clothing_item, only: [ :show, :update, :destroy, :get_embedding, :save_embedding, :similar ]
 
   def index
     items = current_user.clothing_items.includes(:clothing_embedding)
+
+    items = items.where(category: params[:category]) if params[:category].present?
+    if params[:search].present?
+      search_term = "%#{params[:search]}%"
+      items = items.where("user_tags::text ILIKE ? OR ai_tags::text ILIKE ? OR name ILIKE ?",
+                          search_term, search_term, search_term)
+    end
 
     render json: {
       success: true,
@@ -37,6 +44,29 @@ class Api::V1::ClothingItemsController < Api::V1::BaseController
         details: item.errors.full_messages
       }, status: :unprocessable_entity
     end
+  end
+
+  # PATCH /api/v1/clothing_items/:id
+  def update
+    if @clothing_item.update(clothing_item_params)
+      render json: {
+        success: true,
+        message: 'Clothing item updated successfully',
+        data: serialize_clothing_item(@clothing_item)
+      }
+    else
+      render json: {
+        success: false,
+        error: 'Failed to update clothing item',
+        details: @clothing_item.errors.full_messages
+      }, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /api/v1/clothing_items/:id
+  def destroy
+    @clothing_item.destroy
+    head :no_content
   end
 
   # GET /api/v1/clothing_items/:id/embedding
